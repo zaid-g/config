@@ -1,1 +1,5 @@
-nnoremap <C-E> <C-E>k
+nnoremap <C-K> k<C-Y>
+nnoremap <C-J> j<C-E>
+
+
+
