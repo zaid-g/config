@@ -4,19 +4,3 @@ nnoremap <Space> :noh <CR>
 filetype plugin indent on
 :set hlsearch
 syntax on
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
