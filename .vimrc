@@ -6,4 +6,4 @@ filetype plugin indent on
 :set hlsearch
 syntax on
 set timeoutlen=1000 ttimeoutlen=0
-:nnoremap <C-y> /\(# In\[.*\]:\)\\|\(\%$\)<CR>NjVnk"+ynj:noh<CR>
+:nnoremap <C-y> /\(# In\[.*\]:\)\\|\(\%$\)<CR>NjVnk"+yn:noh<CR>j
