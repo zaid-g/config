@@ -7,4 +7,5 @@ filetype plugin indent on
 :set nu
 syntax on
 set timeoutlen=1000 ttimeoutlen=0
-:nnoremap <C-y> /\(# In\[.*\]:\)\\|\(\%$\)<CR>NjVnk"+ynzz:noh<CR>j #jupyter notebook like execution / block execution
+:nnoremap C /\(# In\[.*\]:\)\\|\(\%$\)<CR>NjVn"+yn:noh<CR>jzz
+:nnoremap I o# In[ ]:<CR>
