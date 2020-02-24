@@ -1,5 +1,6 @@
-noremap <C-K> k<C-Y>
-noremap <C-J> j<C-E>
+noremap K k<C-Y>
+noremap J j<C-E>
+nnoremap <C-J> J
 vmap Y "+y
 nnoremap <Space> :noh<CR>
 filetype plugin indent on
@@ -9,3 +10,4 @@ syntax on
 set timeoutlen=1000 ttimeoutlen=0
 :nnoremap C /\(# In\[.*\]:\)\\|\(\%$\)<CR>NjVn"+yn:noh<CR>jzz
 :nnoremap I o# In[ ]:<CR>
+set laststatus=2
