@@ -11,3 +11,6 @@ set timeoutlen=1000 ttimeoutlen=0
 :nnoremap C /\(# In\[.*\]:\)\\|\(\%$\)<CR>NjVn"+yn:noh<CR>jzz
 :nnoremap I o# In[ ]:<CR>
 set laststatus=2
+:vmap y ygv<Esc>
+xnoremap p pgvy
+:map cc :let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<C-M>
