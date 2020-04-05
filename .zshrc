@@ -9,6 +9,7 @@ zle -N zle-line-init
 zle -N zle-keymap-select
 export KEYTIMEOUT=1
 
+#git stuff and prompt stuff
 setopt prompt_subst
 autoload -Uz vcs_info
 zstyle ':vcs_info:*' stagedstr 'M'
@@ -25,7 +26,8 @@ zstyle ':vcs_info:*' enable git
   hook_com[unstaged]+='%F{1}??%f'
 fi
 }
-
-
 precmd () { vcs_info }
 PROMPT='%F{5}[%F{2}%n%F{5}] %F{3}%3~ ${vcs_info_msg_0_} %f%# '
+
+#color ls
+alias ls='ls --color=auto'
