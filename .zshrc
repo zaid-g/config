@@ -5,6 +5,7 @@ function zle-line-init zle-keymap-select {
     RPS2=$RPS1
     zle reset-prompt
 }
+
 zle -N zle-line-init
 zle -N zle-keymap-select
 export KEYTIMEOUT=1
