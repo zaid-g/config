@@ -25,8 +25,8 @@ function! EmacsPageMovUp()
     let key="K"
     execute 'normal ' . (height-2). key 
 endfunction
-nnoremap <silent> <up> :call EmacsPageMovUp()<CR>
-nnoremap <silent> <down> :call EmacsPageMovDown()<CR>
+nnoremap <c-u> :call EmacsPageMovUp()<CR>
+nnoremap <c-d> :call EmacsPageMovDown()<CR>
 
 " copy to system clipboard
 vmap Y "+y
