@@ -8,8 +8,8 @@ set shiftwidth=4
 set expandtab
 
 " addtional scroll movements
-nnoremap K @="k\<lt>C-Y>"<CR>
-nnoremap J @="j\<lt>C-E>"<CR>
+noremap K @="k\<lt>C-Y>"<CR>
+noremap J @="j\<lt>C-E>"<CR>
 
 " remap bringing bottom sentence up
 nnoremap <C-J> J
@@ -64,3 +64,5 @@ if &diff
     set diffopt+=iwhite
 endif
 
+" python specific ipdb set_trace call shortcut
+:nnoremap <c-p> Oimport ipdb; ipdb.set_trace()<ESC>
