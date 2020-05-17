@@ -1,3 +1,6 @@
+" Author: zaid gharaybeh
+
+
 " allows using default , functionality
 nnoremap ,, ,
 
@@ -18,9 +21,6 @@ noremap J @="j\<lt>C-E>"<CR>
 noremap <c-j> J
 noremap <c-k> K
 
-" copy to system clipboard
-vnoremap Y "+y
-
 nnoremap <Space> :noh<CR>
 filetype plugin indent on
 :set hlsearch
@@ -28,7 +28,7 @@ filetype plugin indent on
 syntax on
 set timeoutlen=1000 ttimeoutlen=0
 
-" block abstraction and execution
+" block abstraction and execution "TODO make below work with beginning of file
 :nnoremap ,c /\(# In\[.*\]:\)\\|\(\%$\)<CR>NjVn"+yn:noh<CR>jzz
 :nnoremap ,b o<CR># Block[ ]:<CR><CR>
 
@@ -37,11 +37,16 @@ set laststatus=2
 " make copy not bounce back to beginning of block
 :vmap y ygv<Esc>
 
+" copy to system clipboard "TODO understand how Y works in normal or visual
+" mode
+vnoremap Y "+y
+
 " allows multiple pasting of copied text
 xnoremap p pgvy
 
-" shortcut to highlight whole word under cursor
-:noremap ,h :let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<C-M>b
+" shortcut to highlight whole word under cursor "TODO make this work in visual
+" mode
+:noremap ,h :let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<C-M>b 
 
 " Ctags set
 set tags=tags
