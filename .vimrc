@@ -1,3 +1,6 @@
+" allows using default , functionality
+nnoremap ,, ,
+
 " redefine tabs as spaces and auto indent
 filetype plugin indent on
 " show existing tab with 4 spaces width
@@ -38,7 +41,7 @@ set laststatus=2
 xnoremap p pgvy
 
 " shortcut to highlight whole word under cursor
-:noremap ,v :let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<C-M>b
+:noremap ,h :let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<C-M>b
 
 " Ctags set
 set tags=tags
