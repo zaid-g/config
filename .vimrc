@@ -10,26 +10,13 @@ set expandtab
 " addtional scroll movements
 noremap K @="k\<lt>C-Y>"<CR>
 noremap J @="j\<lt>C-E>"<CR>
-
-" remap bringing bottom sentence up
-nnoremap <C-J> J
-
-" shortcut to scroll whole page minus 2 lines
-function! EmacsPageMovDown()
-    let height=winheight(0)
-    let key="J" 
-    execute 'normal ' . (height-2) . key 
-endfunction
-function! EmacsPageMovUp() 
-    let height=winheight(0)
-    let key="K"
-    execute 'normal ' . (height-2). key 
-endfunction
-nnoremap <c-u> :call EmacsPageMovUp()<CR>
-nnoremap <c-d> :call EmacsPageMovDown()<CR>
+" remap replaced J and K functionality (assumes ctrl-J and ctrl-K are not used
+" in normal/visual mode)
+noremap <c-j> J
+noremap <c-k> K
 
 " copy to system clipboard
-vmap Y "+y
+vnoremap Y "+y
 
 nnoremap <Space> :noh<CR>
 filetype plugin indent on
@@ -39,19 +26,19 @@ syntax on
 set timeoutlen=1000 ttimeoutlen=0
 
 " block abstraction and execution
-:nnoremap C /\(# In\[.*\]:\)\\|\(\%$\)<CR>NjVn"+yn:noh<CR>jzz
-:nnoremap I o<CR># In[ ]:<CR><CR>
+:nnoremap ,c /\(# In\[.*\]:\)\\|\(\%$\)<CR>NjVn"+yn:noh<CR>jzz
+:nnoremap ,b o<CR># Block[ ]:<CR><CR>
 
 set laststatus=2
 
-" copy doesn't bounce back to beginning of block
+" make copy not bounce back to beginning of block
 :vmap y ygv<Esc>
 
 " allows multiple pasting of copied text
 xnoremap p pgvy
 
 " shortcut to highlight whole word under cursor
-:map cc :let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<C-M>b
+:noremap ,v :let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<C-M>b
 
 " Ctags set
 set tags=tags
