@@ -61,3 +61,8 @@ endif
 
 " python specific ipdb set_trace call shortcut
 :nnoremap <c-p> Oimport ipdb; ipdb.set_trace()<ESC>
+
+" split multiple buffers functionality 
+" https://vi.stackexchange.com/questions/25312/how-to-split-view-multiple-buffers-in-vim/25361#25361
+command -bar -nargs=+ -complete=buffer Sbuffers execute map([<f-args>], {_, b -> printf("sbuffer %s", b)})->join("|")
+
