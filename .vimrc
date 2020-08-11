@@ -1,8 +1,22 @@
+"""""""""""""""""""""""""
 " Author: zaid gharaybeh
+
+" Notes
+" 1) leader is used to replace default keys that i've remapped
+
+"""""""""""""""""""""""""
 
 
 " allows using default , functionality
 nnoremap ,, ,
+
+" make x cut into black hole register
+nnoremap x "_x
+vnoremap x "_x
+nnoremap X "_X
+vnoremap X "_X
+" ,d is like dd but text goes to black hole register
+nnoremap ,d V"_x
 
 " redefine tabs as spaces and auto indent
 filetype plugin indent on
@@ -14,12 +28,13 @@ set shiftwidth=4
 set expandtab
 
 " addtional scroll movements
-noremap K @="k\<lt>C-Y>"<CR>
-noremap J @="j\<lt>C-E>"<CR>
-" remap replaced J and K functionality (assumes ctrl-J and ctrl-K are not used
-" in normal/visual mode)
+noremap <silent> K @="k\<lt>C-Y>"<CR>
+noremap <silent> J @="j\<lt>C-E>"<CR>
+" replace buttons 
 noremap <c-j> J
 noremap <c-k> K
+noremap <Leader>k <c-k>
+
 
 nnoremap <Space> :noh<CR>
 filetype plugin indent on
@@ -29,7 +44,7 @@ syntax on
 set timeoutlen=1000 ttimeoutlen=0
 
 " block abstraction and execution "TODO make below work with beginning of file
-:nnoremap ,c /\(# In\[.*\]:\)\\|\(\%$\)<CR>NjVn"+yn:noh<CR>jzz
+:nnoremap ,c /\(# Block\[.*\]:\)\\|\(\%$\)<CR>NjVn"+yn:noh<CR>jzz
 :nnoremap ,b o<CR># Block[ ]:<CR><CR>
 
 set laststatus=2
@@ -48,11 +63,9 @@ xnoremap p pgvy
 " mode
 :noremap ,h :let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<C-M>b 
 
-" Ctags set
+" ctags set
 set tags=tags
-
-" Parantheses different colors
-hi MatchParen cterm=none ctermbg=green ctermfg=blue
+nnoremap ,t :!ctags -R .<CR>:set tags=tags<CR>
 
 if &diff
     " diff mode
@@ -62,7 +75,16 @@ endif
 " python specific ipdb set_trace call shortcut
 :nnoremap <c-p> Oimport ipdb; ipdb.set_trace()<ESC>
 
-" split multiple buffers functionality 
-" https://vi.stackexchange.com/questions/25312/how-to-split-view-multiple-buffers-in-vim/25361#25361
-command -bar -nargs=+ -complete=buffer Sbuffers execute map([<f-args>], {_, b -> printf("sbuffer %s", b)})->join("|")
-
+" highlighting
+:colo ron
+"hi Normal ctermfg=121 ctermbg=0 guifg=lightgreen guibg=Black
+hi MatchParen cterm=NONE ctermbg=green ctermfg=white guifg=NONE "paranthesis
+set culopt=number
+set cursorline
+highlight CursorLineNr cterm=NONE ctermbg=darkgrey ctermfg=NONE gui=NONE guibg=#ffffff guifg=#d70000
+" make current window more obvious
+augroup BgHighlight
+    autocmd!
+    autocmd WinEnter * set cul
+    autocmd WinLeave * set nocul
+augroup END
