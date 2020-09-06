@@ -1,22 +1,47 @@
 """""""""""""""""""""""""
 " Author: zaid gharaybeh
-
-" Notes
-" 1) leader is used to replace default keys that i've remapped
-
+"
 """""""""""""""""""""""""
 
+" addtional scroll movements and replace buttons
+noremap <silent> J @="j\<lt>C-E>"<CR>
+noremap <silent> K @="k\<lt>C-Y>"<CR>
+noremap <c-j> J
+noremap <c-k> K
+" copy to system clipboard TODO understand how Y works in normal or visual mode
+vnoremap Y "+y
+" allows multiple pasting of copied text
+xnoremap p pgvy
+"
+nnoremap <Space> :noh<CR>
+"
+nnoremap <c-p> Oimport ipdb; ipdb.set_trace()<ESC>:w<CR>
+" frees up , to use for my own bindings
+noremap <c-m> ,
 
-" allows using default , functionality
-nnoremap ,, ,
 
-" make x cut into black hole register
-nnoremap x "_x
-vnoremap x "_x
-nnoremap X "_X
-vnoremap X "_X
-" ,d is like dd but text goes to black hole register
-nnoremap ,d V"_x
+" open all files recursively of type determined after
+nnoremap ,n :n **/*.
+" block abstraction and execution "TODO make below work with beginning of file
+nnoremap ,y /\(# Block\[.*\]:\)\\|\(\%$\)<CR>NjVn"+yn:noh<CR>jzz
+nnoremap ,b o<CR># Block[ ]:<CR><CR>
+" ctags
+nnoremap ,t :!ctags -R .<CR>:set tags=tags<CR>
+" shortcut to highlight whole word under cursor TODO make this work in visual mode
+noremap ,h :let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<CR>b
+" insert python docstring
+nnoremap ,idp o"""<CR>ToDo:description<CR><CR><CR>Keyword arguments:<CR>arg1 -- <CR>arg2 -- <CR>"""<ESC>
+
+
+"
+set hidden
+" ctags set
+set tags=tags
+"
+set laststatus=2
+"
+set sessionoptions-=options " Don't save options so loading session saved with mks doesn't disable cul (set cul)
+
 
 " redefine tabs as spaces and auto indent
 filetype plugin indent on
@@ -27,53 +52,18 @@ set shiftwidth=4
 " On pressing tab, insert 4 spaces
 set expandtab
 
-" addtional scroll movements
-noremap <silent> K @="k\<lt>C-Y>"<CR>
-noremap <silent> J @="j\<lt>C-E>"<CR>
-" replace buttons 
-noremap <c-j> J
-noremap <c-k> K
-noremap <Leader>k <c-k>
 
-
-nnoremap <Space> :noh<CR>
-filetype plugin indent on
-:set hlsearch
-:set nu
+set hlsearch
+set nu
 syntax on
 set timeoutlen=1000 ttimeoutlen=0
 
-" block abstraction and execution "TODO make below work with beginning of file
-:nnoremap ,c /\(# Block\[.*\]:\)\\|\(\%$\)<CR>NjVn"+yn:noh<CR>jzz
-:nnoremap ,b o<CR># Block[ ]:<CR><CR>
-
-set laststatus=2
-
-" make copy not bounce back to beginning of block
-:vmap y ygv<Esc>
-
-" copy to system clipboard "TODO understand how Y works in normal or visual
-" mode
-vnoremap Y "+y
-
-" allows multiple pasting of copied text
-xnoremap p pgvy
-
-" shortcut to highlight whole word under cursor "TODO make this work in visual
-" mode
-:noremap ,h :let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<C-M>b 
-
-" ctags set
-set tags=tags
-nnoremap ,t :!ctags -R .<CR>:set tags=tags<CR>
 
 if &diff
     " diff mode
     set diffopt+=iwhite
 endif
 
-" python specific ipdb set_trace call shortcut
-:nnoremap <c-p> Oimport ipdb; ipdb.set_trace()<ESC>
 
 " highlighting
 :colo ron
