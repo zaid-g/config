@@ -23,9 +23,10 @@ bindkey -M menuselect 'j' vi-down-line-or-history
 bindkey -v '^?' backward-delete-char
 
 
-alias ipython="ipython --TerminalInteractiveShell.editing_mode=vi"
-alias ipython3="ipython3 --TerminalInteractiveShell.editing_mode=vi"
+alias vipy="ipython --TerminalInteractiveShell.editing_mode=vi"
+alias vipy3="ipython3 --TerminalInteractiveShell.editing_mode=vi"
 alias gs="git status"
+alias gic="git commit -m \""
 
 # Load zsh-syntax-highlighting; should be last.
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null
