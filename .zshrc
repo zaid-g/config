@@ -1,5 +1,3 @@
-# Created by newuser for 5.4.2
-
 #vim mode
 bindkey -v
 export KEYTIMEOUT=1
@@ -26,7 +24,7 @@ bindkey -v '^?' backward-delete-char
 alias vipy="ipython --TerminalInteractiveShell.editing_mode=vi"
 alias vipy3="ipython3 --TerminalInteractiveShell.editing_mode=vi"
 alias gs="git status"
-alias gic="git commit -m \""
+alias gc="git commit -m "
 
 # Load zsh-syntax-highlighting; should be last.
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null

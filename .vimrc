@@ -1,5 +1,5 @@
 """""""""""""""""""""""""
-" Author: zaid gharaybeh
+" Author: Zaid Gharaybeh
 "
 """""""""""""""""""""""""
 
@@ -64,17 +64,3 @@ if &diff
     set diffopt+=iwhite
 endif
 
-
-" highlighting
-:colo ron
-"hi Normal ctermfg=121 ctermbg=0 guifg=lightgreen guibg=Black
-hi MatchParen cterm=NONE ctermbg=green ctermfg=white guifg=NONE "paranthesis
-set culopt=number
-set cursorline
-highlight CursorLineNr cterm=NONE ctermbg=darkgrey ctermfg=NONE gui=NONE guibg=#ffffff guifg=#d70000
-" make current window more obvious
-augroup BgHighlight
-    autocmd!
-    autocmd WinEnter * set cul
-    autocmd WinLeave * set nocul
-augroup END
