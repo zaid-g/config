@@ -31,6 +31,8 @@ nnoremap ,t :!ctags -R .<CR>:set tags=tags<CR>
 noremap ,h :let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<CR>b
 " insert python docstring
 nnoremap ,idp o"""<CR>ToDo:description<CR><CR><CR>Keyword arguments:<CR>arg1 -- <CR>arg2 -- <CR>"""<ESC>
+" replace occurences with incrementing counter appended
+nnoremap ,ri :let @a=1 | %s/search/\='replace'.(@a+setreg('a',@a+1))/g
 
 
 "
