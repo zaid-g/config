@@ -27,6 +27,9 @@ alias gs="git status"
 alias gc="git commit -m "
 alias ll="ls -l"
 alias gpo="git push -u origin HEAD"
+alias vims="vim -S"
+alias git branch="git branch --sort=-committerdate"
+
 
 # Load zsh-syntax-highlighting; should be last.
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null
