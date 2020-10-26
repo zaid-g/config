@@ -1,3 +1,8 @@
+#. <path>
+
+
+
+
 #vim mode
 bindkey -v
 export KEYTIMEOUT=1
