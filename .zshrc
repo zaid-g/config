@@ -24,11 +24,14 @@ bindkey -v '^?' backward-delete-char
 alias vipy="ipython --TerminalInteractiveShell.editing_mode=vi"
 alias vipy3="ipython3 --TerminalInteractiveShell.editing_mode=vi"
 alias gs="git status"
-alias gc="git commit -m "
-alias ll="ls -l"
+alias gc="git commit -m"
+alias ll="ls -lt"
 alias gpo="git push -u origin HEAD"
 alias vims="vim -S"
 alias git branch="git branch --sort=-committerdate"
+alias tls="tmux ls"
+alias tas="tmux attach-session -t"
+alias tks="tmux kill-session -t"
 
 
 # Load zsh-syntax-highlighting; should be last.
