@@ -63,6 +63,7 @@ set shiftwidth=4
 set expandtab
 
 
+
 set hlsearch
 set nu
 syntax on
@@ -73,4 +74,9 @@ if &diff
     " diff mode
     set diffopt+=iwhite
 endif
+
+
+" for tmux color to be consistent
+set background=dark
+set t_Co=256
 
