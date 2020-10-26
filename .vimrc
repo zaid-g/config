@@ -80,3 +80,5 @@ endif
 set background=dark
 set t_Co=256
 
+""Package/Plugin settings
+let g:slime_target = "tmux"
