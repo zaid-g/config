@@ -32,6 +32,7 @@ alias git branch="git branch --sort=-committerdate"
 alias tls="tmux ls"
 alias tas="tmux attach-session -t"
 alias tks="tmux kill-session -t"
+alias tkas="tmux kill-server"
 
 
 # Load zsh-syntax-highlighting; should be last.
