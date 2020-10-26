@@ -3,13 +3,20 @@
 "
 """""""""""""""""""""""""
 
+
+
+
+
 " addtional scroll movements and replace buttons
 noremap <silent> J @="j\<lt>C-E>"<CR>
 noremap <silent> K @="k\<lt>C-Y>"<CR>
 noremap <c-j> J
 noremap <c-k> K
-" copy to system clipboard TODO understand how Y works in normal or visual mode
-vnoremap Y "+y
+" copy now more logical with uppercase (copies from cursor to end of line)
+map Y y$
+" copy to system clipboard
+noremap ,y "+y
+noremap ,Y "+Y
 " allows multiple pasting of copied text
 xnoremap p pgvy
 "
@@ -23,7 +30,7 @@ noremap <c-m> ,
 " open all files recursively of type determined after
 nnoremap ,n :n **/*.
 " block abstraction and execution "TODO make below work with beginning of file
-nnoremap ,y /\(# Block\[.*\]:\)\\|\(\%$\)<CR>NjVn"+yn:noh<CR>jzz
+nnoremap ,<C-y> /\(# Block\[.*\]:\)\\|\(\%$\)<CR>NjVn"+yn:noh<CR>jzz
 nnoremap ,b o<CR># Block[ ]:<CR><CR>
 " ctags
 nnoremap ,t :!ctags -R .<CR>:set tags=tags<CR>
