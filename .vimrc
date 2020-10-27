@@ -83,3 +83,4 @@ set t_Co=256
 
 ""Package/Plugin settings
 let g:slime_target = "tmux"
+let g:slime_python_ipython = 1
