@@ -8,6 +8,7 @@
 
 
 
+"" Bread and butter
 " addtional scroll movements and replace buttons
 noremap <silent> J @="j\<lt>C-E>"<CR>
 noremap <silent> K @="k\<lt>C-Y>"<CR>
@@ -28,6 +29,9 @@ nnoremap <c-p> Oimport ipdb; ipdb.set_trace()<ESC>:w<CR>
 noremap <c-m> ,
 
 
+
+
+"" my mappings
 " open all files recursively of type determined after
 nnoremap ,n :n **/*.
 " block abstraction and execution "TODO make below work with beginning of file
@@ -44,16 +48,38 @@ nnoremap ,ri :let @a=1 \| %s/search/\='replace'.(@a+setreg('a',@a+1))/g
 nnoremap ,sb :botr vs<CR>:b 
 
 
+
+
+" timeout settings
+set timeoutlen=1000 ttimeoutlen=0
+
+
+
+"" visual options
+" highlight search results
+set hlsearch
+" highlight opposite [({
+hi MatchParen cterm=none ctermbg=darkgreen
+" set line number
+set nu
+" set syntax
+syntax on
 "
+set laststatus=2
+" make active window more visible
+hi StatusLine ctermfg=black ctermbg=darkgreen cterm=bold gui=bold
+" for vim to have consistent colors within tmux
+set background=dark
+set t_Co=256
+
+
+
+
+
+"" Other options
 set hidden
 " ctags set
 set tags=tags
-"
-set laststatus=2
-"
-set sessionoptions-=options " Don't save options so loading session saved with mks doesn't disable cul (set cul)
-
-
 " redefine tabs as spaces and auto indent
 filetype plugin indent on
 " show existing tab with 4 spaces width
@@ -65,23 +91,11 @@ set expandtab
 
 
 
-set hlsearch
-set nu
-syntax on
-set timeoutlen=1000 ttimeoutlen=0
 
 
-if &diff
-    " diff mode
-    set diffopt+=iwhite
-endif
 
-
-" for tmux color to be consistent
-set background=dark
-set t_Co=256
-
-""Package/Plugin settings
+"" Package/Plugin settings
+" Slime options
 let g:slime_target = "tmux"
 let g:slime_python_ipython = 1
 let g:slime_default_config = {"socket_name": "default", "target_pane": ".0"}

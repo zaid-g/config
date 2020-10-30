@@ -29,6 +29,7 @@ bindkey -v '^?' backward-delete-char
 alias vipy="ipython --TerminalInteractiveShell.editing_mode=vi"
 alias vipy3="ipython3 --TerminalInteractiveShell.editing_mode=vi"
 alias GS="git status"
+alias GD="git diff"
 alias GA="git add"
 alias GC="git commit -m"
 alias GCH="git checkout"
