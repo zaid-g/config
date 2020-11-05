@@ -26,7 +26,8 @@ nnoremap <Space> :noh<CR>
 "
 nnoremap <c-p> Oimport ipdb; ipdb.set_trace()<ESC>:w<CR>
 " frees up , to use for my own bindings
-noremap <c-m> ,
+noremap m ,
+noremap <c-m> m
 
 
 
@@ -38,9 +39,9 @@ nnoremap ,n :n **/*.
 nnoremap ,<C-y> /\(# Block\[.*\]:\)\\|\(\%$\)<CR>NjVn"+yn:noh<CR>jzz
 nnoremap ,b o<CR># Block[ ]:<CR><CR>
 " ctags
-nnoremap ,t :!ctags -R .<CR>:set tags=tags<CR>
+noremap ,t :<c-u>!ctags -R .<CR>:set tags=tags<CR>
 " shortcut to highlight whole word under cursor TODO make this work in visual mode
-noremap ,h :let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<CR>b
+noremap ,h :<c-u>let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<CR>wb
 " insert python docstring
 nnoremap ,idp o"""<CR>ToDo:description<CR><CR><CR>Keyword arguments:<CR>arg1 -- <CR>arg2 -- <CR>"""<ESC>
 " replace occurences with incrementing counter appended
@@ -96,10 +97,10 @@ set expandtab
 
 "" Package/Plugin settings
 " Slime 
-noremap ,sc :SlimeConfig<CR>
+noremap ,sc :<C-u>SlimeConfig<CR>
 let g:slime_target = "tmux"
 let g:slime_python_ipython = 1
 let g:slime_default_config = {"socket_name": "default", "target_pane": ".0"}
 let g:slime_dont_ask_default = 1
 " winresize
-nnoremap ,w :WinResizerStartResize<CR>
+noremap ,w :<C-u>WinResizerStartResize<CR>
