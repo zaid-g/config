@@ -6,6 +6,9 @@ cd .dotfiles
 touch -a ~/.zshrc
 touch -a ~/.tmux.conf
 touch -a ~/.vimrc
-grep -qxF 'source ~/dev/.dotfiles/.vimrc' ~/.vimrc || echo 'source ~/dev/.dotfiles/.vimrc' >> ~/.vimrc
-grep -qxF '. ~/dev/.dotfiles/.zshrc' ~/.zshrc || echo '. ~/dev/.dotfiles/.zshrc' >> ~/.zshrc
-grep -qxF 'source-file ~/dev/.dotfiles/.tmux.conf' ~/.tmux.conf || echo 'source-file ~/dev/.dotfiles/.tmux.conf' >> ~/.tmux.conf
+grep -qxF 'source ~/dev/.dotfiles/.vimrc' ~/.vimrc || echo "$(echo -n 'source ~/dev/.dotfiles/.vimrc\n'; cat ~/.vimrc)" > ~/.vimrc
+
+grep -qxF '. ~/dev/.dotfiles/.zshrc' ~/.zshrc || echo "$(echo -n '. ~/dev/.dotfiles/.zshrc\n'; cat ~/.zshrc)" > ~/.zshrc
+
+grep -qxF 'source-file ~/dev/.dotfiles/.tmux.conf' ~/.tmux.conf || echo "$(echo -n 'source-file ~/dev/.dotfiles/.tmux.conf\n'; cat ~/.tmux.conf)" > ~/.tmux.conf
+
