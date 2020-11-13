@@ -12,3 +12,6 @@ grep -qxF '. ~/dev/.dotfiles/.zshrc' ~/.zshrc || echo "$(echo -n '. ~/dev/.dotfi
 
 grep -qxF 'source-file ~/dev/.dotfiles/.tmux.conf' ~/.tmux.conf || echo "$(echo -n 'source-file ~/dev/.dotfiles/.tmux.conf\n'; cat ~/.tmux.conf)" > ~/.tmux.conf
 
+mkdir -p ~/.ipython/profile_default
+touch -a ~/.ipython/profile_default/ipython_config.py
+grep -qxF "c.TerminalInteractiveShell.editing_mode = 'vi'" ~/.ipython/profile_default/ipython_config.py || echo "c.TerminalInteractiveShell.editing_mode = 'vi'" >> ~/.ipython/profile_default/ipython_config.py
