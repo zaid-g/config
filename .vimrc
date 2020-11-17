@@ -34,7 +34,7 @@ noremap <c-m> m
 
 "" my mappings
 " open all files recursively of type determined after
-nnoremap ,n :n **/*.
+nnoremap ,n :n `find . -not -path '*/\.*' -type f -name '*.'`<Left><Left>
 " block abstraction and execution "TODO make below work with beginning of file
 nnoremap ,<C-y> /\(# Block\[.*\]:\)\\|\(\%$\)<CR>NjVn"+yn:noh<CR>jzz
 nnoremap ,b o<CR># Block[ ]:<CR><CR>
