@@ -20,15 +20,13 @@ noremap Y "+y
 xnoremap p pgvy
 "
 nnoremap <Space> :noh<CR>
-"
-nnoremap <c-p> Oimport ipdb; ipdb.set_trace()<ESC>:w<CR>
 " frees up m to use for my own bindings
 noremap mm m
 
 
 
 
-"" my mappings
+""" my mappings
 " open all files recursively of type determined after
 nnoremap ma :args `find . -not -path '*/\.*' -type f -name '*.'`<Left><Left>
 " block abstraction and execution "TODO make below work with beginning of file
@@ -38,13 +36,16 @@ nnoremap mb o<CR># Block[ ]:<CR><CR>
 noremap mt :<c-u>!ctags -R .<CR>:set tags=tags<CR>
 " shortcut to highlight whole word under cursor TODO make this work in visual mode
 noremap ml :<c-u>let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<CR>wb
-" insert python docstring
-nnoremap midp o"""<CR>ToDo:description<CR><CR><CR>Keyword arguments:<CR>arg1 -- <CR>arg2 -- <CR>"""<ESC>
 " replace occurences with incrementing counter appended
 nnoremap mri :let @a=1 \| %s/search/\='replace'.(@a+setreg('a',@a+1))/g
 nnoremap msb :botr vs<CR>:b 
-
-
+"" python mappings
+"
+nnoremap mp Oimport ipdb; ipdb.set_trace()<ESC>:w<CR>
+" insert python docstring
+nnoremap midp o"""<CR>ToDo:description<CR><CR><CR>Keyword arguments:<CR>arg1 -- <CR>arg2 -- <CR>"""<ESC>
+" timeit
+xnoremap mvt <ESC>`<Oimport time; my_start_time = time.time()<ESC>`>oprint("my_end_time - my_start_time = ", time.time() - my_start_time)<ESC>
 
 
 " timeout settings
