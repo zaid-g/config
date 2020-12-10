@@ -27,8 +27,8 @@ bindkey -M menuselect 'j' vi-down-line-or-history
 bindkey -v '^?' backward-delete-char
 
 
-alias vipy="ipython"
-alias vipy3="ipython3"
+alias vipy="python -m IPython"
+alias vipy3="python3 -m IPython"
 alias GS="git status"
 alias GD="git diff"
 alias GA="git add"
