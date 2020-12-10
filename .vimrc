@@ -31,7 +31,7 @@ noremap mm m
 nnoremap ma :args `find . -not -path '*/\.*' -type f -name '*.'`<Left><Left>
 " block abstraction and execution "TODO make below work with beginning of file
 nnoremap mY /\(# Block\[.*\]:\)\\|\(\%$\)<CR>NjVn"+yn:noh<CR>jzz
-nnoremap mb o<CR># Block[ ]:<CR><CR>
+nnoremap mb o<CR># ---------- [ ] ----------:<CR><CR><ESC>
 " ctags
 noremap mt :<c-u>!ctags -R .<CR>:set tags=tags<CR>
 " shortcut to highlight whole word under cursor TODO make this work in visual mode
