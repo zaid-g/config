@@ -6,14 +6,6 @@
 
 
 
-# ---------- [sdfj] ----------:
-
-
-
-
-# ---------- [sdjfkjl] ----------:
-
-
 
 "" Bread and butter
 " addtional scroll movements and replace buttons
