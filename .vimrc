@@ -28,8 +28,8 @@ noremap mm m
 " open all files recursively of type determined after
 nnoremap ma :args `find . -not -path '*/\.*' -type f -name '*.'`<Left><Left>
 " block abstraction and execution "TODO make below work with beginning of file
-nnoremap my ?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$:SlimeSend<CR>'>
-nnoremap mY ?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$"+y'>
+nnoremap my ?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$:SlimeSend<CR>'>:noh<CR>
+nnoremap mY ?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$"+y'>:noh<CR>
 nnoremap mb o<CR># ---------- [] ----------:<CR><CR><ESC>2k13la
 " ctags
 noremap mt :<c-u>!ctags -R .<CR>:set tags=tags<CR>
