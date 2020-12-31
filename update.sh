@@ -12,6 +12,11 @@ grep -qxF '. ~/dev/.dotfiles/.zshrc' ~/.zshrc || echo "$(echo -n '. ~/dev/.dotfi
 
 grep -qxF 'source-file ~/dev/.dotfiles/.tmux.conf' ~/.tmux.conf || echo "$(echo -n 'source-file ~/dev/.dotfiles/.tmux.conf\n'; cat ~/.tmux.conf)" > ~/.tmux.conf
 
+# X switch capslock with escape
+touch -a ~/.xinitrc
+grep -qxF 'setxkbmap -option caps:swapescape' ~/.tmux.conf || echo "$(echo -n 'setxkbmap -option caps:swapescape\n'; cat ~/.xinitrc)" > ~/.xinitrc
+
+
 mkdir -p ~/.ipython/profile_default
 touch -a ~/.ipython/profile_default/ipython_config.py
 grep -qxF "c.TerminalInteractiveShell.editing_mode = 'vi'" ~/.ipython/profile_default/ipython_config.py || echo "c.TerminalInteractiveShell.editing_mode = 'vi'" >> ~/.ipython/profile_default/ipython_config.py

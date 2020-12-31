@@ -7,6 +7,9 @@
 bindkey -v
 export KEYTIMEOUT=1
 
+#for the zoom docker image
+export ZOOM_HOME=${HOME}/zoomus
+
 # Enable colors and change prompt:
 autoload -U colors && colors
 #PS1="%B%{$fg[red]%}[%{$fg[yellow]%}%n%{$fg[green]%}@%{$fg[blue]%}%M %{$fg[magenta]%}%~%{$fg[red]%}]%{$reset_color%}$%b "
