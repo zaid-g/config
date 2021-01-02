@@ -8,7 +8,7 @@ bindkey -v
 export KEYTIMEOUT=1
 
 #for the zoom docker image
-export ZOOM_HOME=${HOME}/zoomus
+export ZOOM_HOME=${HOME}/.zoomus
 
 # Enable colors and change prompt:
 autoload -U colors && colors
@@ -52,6 +52,7 @@ alias TLS="tmux ls"
 alias TAS="tmux attach-session -t"
 alias TKS="tmux kill-session -t"
 alias TKAs="tmux kill-server"
+alias VM="virt-manager"
 
 
 # Load zsh-syntax-highlighting; should be last.
