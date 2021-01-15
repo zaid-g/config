@@ -1,7 +1,8 @@
 mkdir -p ~/dev/
 cd ~/dev
 rm -rf dotfiles
-git clone git://github.com/zaid-g/dotfiles.git
+git clone git@github.com:zaid-g/dotfiles.git
+git clone https://github.com/zaid-g/dotfiles.git
 cd dotfiles
 touch -a ~/.zshrc
 touch -a ~/.tmux.conf
