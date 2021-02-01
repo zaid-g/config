@@ -53,6 +53,8 @@ alias TAS="tmux attach-session -t"
 alias TKS="tmux kill-session -t"
 alias TKAs="tmux kill-server"
 alias VM="virt-manager"
+alias PT="pytest -sxvv"
+alias PTDB="pytest -sxvv --pdb"
 
 
 # Load zsh-syntax-highlighting; should be last.
