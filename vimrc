@@ -78,7 +78,6 @@ set t_Co=256
 
 
 "" Other options
-set hidden
 set autoread
 " ctags set
 set tags=tags
