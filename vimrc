@@ -25,6 +25,10 @@ noremap mm m
 
 
 """ my mappings
+" bufdo e without loss of syntax highlighting and switching buffers
+nnoremap me <c-w>n:bufdo e<CR>:q
+nnoremap msp :set paste<CR>
+nnoremap msnp :set nopaste<CR>
 " open all files recursively of type determined after
 nnoremap ma :args `find . -not -path '*/\.*' -type f -name '*.'`<Left><Left>
 " block abstraction and execution "TODO make below work with beginning of file
@@ -75,6 +79,7 @@ set t_Co=256
 
 "" Other options
 set hidden
+set autoread
 " ctags set
 set tags=tags
 " redefine tabs as spaces and auto indent
