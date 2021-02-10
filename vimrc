@@ -29,6 +29,10 @@ noremap mm m
 nnoremap me <c-w>n:bufdo e<CR>:q
 nnoremap msp :set paste<CR>
 nnoremap msnp :set nopaste<CR>
+" paste from clipboard without ruining indentation
+nnoremap <F2> :set invpaste paste?<CR>
+set pastetoggle=<F2>
+inoremap <c-b> <F2><c-r>+<F2>
 " open all files recursively of type determined after
 nnoremap ma :args `find . -not -path '*/\.*' -type f -name '*.'`<Left><Left>
 " block abstraction and execution "TODO make below work with beginning of file
