@@ -17,6 +17,10 @@ noremap <c-k> K
 noremap Y "+y
 " allows multiple pasting of copied text
 xnoremap p pgvy
+" paste from clipboard without ruining indentation
+nnoremap <F2> :set invpaste paste?<CR>
+set pastetoggle=<F2>
+inoremap <c-b> <F2><c-r>+<F2>
 "
 nnoremap <Space> :noh<CR>
 " frees up m to use for my own bindings
@@ -27,12 +31,6 @@ noremap mm m
 """ my mappings
 " bufdo e without loss of syntax highlighting and switching buffers
 nnoremap me <c-w>n:bufdo e<CR>:q
-nnoremap msp :set paste<CR>
-nnoremap msnp :set nopaste<CR>
-" paste from clipboard without ruining indentation
-nnoremap <F2> :set invpaste paste?<CR>
-set pastetoggle=<F2>
-inoremap <c-b> <F2><c-r>+<F2>
 " open all files recursively of type determined after
 nnoremap ma :args `find . -not -path '*/\.*' -type f -name '*.'`<Left><Left>
 " block abstraction and execution "TODO make below work with beginning of file
