@@ -45,7 +45,7 @@ alias GFO="git fetch origin"
 alias GB="git branch --sort=-committerdate"
 alias LL="ls -lt"
 alias GPUSH="git push -u origin HEAD"
-alias GPULL="git pull origin $(git rev-parse --abbrev-ref HEAD)"
+alias GPULL='git pull origin $(git rev-parse --abbrev-ref HEAD)'
 alias V="vim"
 alias VS="vim -S"
 alias T="tmux"

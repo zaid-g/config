@@ -6,7 +6,6 @@
 
 
 
-
 "" Bread and butter
 " addtional scroll movements and replace buttons
 noremap <silent> J @="j\<lt>C-E>"<CR>
@@ -21,6 +20,9 @@ xnoremap p pgvy
 nnoremap <F2> :set invpaste paste?<CR>
 set pastetoggle=<F2>
 inoremap <c-b> <F2><c-r>+<F2>
+" word completion using tab and shift tab (i don't like c-n c-p)
+inoremap <TAB> <c-n>
+inoremap <S-TAB> <c-p>
 "
 nnoremap <Space> :noh<CR>
 " frees up m to use for my own bindings
