@@ -30,6 +30,7 @@ bindkey -M menuselect 'j' vi-down-line-or-history
 bindkey -v '^?' backward-delete-char
 
 
+alias RS="source ~/.zshrc"
 alias vipy="python -m IPython"
 alias vipy3="python3 -m IPython"
 alias GS="git status"
