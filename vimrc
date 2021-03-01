@@ -40,7 +40,7 @@ nnoremap my ?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$:SlimeSend<CR>'>:noh
 nnoremap mY ?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$"+y'>:noh<CR>l
 nnoremap mb o<CR># ---------- [] ----------:<CR><CR><ESC>2k13la
 " ctags
-noremap mt :<c-u>!ctags -R .<CR>:set tags=tags<CR>
+noremap mt :<c-u>!ctags -R **/*.py<CR>:set tags=tags<CR>
 " shortcut to highlight whole word under cursor TODO make this work in visual mode
 noremap ml :<c-u>let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<CR>wb
 " replace occurences with incrementing counter appended
