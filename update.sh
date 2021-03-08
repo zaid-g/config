@@ -6,7 +6,7 @@ mkdir -p ~/doc/
 mkdir -p ~/env/
 mkdir -p ~/misc/
 mkdir -p ~/pic/
-cd ~/dev
+cd ~/env
 #remove old repo
 rm -rf dotfiles
 #clone new repo, try ssh first so if key exists u can push
@@ -17,9 +17,9 @@ cd dotfiles
 touch -a ~/.zshrc
 touch -a ~/.tmux.conf
 touch -a ~/.vimrc
-grep -qxF 'source ~/dev/dotfiles/vimrc' ~/.vimrc || echo "$(printf 'source ~/dev/dotfiles/vimrc'; cat ~/.vimrc)" > ~/.vimrc
-grep -qxF '. ~/dev/dotfiles/zshrc' ~/.zshrc || echo "$(printf '. ~/dev/dotfiles/zshrc'; cat ~/.zshrc)" > ~/.zshrc
-grep -qxF 'source-file ~/dev/dotfiles/tmux.conf' ~/.tmux.conf || echo "$(printf 'source-file ~/dev/dotfiles/tmux.conf'; cat ~/.tmux.conf)" > ~/.tmux.conf
+grep -qxF 'source ~/env/dotfiles/vimrc' ~/.vimrc || echo "$(printf 'source ~/env/dotfiles/vimrc'; cat ~/.vimrc)" > ~/.vimrc
+grep -qxF '. ~/env/dotfiles/zshrc' ~/.zshrc || echo "$(printf '. ~/env/dotfiles/zshrc'; cat ~/.zshrc)" > ~/.zshrc
+grep -qxF 'source-file ~/env/dotfiles/tmux.conf' ~/.tmux.conf || echo "$(printf 'source-file ~/env/dotfiles/tmux.conf'; cat ~/.tmux.conf)" > ~/.tmux.conf
 
 # X switch capslock with escape
 touch -a ~/.xinitrc
