@@ -78,9 +78,10 @@ alias SDCS="sudo docker container start"
 alias DE="docker exec"
 alias SDE="sudo docker exec"
 alias DR="docker restart"
-alias SDR="sudo docker restart"
 alias DI="docker image"
 alias SDI="sudo docker image"
+alias DS="docker start"
+alias SDS="sudo docker start"
 
 
 
