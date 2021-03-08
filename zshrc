@@ -80,9 +80,6 @@ alias SDE="sudo docker exec"
 alias DR="docker restart"
 alias DI="docker image"
 alias SDI="sudo docker image"
-alias DS="docker start"
-alias SDS="sudo docker start"
-
 
 
 # Load zsh-syntax-highlighting; should be last.
