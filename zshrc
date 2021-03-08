@@ -30,9 +30,27 @@ bindkey -M menuselect 'j' vi-down-line-or-history
 bindkey -v '^?' backward-delete-char
 
 
+## aliases
+alias S="sudo"
 alias RS="source ~/.zshrc"
+alias LL="ls -lt"
+alias VM="virt-manager"
+# python
 alias vipy="python -m IPython"
 alias vipy3="python3 -m IPython"
+alias PT="pytest -sxvv"
+alias PTDB="pytest -sxvv --pdb"
+# tmux
+alias T="tmux"
+alias TLS="tmux ls"
+alias TAS="tmux attach-session -t"
+alias TKS="tmux kill-session -t"
+alias TKAs="tmux kill-server"
+# vim, VM taken
+alias V="vim"
+alias VS="vim -S"
+# git
+alias G="git"
 alias GS="git status"
 alias GD="git diff"
 alias GA="git add"
@@ -44,19 +62,26 @@ alias GF="git fetch"
 alias GL="git log --graph --decorate --oneline"
 alias GFO="git fetch origin"
 alias GB="git branch --sort=-committerdate"
-alias LL="ls -lt"
 alias GPUSH="git push -u origin HEAD"
 alias GPULL='git pull origin $(git rev-parse --abbrev-ref HEAD)'
-alias V="vim"
-alias VS="vim -S"
-alias T="tmux"
-alias TLS="tmux ls"
-alias TAS="tmux attach-session -t"
-alias TKS="tmux kill-session -t"
-alias TKAs="tmux kill-server"
-alias VM="virt-manager"
-alias PT="pytest -sxvv"
-alias PTDB="pytest -sxvv --pdb"
+# docker
+alias D="docker"
+alias SD="sudo docker"
+alias DB="docker build"
+alias SDB="sudo docker build"
+alias DR="docker run"
+alias SDR="sudo docker run"
+alias DC="docker container"
+alias SDC="sudo docker container"
+alias DCS="docker container start"
+alias SDCS="sudo docker container start"
+alias DE="docker exec"
+alias SDE="sudo docker exec"
+alias DR="docker restart"
+alias SDR="sudo docker restart"
+alias DI="docker image"
+alias SDI="sudo docker image"
+
 
 
 # Load zsh-syntax-highlighting; should be last.
