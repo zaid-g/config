@@ -35,6 +35,7 @@ alias S="sudo"
 alias RS="source ~/.zshrc"
 alias LL="ls -lt"
 alias VM="virt-manager"
+alias PO="systemctl poweroff"
 # python
 alias vipy="python -m IPython"
 alias vipy3="python3 -m IPython"
