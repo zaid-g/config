@@ -32,6 +32,7 @@ bindkey -v '^?' backward-delete-char
 
 ## aliases
 alias S="sudo"
+alias C="clear"
 alias RS="source ~/.zshrc"
 alias LL="ls -lt"
 alias VM="virt-manager"
