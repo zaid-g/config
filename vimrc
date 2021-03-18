@@ -23,6 +23,9 @@ inoremap <c-b> <F2><c-r>+<F2>
 " word completion using tab and shift tab (i don't like c-n c-p)
 inoremap <TAB> <c-n>
 inoremap <S-TAB> <c-p>
+" because of conflict with tmux prefix
+vnoremap g<c-n> g<C-g>2gs
+nnoremap g<c-n> g<C-g>
 "
 nnoremap <Space> :noh<CR>
 " frees up m to use for my own bindings
