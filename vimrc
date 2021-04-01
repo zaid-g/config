@@ -16,11 +16,12 @@ noremap <c-k> K
 noremap Y "+y
 " allows multiple pasting of copied text
 xnoremap p pgvy
-" paste from clipboard without ruining indentation
+" paste from clipboard without ruining indentation using C-b
 nnoremap <F2> :set invpaste paste?<CR>
 set pastetoggle=<F2>
 inoremap <c-b> <F2><c-r>+<F2>
-" word completion using tab and shift tab (i don't like c-n c-p)
+" word completion using tab and shift tab (instead of c-n c-p)
+" can still use C-t and C-d to insert/remove tabs from text
 inoremap <TAB> <c-n>
 inoremap <S-TAB> <c-p>
 " because of conflict with tmux prefix
@@ -36,8 +37,6 @@ noremap mm m
 """ my mappings
 " bufdo e without loss of syntax highlighting and switching buffers
 nnoremap me <c-w>n:bufdo e<CR>:q
-" open all files recursively of type determined after
-nnoremap ma :args `find . -not -path '*/\.*' -type f -name '*.'`<Left><Left>
 " block abstraction and execution "TODO make below work with beginning of file
 nnoremap my ?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$:SlimeSend<CR>'>:noh<CR>l
 nnoremap mY ?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$"+y'>:noh<CR>l
@@ -45,12 +44,13 @@ nnoremap mb o<CR># ---------- [] ----------:<CR><CR><ESC>2k13la
 " ctags
 noremap mt :<c-u>!ctags -R **/*.py<CR>:set tags=tags<CR>
 " shortcut to highlight whole word under cursor TODO make this work in visual mode
-noremap ml :<c-u>let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<CR>wb
+nnoremap ml :<c-u>let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<CR>wb
 " replace occurences with incrementing counter appended
 nnoremap mri :let @a=1 \| %s/search/\='replace'.(@a+setreg('a',@a+1))/g
+" split window vertically on new column
 nnoremap msb :botr vs<CR>:b 
 "" python mappings
-"
+" ipdb trace above current line
 nnoremap mp Oimport ipdb; ipdb.set_trace()<ESC>:w<CR>
 " insert python docstring
 nnoremap midp o"""<CR>ToDo:description<CR><CR><CR>Keyword arguments:<CR>arg1 -- <CR>arg2 -- <CR>"""<ESC>
@@ -112,7 +112,7 @@ let g:slime_dont_ask_default = 1
 " winresize
 let g:winresizer_start_key = 'mW'
 " Ale stuff
-nnoremap mF :ALEFix<CR>
+nnoremap mF :ALEFix<CR>:ALELint<CR>
 nnoremap mL :ALELint<CR>
 let b:ale_linters = ['flake8']
 let b:ale_fixers = ['black']
