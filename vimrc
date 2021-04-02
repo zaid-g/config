@@ -41,12 +41,14 @@ nnoremap me <c-w>n:bufdo e<CR>:q
 " immediately send its contents to another tmux window using Slime or
 " to clipboard
 nnoremap mb o<CR># ---------- [] ----------:<CR><CR><ESC>2k13la
-nnoremap my w?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$:SlimeSend<CR>'>:noh<CR>
-nnoremap mY w?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$"+y'>:noh<CR>
+nnoremap my :exe "norm! w"<CR>?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$:SlimeSend<CR>'>:noh<CR>
+nnoremap mY :exe "norm! w"<CR>w?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$"+y'>:noh<CR>
 " ctags
 noremap mt :<c-u>!ctags -R **/*.py<CR>:set tags=tags<CR>
 " shortcut to highlight whole word under cursor TODO make this work in visual mode
 nnoremap ml :<c-u>let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<CR>wb
+" delete to black hole register
+noremap mx "_x
 " replace occurences with incrementing counter appended
 nnoremap mri :let @a=1 \| %s/search/\='replace'.(@a+setreg('a',@a+1))/g
 " split window vertically on new column
@@ -54,8 +56,6 @@ nnoremap msb :botr vs<CR>:b
 "" python mappings
 " ipdb trace above current line
 nnoremap mp Oimport ipdb; ipdb.set_trace()<ESC>:w<CR>
-" insert python docstring
-nnoremap midp o"""<CR>ToDo:description<CR><CR><CR>Keyword arguments:<CR>arg1 -- <CR>arg2 -- <CR>"""<ESC>
 " timeit
 xnoremap mvt <ESC>`<Oimport time; my_start_time = time.time()<ESC>`>oprint("my_end_time - my_start_time = ", time.time() - my_start_time)<ESC>
 
