@@ -37,9 +37,9 @@ noremap mm m
 """ my mappings
 " bufdo e without loss of syntax highlighting and switching buffers
 nnoremap me <c-w>n:bufdo e<CR>:q
-" block abstraction and execution "TODO make below work with beginning of file
-nnoremap my ?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$:SlimeSend<CR>'>:noh<CR>l
-nnoremap mY ?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$"+y'>:noh<CR>l
+" block abstraction and execution
+nnoremap my w?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$:SlimeSend<CR>'>:noh<CR>
+nnoremap mY w?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$"+y'>:noh<CR>
 nnoremap mb o<CR># ---------- [] ----------:<CR><CR><ESC>2k13la
 " ctags
 noremap mt :<c-u>!ctags -R **/*.py<CR>:set tags=tags<CR>
@@ -112,7 +112,7 @@ let g:slime_dont_ask_default = 1
 " winresize
 let g:winresizer_start_key = 'mW'
 " Ale stuff
-nnoremap mF :ALEFix<CR>:ALELint<CR>
+nnoremap mF :ALEFix<CR>
 nnoremap mL :ALELint<CR>
 let b:ale_linters = ['flake8']
 let b:ale_fixers = ['black']
