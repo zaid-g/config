@@ -37,10 +37,12 @@ noremap mm m
 """ my mappings
 " bufdo e without loss of syntax highlighting and switching buffers
 nnoremap me <c-w>n:bufdo e<CR>:q
-" block abstraction and execution
+" block abstraction and execution: make blocks in file and be able to
+" immediately send its contents to another tmux window using Slime or
+" to clipboard
+nnoremap mb o<CR># ---------- [] ----------:<CR><CR><ESC>2k13la
 nnoremap my w?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$:SlimeSend<CR>'>:noh<CR>
 nnoremap mY w?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$"+y'>:noh<CR>
-nnoremap mb o<CR># ---------- [] ----------:<CR><CR><ESC>2k13la
 " ctags
 noremap mt :<c-u>!ctags -R **/*.py<CR>:set tags=tags<CR>
 " shortcut to highlight whole word under cursor TODO make this work in visual mode
