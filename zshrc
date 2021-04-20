@@ -35,6 +35,8 @@ alias S="sudo"
 alias C="clear"
 alias RS="source ~/.zshrc"
 alias LL="ls -lt"
+alias LA="ls -A"
+alias L='ls -CF'
 alias VM="virt-manager"
 alias PO="systemctl poweroff"
 # python
