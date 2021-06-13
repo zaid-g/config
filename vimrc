@@ -116,8 +116,8 @@ let g:winresizer_start_key = 'mW'
 " Ale stuff
 nnoremap mF :ALEFix<CR>
 nnoremap mL :ALELint<CR>
-let g:ale_linters = ['flake8']
-let g:ale_fixers = ['black']
+let g:ale_linters = {'flake8'}
+let g:ale_fixers = {'black'}
 let g:ale_warn_about_trailing_whitespace = 0
 let g:ale_lint_on_text_changed = 'never'
 let g:ale_lint_on_insert_leave = 0
