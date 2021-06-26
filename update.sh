@@ -24,6 +24,7 @@ grep -qxF 'source-file ~/env/dotfiles/tmux.conf' ~/.tmux.conf || echo "$(printf 
 # X switch capslock with escape
 touch -a ~/.xinitrc
 grep -qxF 'setxkbmap -option caps:swapescape' ~/.xinitrc || echo "$(printf 'setxkbmap -option caps:swapescape'; cat ~/.xinitrc)" > ~/.xinitrc
+grep -qxF 'xset r rate 175 40' ~/.xinitrc || echo "$(printf 'xset r rate 175 40'; cat ~/.xinitrc)" > ~/.xinitrc
 
 #python profile vim mode
 mkdir -p ~/.ipython/profile_default
