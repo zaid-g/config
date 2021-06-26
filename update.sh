@@ -17,14 +17,14 @@ cd dotfiles
 touch -a ~/.zshrc
 touch -a ~/.tmux.conf
 touch -a ~/.vimrc
-grep -qxF 'source ~/env/dotfiles/vimrc' ~/.vimrc || echo "$(printf 'source ~/env/dotfiles/vimrc'; cat ~/.vimrc)" > ~/.vimrc
-grep -qxF '. ~/env/dotfiles/zshrc' ~/.zshrc || echo "$(printf '. ~/env/dotfiles/zshrc'; cat ~/.zshrc)" > ~/.zshrc
-grep -qxF 'source-file ~/env/dotfiles/tmux.conf' ~/.tmux.conf || echo "$(printf 'source-file ~/env/dotfiles/tmux.conf'; cat ~/.tmux.conf)" > ~/.tmux.conf
+grep -qxF 'source ~/env/dotfiles/vimrc' ~/.vimrc || echo "$(printf 'source ~/env/dotfiles/vimrc\n'; cat ~/.vimrc)" > ~/.vimrc
+grep -qxF '. ~/env/dotfiles/zshrc' ~/.zshrc || echo "$(printf '. ~/env/dotfiles/zshrc\n'; cat ~/.zshrc)" > ~/.zshrc
+grep -qxF 'source-file ~/env/dotfiles/tmux.conf' ~/.tmux.conf || echo "$(printf 'source-file ~/env/dotfiles/tmux.conf\n'; cat ~/.tmux.conf)" > ~/.tmux.conf
 
 # X switch capslock with escape
 touch -a ~/.xinitrc
-grep -qxF 'setxkbmap -option caps:swapescape' ~/.xinitrc || echo "$(printf 'setxkbmap -option caps:swapescape'; cat ~/.xinitrc)" > ~/.xinitrc
-grep -qxF 'xset r rate 175 40' ~/.xinitrc || echo "$(printf 'xset r rate 175 40'; cat ~/.xinitrc)" > ~/.xinitrc
+grep -qxF 'setxkbmap -option caps:swapescape' ~/.xinitrc || echo "$(printf 'setxkbmap -option caps:swapescape\n'; cat ~/.xinitrc)" > ~/.xinitrc
+grep -qxF 'xset r rate 175 40' ~/.xinitrc || echo "$(printf 'xset r rate 175 40\n'; cat ~/.xinitrc)" > ~/.xinitrc
 
 #python profile vim mode
 mkdir -p ~/.ipython/profile_default
