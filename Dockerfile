@@ -10,7 +10,7 @@ RUN apt-get upgrade -y
 RUN apt-get install git -y
 RUN apt install zsh -y
 RUN apt install python3 -y
-RUN apt install vim-gtk3 -y
+RUN apt install vim -y
 RUN apt install python3-pip -y
 
 RUN pip3 install ipdb

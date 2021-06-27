@@ -6,6 +6,7 @@ mkdir -p ~/doc/
 mkdir -p ~/env/
 mkdir -p ~/misc/
 mkdir -p ~/pic/
+mkdir -p ~/env/Docker/main
 cd ~/env
 #remove old repo
 rm -rf dotfiles
@@ -13,6 +14,7 @@ rm -rf dotfiles
 git clone git@github.com:zaid-g/dotfiles.git
 git clone https://github.com/zaid-g/dotfiles.git
 #update home dir dotfiles
+cp Dockerfile ~/env/Docker/main
 cd dotfiles
 touch -a ~/.zshrc
 touch -a ~/.tmux.conf
