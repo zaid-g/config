@@ -7,3 +7,4 @@ git clone --depth 1 https://github.com/dense-analysis/ale.git
 git clone https://github.com/SirVer/ultisnips.git
 git clone git://github.com/honza/vim-snippets.git
 grep -qxF 'colo darcula' ~/.vimrc || echo "$(cat ~/.vimrc; printf '\ncolo darcula\n')" > ~/.vimrc
+cd ~/env/dotfiles

@@ -32,3 +32,4 @@ grep -qxF 'xset r rate 175 40' ~/.xinitrc || echo "$(printf 'xset r rate 175 40\
 mkdir -p ~/.ipython/profile_default
 touch -a ~/.ipython/profile_default/ipython_config.py
 grep -qxF "c.TerminalInteractiveShell.editing_mode = 'vi'" ~/.ipython/profile_default/ipython_config.py || echo "c.TerminalInteractiveShell.editing_mode = 'vi'" >> ~/.ipython/profile_default/ipython_config.py
+cd ~/env/dotfiles
