@@ -45,8 +45,10 @@ nnoremap my :exe "norm! w"<CR>?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$:S
 nnoremap mY :exe "norm! w"<CR>w?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$"+y'>:noh<CR>
 " ctags
 noremap mt :<c-u>!ctags -R **/*.py<CR>:set tags=tags<CR>
-" shortcut to highlight whole word under cursor TODO make this work in visual mode
+" shortcut to highlight search whole word under cursor
 nnoremap ml :<c-u>let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<CR>wb
+" shortcut to highlight search what's being selected in visual mode
+vnoremap ml :<c-u>let temp_variable=@"<CR>gvy:<c-u>let @/='\V<C-R>=escape(@",'/\')<CR>'<CR>:let @"=temp_variable<CR>:<c-u>set hlsearch<CR>
 " delete to black hole register
 noremap mx "_x
 " replace occurences with incrementing counter appended
