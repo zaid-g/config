@@ -53,8 +53,8 @@ vnoremap ml :<c-u>let temp_variable=@"<CR>gvy:<c-u>let @/='\V<C-R>=escape(@",'/\
 nnoremap mcs :%s/<C-R>=@/<CR>//g<Left><Left>
 vnoremap mcs :s/<C-R>=@/<CR>//g<Left><Left>
 " change typed pattern
-nnoremap mct :%s///g<Left><Left><Left>
-vnoremap mct :s///g<Left><Left><Left>
+nnoremap mct :%s//g<Left><Left>
+vnoremap mct :s//g<Left><Left>
 " find and replace in all buffers searched for pattern
 nnoremap mbdcs :bufdo %s/<C-R>=@/<CR>//g \| update<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>
 " find and replace in all buffers typed pattern
