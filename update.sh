@@ -14,8 +14,8 @@ rm -rf dotfiles
 git clone git@github.com:zaid-g/dotfiles.git
 git clone https://github.com/zaid-g/dotfiles.git
 #update home dir dotfiles
-cp Dockerfile ~/env/Docker/main
 cd dotfiles
+cp Dockerfile ~/env/Docker/main
 touch -a ~/.zshrc
 touch -a ~/.tmux.conf
 touch -a ~/.vimrc
