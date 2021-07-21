@@ -44,8 +44,8 @@ nnoremap mbl o<CR># ---------- [] ----------:<CR><CR><ESC>2k13la
 nnoremap my :exe "norm! w"<CR>?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$:SlimeSend<CR>'>:noh<CR>
 nnoremap mY :exe "norm! w"<CR>w?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$"+y'>:noh<CR>
 " ctags
-noremap mT :<c-u>!ctags -R **/*.py<CR>:set tags+=tags<CR>!ctags -f tags_venv -R $VIRTUAL_ENV/lib/pytho*/site-packages<CR>:set tags+=tags_venv<CR>
-noremap mt :<c-u>!ctags -R **/*.py<CR>:set tags+=tags<CR>:set tags+=tags_venv<CR>
+noremap mT :<c-u>!ctags -R **/*.py<CR>:<c-u>set tags+=tags<CR>:<c-u>!ctags -f tags_venv -R $VIRTUAL_ENV/lib/pytho*/site-packages<CR>:<c-u>set tags+=tags_venv<CR>
+noremap mt :<c-u>!ctags -R **/*.py<CR>:<c-u>set tags+=tags<CR>:<c-u>set tags+=tags_venv<CR>
 " shortcut to highlight search whole word under cursor
 nnoremap ml :<c-u>let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<CR>wb
 " shortcut to highlight search what's being selected in visual mode
