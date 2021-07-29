@@ -41,9 +41,6 @@ nnoremap me <c-w>n:bufdo e<CR>:q
 " immediately send its contents to another tmux window using Slime or
 " to clipboard
 nnoremap mbl o<CR># ---------- [] ----------:<CR><CR><ESC>2k13la
-" copy bindings
-vnoremap my :SlimeSend<CR>
-nnoremap my :exe "norm! w"<CR>?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$:SlimeSend<CR>'>:noh<CR>
 nnoremap mY :exe "norm! w"<CR>w?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$"+y'>:noh<CR>
 " ctags
 noremap mT :<c-u>!ctags -R **/*.py<CR>:<c-u>set tags+=tags<CR>:<c-u>!ctags -f tags_venv -R $VIRTUAL_ENV/lib/pytho*/site-packages<CR>:<c-u>set tags+=tags_venv<CR>
@@ -126,6 +123,8 @@ let g:slime_target = "tmux"
 let g:slime_python_ipython = 1
 let g:slime_default_config = {"socket_name": "default", "target_pane": ".0"}
 let g:slime_dont_ask_default = 1
+xmap my <Plug>SlimeRegionSend
+nnoremap my :exe "norm! w"<CR>?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$:SlimeSend<CR>'>:noh<CR>
 " winresize
 let g:winresizer_start_key = 'mW'
 " Ale stuff
