@@ -41,6 +41,8 @@ nnoremap me <c-w>n:bufdo e<CR>:q
 " immediately send its contents to another tmux window using Slime or
 " to clipboard
 nnoremap mbl o<CR># ---------- [] ----------:<CR><CR><ESC>2k13la
+" copy bindings
+vnoremap my :SlimeSend<CR>
 nnoremap my :exe "norm! w"<CR>?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$:SlimeSend<CR>'>:noh<CR>
 nnoremap mY :exe "norm! w"<CR>w?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$"+y'>:noh<CR>
 " ctags
