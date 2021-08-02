@@ -53,6 +53,7 @@ alias TKAs="tmux kill-server"
 # vim, VM taken
 alias V="vim"
 alias VS="vim -S"
+alias VU="vim ~/doc/it/tools/useful-commands.txt.sh"
 # git
 alias G="git"
 alias GS="git status"
