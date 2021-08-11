@@ -123,8 +123,8 @@ let g:slime_target = "tmux"
 let g:slime_python_ipython = 1
 let g:slime_default_config = {"socket_name": "default", "target_pane": ".0"}
 let g:slime_dont_ask_default = 1
-xmap my <Plug>SlimeRegionSend
-nnoremap my :exe "norm! w"<CR>?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$:SlimeSend<CR>'>:noh<CR>
+xmap mcc <Plug>SlimeRegionSend
+nnoremap mcc :exe "norm! w"<CR>?\%^\\|# ----------<CR>v/\%$\\|# ----------<CR>$:SlimeSend<CR>'>:noh<CR>
 " winresize
 let g:winresizer_start_key = 'mW'
 " Ale stuff
