@@ -82,6 +82,9 @@ alias DCE="docker container exec"
 alias SDCE="sudo docker container exec"
 alias DI="docker image"
 alias SDI="sudo docker image"
+# xdg open (open file from terminal with default app)
+alias X="xdg-open"
+
 
 
 # Load zsh-syntax-highlighting; should be last.
