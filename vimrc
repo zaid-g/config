@@ -9,6 +9,9 @@
 " frees up m to use for my own bindings
 noremap mm m
 
+" resource config
+noremap mso :so ~/.vimrc<cr>
+
 " addtional scroll movements and replace buttons
 noremap <silent> J @="j\<lt>C-E>"<CR>
 noremap <silent> K @="k\<lt>C-Y>"<CR>
