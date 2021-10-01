@@ -5,18 +5,31 @@
 "source <path>
 
 
-
 " frees up m to use for my own bindings
 noremap mm m
 
 " resource config
 noremap mso :so ~/.vimrc<cr>
 
-" addtional scroll movements and replace buttons
+" addtional scroll movements, moving text
+noremap mj J
+noremap mk K
+noremap mJ <c-j>
+noremap mk <c-k>
 noremap <silent> J @="j\<lt>C-E>"<CR>
 noremap <silent> K @="k\<lt>C-Y>"<CR>
-noremap <c-j> J
-noremap <c-k> K
+nnoremap <c-j> :m .+1<CR>==
+nnoremap <c-k> :m .-2<CR>==
+inoremap <c-j> <Esc>:m .+1<CR>==gi
+inoremap <c-k> <Esc>:m .-2<CR>==gi
+vnoremap <c-j> :m '>+1<CR>gv=gv
+vnoremap <c-k> :m '<-2<CR>gv=gv
+
+" undo resets at more chars
+inoremap , ,<c-g>u
+inoremap . .<c-g>u
+inoremap ! !<c-g>u
+inoremap ? ?<c-g>u
 
 " copy to system clipboard
 noremap Y "+y
@@ -162,7 +175,7 @@ let g:ale_lint_on_text_changed = 'never'
 let g:ale_lint_on_insert_leave = 0
 let g:ale_lint_on_enter = 0
 " UltiSnips stuff
-let g:UltiSnipsExpandTrigger="<c-j>"
+let g:UltiSnipsExpandTrigger="<c-m>"
 let g:UltiSnipsJumpForwardTrigger="<c-n>"
 let g:UltiSnipsJumpBackwardTrigger="<c-p>"
 let g:UltiSnipsEditSplit="vertical"
