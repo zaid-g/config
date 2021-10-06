@@ -7,6 +7,8 @@
 
 " frees up m to use for my own bindings
 noremap mm m
+" frees up \ to use for my own bindings in insert mode
+inoremap \\ \
 
 " resource config
 noremap mso :so ~/.vimrc<cr>
@@ -171,7 +173,7 @@ let g:ale_lint_on_text_changed = 'never'
 let g:ale_lint_on_insert_leave = 0
 let g:ale_lint_on_enter = 0
 " UltiSnips stuff
-let g:UltiSnipsExpandTrigger="c-j"
+let g:UltiSnipsExpandTrigger="\\u"
 let g:UltiSnipsJumpForwardTrigger="<c-n>"
 let g:UltiSnipsJumpBackwardTrigger="<c-p>"
 let g:UltiSnipsEditSplit="vertical"
