@@ -42,6 +42,7 @@ alias PO="systemctl poweroff"
 # python
 alias vipy="python -m IPython"
 alias vipy3="python3 -m IPython"
+alias PIP3="pip3 install ipdb; pip3 install neovim; pip3 install black; pip3 install flake8"
 alias PT="pytest -sxvv"
 alias PTDB="pytest -sxvv --pdb"
 # tmux
