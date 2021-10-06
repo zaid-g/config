@@ -20,10 +20,6 @@ noremap <silent> J @="j\<lt>C-E>"<CR>
 noremap <silent> K @="k\<lt>C-Y>"<CR>
 nnoremap <c-j> :m .+1<CR>==
 nnoremap <c-k> :m .-2<CR>==
-inoremap <c-j> <Esc>:m .+1<CR>==gi
-inoremap <c-k> <Esc>:m .-2<CR>==gi
-vnoremap <c-j> :m '>+1<CR>gv=gv
-vnoremap <c-k> :m '<-2<CR>gv=gv
 
 " undo resets at more chars
 inoremap , ,<c-g>u
@@ -175,7 +171,7 @@ let g:ale_lint_on_text_changed = 'never'
 let g:ale_lint_on_insert_leave = 0
 let g:ale_lint_on_enter = 0
 " UltiSnips stuff
-let g:UltiSnipsExpandTrigger="c-\\"
+let g:UltiSnipsExpandTrigger="c-j"
 let g:UltiSnipsJumpForwardTrigger="<c-n>"
 let g:UltiSnipsJumpBackwardTrigger="<c-p>"
 let g:UltiSnipsEditSplit="vertical"
