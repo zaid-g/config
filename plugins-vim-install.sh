@@ -11,7 +11,7 @@ grep -qxF 'colo darcula' ~/.vimrc || echo "$(cat ~/.vimrc; printf '\ncolo darcul
 cd ~/env/dotfiles
 
 rm -rf ~/.local/share/nvim/site/pack/myplugins/start
-mkdir ~/.local/share/nvim/site/pack/myplugins/start
+mkdir -p ~/.local/share/nvim/site/pack/myplugins/start
 cd ~/.local/share/nvim/site/pack/myplugins/start
 git clone https://github.com/jpalardy/vim-slime.git
 git clone https://github.com/simeji/winresizer.git
