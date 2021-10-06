@@ -1,6 +1,6 @@
 rm -rf ~/.vim/pack/myplugins/start
 mkdir -p ~/.vim/pack/myplugins/start
-cd ~/.vim/pack/plugins/start
+cd ~/.vim/pack/myplugins/start
 git clone https://github.com/jpalardy/vim-slime.git
 git clone https://github.com/simeji/winresizer.git
 git clone https://github.com/doums/darcula.git
