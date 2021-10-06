@@ -52,9 +52,12 @@ alias TAS="tmux attach-session -t"
 alias TKS="tmux kill-session -t"
 alias TKAs="tmux kill-server"
 # vim, VM taken
-alias V="~/app/nvim.appimage || nvim || vim"
-alias VS="~/app/nvim.appimage -S || nvim -S || vim -S"
-alias VU="~/app/nvim.appimage ~/doc/it/tools/useful-commands.txt.sh || nvim ~/doc/it/tools/useful-commands.txt.sh || vim ~/doc/it/tools/useful-commands.txt.sh"
+function Vim(){
+    ~/app/nvim.appimage "$@" || nvim "$@" || vim "$@"  
+}
+alias V="Vim"
+alias VS="Vim -S"
+alias VU="Vim ~/doc/it/tools/useful-commands.txt.sh"
 # git
 alias G="git"
 alias GS="git status"
