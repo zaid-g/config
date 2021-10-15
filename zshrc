@@ -48,6 +48,7 @@ function Pip3(){
     pip3 install neovim
     pip3 install black
     pip3 install 'python-lsp-server[all]'
+    pip3 install python-lsp-black
     pip3 uninstall -y autopep8
     pip3 uninstall -y yapf
 }
