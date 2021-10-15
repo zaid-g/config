@@ -19,6 +19,8 @@ git clone https://github.com/zaid-g/dotfiles.git
 cd dotfiles
 # dockerfile copy into env folder
 cp Dockerfile ~/env/Docker/main
+# pycodestyle config
+cp pycodestyle ~/.config/
 
 ## source config files
 # neovim
