@@ -29,10 +29,6 @@ inoremap ? ?<c-g>u
 noremap Y "+y
 " allows multiple pasting of copied text
 xnoremap p pgvy
-" paste from clipboard without ruining indentation using C-b
-nnoremap <F2> :set invpaste paste?<CR>
-set pastetoggle=<F2>
-inoremap <c-b> <F2><c-r>+<F2>
 " word completion using tab and shift tab (instead of c-n c-p)
 " can still use C-t and C-d to insert/remove tabs from text
 inoremap <TAB> <c-n>
@@ -53,19 +49,6 @@ function! JumpToPattern(count, visual, pattern, flags)
 endfunction
 " bufdo e without loss of syntax highlighting and switching buffers
 nnoremap me <c-w>n:bufdo e<CR>:q
-" block abstraction and execution: make blocks in file and be able to
-" immediately send its contents to another tmux window using Slime or
-" to clipboard
-nnoremap mbl o<CR># ---------- [] ----------:<CR><CR><ESC>2k13la
-nmap m] :<c-u>call JumpToPattern(v:count1, 0, '\%$\\|^# ----------', '')<cr>
-xmap m] :<c-u>call JumpToPattern(v:count1, 1, '\%$\\|^# ----------', '')<cr>
-nmap m[ :<c-u>call JumpToPattern(v:count1, 0, '\%^\\|^# ----------', 'b')<cr>
-xmap m[ :<c-u>call JumpToPattern(v:count1, 1, '\%^\\|^# ----------', 'b')<cr>
-nmap my wm[Vm]y'>
-nmap mY wm[Vm]"+y'>
-" ctags
-noremap mT :<c-u>!ctags -R **/*.py<CR>:<c-u>set tags+=tags<CR>:<c-u>!ctags -f tags_venv -R $VIRTUAL_ENV/lib/pytho*/site-packages<CR>:<c-u>set tags+=tags_venv<CR>
-noremap mt :<c-u>!ctags -R **/*.py<CR>:<c-u>set tags+=tags<CR>:<c-u>set tags+=tags_venv<CR>
 "" cursor/visual highlight and search
 " shortcut to highlight search whole word under cursor
 nnoremap ml :<c-u>let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<CR>wb
@@ -88,7 +71,19 @@ nnoremap mci :let @a=1 \| %s/search/\='replace'.(@a+setreg('a',@a+1))/g
 noremap mx "_x
 " split window vertically on new column
 nnoremap msb :botr vs<CR>:b 
-"" python mappings
+
+
+"" python file mappings
+" block abstraction and execution: make blocks in file and be able to
+" immediately send its contents to another tmux window using Slime or
+" to clipboard
+nnoremap mbl o<CR># ---------- [] ----------:<CR><CR><ESC>2k13la
+nmap m] :<c-u>call JumpToPattern(v:count1, 0, '\%$\\|^# ----------', '')<cr>
+xmap m] :<c-u>call JumpToPattern(v:count1, 1, '\%$\\|^# ----------', '')<cr>
+nmap m[ :<c-u>call JumpToPattern(v:count1, 0, '\%^\\|^# ----------', 'b')<cr>
+xmap m[ :<c-u>call JumpToPattern(v:count1, 1, '\%^\\|^# ----------', 'b')<cr>
+nmap my wm[Vm]y'>
+nmap mY wm[Vm]"+y'>
 " ipdb trace above current line
 nnoremap mp Oimport ipdb; ipdb.set_trace()<ESC>:w<CR>
 " timeit
@@ -120,8 +115,6 @@ highlight clear CursorLine
 highlight CursorLineNR ctermbg=darkgrey
 "" other settings
 set autoread
-" ctags set
-set tags=tags
 " redefine tabs as spaces and auto indent
 filetype plugin indent on
 " show existing tab with 4 spaces width
