@@ -136,7 +136,7 @@ set expandtab
 
 "" Package/Plugin settings
 " Slime 
-noremap mSC :<C-u>SlimeConfig<CR>
+noremap msc :<C-u>SlimeConfig<CR>
 let g:slime_target = "tmux"
 let g:slime_python_ipython = 1
 let g:slime_default_config = {"socket_name": "default", "target_pane": ".0"}
@@ -144,16 +144,7 @@ let g:slime_dont_ask_default = 1
 xmap mcc <Plug>SlimeRegionSend'>
 nmap mcc wm[Vm]:SlimeSend<CR>'>
 " winresize
-let g:winresizer_start_key = 'mW'
-" Ale stuff
-nnoremap mF :ALEFix<CR>
-nnoremap mL :ALELint<CR>
-let g:ale_linters = {'python': ['flake8']}
-let g:ale_fixers = {'python': ['black'], 'c': ['clang-format'], 'cpp': ['clang-format']}
-let g:ale_warn_about_trailing_whitespace = 0
-let g:ale_lint_on_text_changed = 'never'
-let g:ale_lint_on_insert_leave = 0
-let g:ale_lint_on_enter = 0
+let g:winresizer_start_key = 'mw'
 " UltiSnips stuff
 let g:UltiSnipsExpandTrigger="\\u"
 let g:UltiSnipsJumpForwardTrigger="<c-n>"
