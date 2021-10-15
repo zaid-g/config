@@ -2,7 +2,6 @@
 " Author: Zaid Gharaybeh
 "
 """""""""""""""""""""""""
-"source <path>
 
 
 " frees up m to use for my own bindings
