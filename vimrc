@@ -15,7 +15,7 @@ noremap mso :so ~/.vimrc<cr>
 noremap mj J
 noremap mk K
 noremap mJ <c-j>
-noremap mk <c-k>
+noremap mK <c-k>
 noremap <silent> J @="j\<lt>C-E>"<CR>
 noremap <silent> K @="k\<lt>C-Y>"<CR>
 nnoremap <c-j> :m .+1<CR>==
