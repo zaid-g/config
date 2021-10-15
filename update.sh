@@ -24,7 +24,7 @@ cp Dockerfile ~/env/Docker/main
 # neovim
 touch -a ~/.config/nvim/init.vim
 grep -qxF 'source ~/env/dotfiles/vimrc' ~/.config/nvim/init.vim || echo "$(printf 'source ~/env/dotfiles/vimrc\n'; cat ~/.config/nvim/init.vim)" > ~/.config/nvim/init.vim
-grep -qxF 'source ~/env/dotfiles/init.lua' ~/.config/nvim/init.vim || echo "$(printf 'source ~/env/dotfiles/init.lua\n'; cat ~/.config/nvim/init.vim)" > ~/.config/nvim/init.vim
+grep -qxF 'luafile ~/env/dotfiles/init.lua' ~/.config/nvim/init.vim || echo "$(printf 'luafile ~/env/dotfiles/init.lua\n'; cat ~/.config/nvim/init.vim)" > ~/.config/nvim/init.vim
 # vimrc
 touch -a ~/.vimrc
 grep -qxF 'source ~/env/dotfiles/vimrc' ~/.vimrc || echo "$(printf 'source ~/env/dotfiles/vimrc\n'; cat ~/.vimrc)" > ~/.vimrc
