@@ -43,14 +43,13 @@ alias PO="systemctl poweroff"
 alias vipy="python -m IPython"
 alias vipy3="python3 -m IPython"
 function Pip3(){
-    pip3 uninstall autopep8
-    pip3 uninstall yapf
     pip3 install wheel
     pip3 install ipdb
     pip3 install neovim
     pip3 install black
-    pip3 install python-lsp-server
-    pip3 install python-lsp-black
+    pip3 install 'python-lsp-server[all]'
+    pip3 uninstall -y autopep8
+    pip3 uninstall -y yapf
 }
 function Pyvenv(){
     deactivate
