@@ -10,7 +10,7 @@ noremap mm m
 inoremap \\ \
 
 " resource config
-noremap mso :so ~/.vimrc<cr>
+noremap mso :source $MYVIMRC<CR>
 " addtional scroll movements, moving text
 noremap mj J
 noremap mk K
