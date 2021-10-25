@@ -1,5 +1,6 @@
 mkdir -p ~/env/
 cd ~/env
+rm -rf ~/env/nvim
 python3 -m venv nvim
 . ./nvim/bin/activate
 pip3 install wheel
