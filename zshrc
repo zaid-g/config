@@ -43,14 +43,7 @@ alias PO="systemctl poweroff"
 alias vipy="python -m IPython"
 alias vipy3="python3 -m IPython"
 function Pip3(){
-    pip3 install wheel
     pip3 install ipdb
-    pip3 install neovim
-    pip3 install black
-    pip3 install 'python-lsp-server[all]'
-    pip3 install python-lsp-black
-    pip3 uninstall -y autopep8
-    pip3 uninstall -y yapf
 }
 function Pyvenv(){
     deactivate
@@ -68,7 +61,7 @@ alias TKS="tmux kill-session -t"
 alias TKAs="tmux kill-server"
 # vim, VM taken
 function Vim(){
-    ~/app/nvim.appimage "$@" || nvim "$@" || vim "$@"  
+    (source ~/env/nvim/bin/activate && ~/app/nvim.appimage "$@") || (source ~/env/nvim/bin/activate && nvim "$@") || (vim "$@")
 }
 alias V="Vim"
 alias VS="Vim -S"
