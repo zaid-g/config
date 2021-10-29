@@ -44,6 +44,7 @@ alias vipy="python -m IPython"
 alias vipy3="python3 -m IPython"
 function Pip3(){
     pip3 install ipdb
+    pip3 install neovim
 }
 function Pyvenv(){
     deactivate
