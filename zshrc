@@ -61,10 +61,11 @@ alias TKS="tmux kill-session -t"
 alias TKAs="tmux kill-server"
 # vim, VM taken
 function Vim(){
-    (source ~/env/nvim/bin/activate && ~/app/nvim.appimage "$@") || (source ~/env/nvim/bin/activate && nvim "$@") || (vim "$@")
+    ~/app/nvim.appimage "$@" || nvim "$@" || vim "$@"
 }
 alias V="Vim"
 alias VS="Vim -S"
+alias VPY = "Vim **/*.py"
 alias VU="Vim ~/doc/it/tools/useful-commands.txt.sh"
 # git
 alias G="git"
