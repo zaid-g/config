@@ -20,11 +20,6 @@ noremap <silent> J @="j\<lt>C-E>"<CR>
 noremap <silent> K @="k\<lt>C-Y>"<CR>
 nnoremap <c-j> :m .+1<CR>==
 nnoremap <c-k> :m .-2<CR>==
-" undo resets at more chars
-inoremap , ,<c-g>u
-inoremap . .<c-g>u
-inoremap ! !<c-g>u
-inoremap ? ?<c-g>u
 " copy to system clipboard
 noremap Y "+y
 " allows multiple pasting of copied text
