@@ -65,7 +65,7 @@ function Vim(){
 }
 alias V="Vim"
 alias VS="Vim -S"
-alias VPY = "Vim **/*.py"
+alias VPY="Vim **/*.py"
 alias VU="Vim ~/doc/it/tools/useful-commands.txt.sh"
 # git
 alias G="git"
