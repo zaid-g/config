@@ -33,6 +33,20 @@ bindkey -v '^?' backward-delete-char
 ## aliases
 alias S="sudo"
 alias C="clear"
+function CD(){
+    current_working_directory=$(pwd)
+    dev_or_doc=$(echo "$current_working_directory" | awk -F "/" '{print $4}')
+    if [[ "$dev_or_doc" == "dev" ]]; then
+        current_proj_directory=$(echo "$current_working_directory" | awk -F "/" '{print $5}')
+        mkdir -p ~/doc/projects/$current_proj_directory
+        cd ~/doc/projects/$current_proj_directory
+    elif [[ "$dev_or_doc" == "doc" ]]; then
+        current_proj_directory=$(echo "$current_working_directory" | awk -F "/" '{print $6}')
+        mkdir -p ~/dev/$current_proj_directory
+        cd ~/dev/$current_proj_directory
+    fi
+}
+alias CDD="cd ~/env/dotfiles"
 alias RS="source ~/.zshrc"
 alias LL="ls -lt"
 alias LA="ls -A"
@@ -45,6 +59,8 @@ alias vipy3="python3 -m IPython"
 function Pip3(){
     pip3 install ipdb
     pip3 install neovim
+    pip3 install pyright
+    pip3 install pandas
 }
 function Pyvenv(){
     deactivate
