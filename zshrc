@@ -63,31 +63,23 @@ function Pip3(){
     pip3 install pandas
 }
 function cd() {
-  builtin cd "$@"
-  if [[ -z "$VIRTUAL_ENV" ]] ; then
-    ## If env folder is found then activate the vitualenv
-      if [[ -d ./.venv ]] ; then
-        source ./.venv/.*/bin/activate
-      fi
-  else
-    ## check the current folder belong to earlier VIRTUAL_ENV folder
-    # if yes then do nothing
-    # else deactivate
-      parentdir="$(dirname "$VIRTUAL_ENV")"
-      parentdir=${parentdir%/*}
-      if [[ "$PWD"/ != "$parentdir"/* ]] ; then
-        deactivate
-      fi
-  fi
+    builtin cd $1
+    if [[ -d ./.venv ]] ; then
+        if [[ -z "$VIRTUAL_ENV" ]] ; then
+            . ./.venv/.*/bin/activate
+        fi
+            deactivate
+            . ./.venv/.*/bin/activate
+    fi
 }
 function Pyvenv(){
     deactivate
     mkdir -p .venv
-    cd .venv
+    builtin cd .venv
     python3 -m venv $1
     . ./$1/bin/activate
     Pip3
-    cd ..
+    builtin cd ..
 }
 alias PT="pytest -sxvv"
 alias PTDB="pytest -sxvv --pdb"
