@@ -87,6 +87,7 @@ function Pyvenv(){
     python3 -m venv $1
     . ./$1/bin/activate
     Pip3
+    cd ..
 }
 alias PT="pytest -sxvv"
 alias PTDB="pytest -sxvv --pdb"
