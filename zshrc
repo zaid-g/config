@@ -73,11 +73,12 @@ function cd() {
     fi
 }
 function Pyvenv(){
+    project_name="$(basename $PWD)"
     deactivate
     mkdir -p .venv
     builtin cd .venv
-    python3 -m venv $1
-    . ./$1/bin/activate
+    python3 -m venv ".$project_name"
+    . ./".$project_name"/bin/activate
     Pip3
     builtin cd ..
 }
