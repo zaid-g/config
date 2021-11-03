@@ -94,9 +94,15 @@ alias TKAs="tmux kill-server"
 function Vim(){
     ~/app/nvim.appimage "$@" || nvim "$@" || vim "$@"
 }
+function VPY(){
+    if [[ -z "$1" ]] ; then
+        Vim **/*.py
+    else
+        Vim $1/**/*.py
+    fi
+}
 alias V="Vim"
 alias VS="Vim -S"
-alias VPY="Vim **/*.py"
 alias VU="Vim ~/doc/it/tools/useful-commands.txt.sh"
 # git
 alias G="git"
