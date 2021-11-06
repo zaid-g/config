@@ -54,8 +54,8 @@ alias L='ls -CF'
 alias VM="virt-manager"
 alias PO="systemctl poweroff"
 # python
-alias vipy="python -m IPython"
-alias vipy3="python3 -m IPython"
+alias I="python3 -m IPython"
+alias P="python3"
 function Pip3(){
     pip3 install ipdb
     pip3 install neovim
