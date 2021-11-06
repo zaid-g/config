@@ -47,7 +47,7 @@ function CD(){
     fi
 }
 alias CDD="cd ~/env/dotfiles"
-alias RS="source ~/.zshrc"
+alias RS="source ~/.zshrc && cd ."
 alias LL="ls -lt"
 alias LA="ls -A"
 alias L='ls -CF'
