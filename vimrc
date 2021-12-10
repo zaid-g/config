@@ -14,10 +14,12 @@ noremap mso :source $MYVIMRC<CR>
 " addtional scroll movements, moving text
 noremap <silent> J @="j\<lt>C-E>"<CR>
 noremap <silent> K @="k\<lt>C-Y>"<CR>
-noremap <c-j> J
-noremap <c-k> K
-noremap mj <c-j>
-noremap mk <c-k>
+noremap mj J
+noremap mk K
+noremap mJ <c-j>
+noremap mK <c-k>
+" copy doesn't jump cursor back in visual mode
+vmap y ygv<Esc>
 " copy to system clipboard
 noremap Y "+y
 " allows multiple pasting of copied text
@@ -71,10 +73,10 @@ nnoremap msb :botr vs<CR>:b
 " immediately send its contents to another tmux window using Slime or
 " to clipboard
 nnoremap mbl o<CR># ---------- [] ----------:<CR><CR><ESC>2k13la
-nmap <c-]> :<c-u>call JumpToPattern(v:count1, 0, '\%$\\|^# ----------', '')<cr>
-xmap <c-]> :<c-u>call JumpToPattern(v:count1, 1, '\%$\\|^# ----------', '')<cr>
-nmap <c-[> :<c-u>call JumpToPattern(v:count1, 0, '\%^\\|^# ----------', 'b')<cr>
-xmap <c-[> :<c-u>call JumpToPattern(v:count1, 1, '\%^\\|^# ----------', 'b')<cr>
+nmap <c-j> :<c-u>call JumpToPattern(v:count1, 0, '\%$\\|^# ----------', '')<cr>
+xmap <c-j> :<c-u>call JumpToPattern(v:count1, 1, '\%$\\|^# ----------', '')<cr>
+nmap <c-k> :<c-u>call JumpToPattern(v:count1, 0, '\%^\\|^# ----------', 'b')<cr>
+xmap <c-k> :<c-u>call JumpToPattern(v:count1, 1, '\%^\\|^# ----------', 'b')<cr>
 nmap my w<c-[>V<c-]>y'>
 nmap mY w<c-[>V<c-]>"+y'>
 " ipdb trace above current line
