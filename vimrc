@@ -12,14 +12,12 @@ inoremap \\ \
 " resource config
 noremap mso :source $MYVIMRC<CR>
 " addtional scroll movements, moving text
-noremap mj J
-noremap mk K
-noremap mJ <c-j>
-noremap mK <c-k>
 noremap <silent> J @="j\<lt>C-E>"<CR>
 noremap <silent> K @="k\<lt>C-Y>"<CR>
-nnoremap <c-j> :m .+1<CR>==
-nnoremap <c-k> :m .-2<CR>==
+noremap <c-j> J
+noremap <c-k> K
+noremap mj <c-j>
+noremap mk <c-k>
 " copy to system clipboard
 noremap Y "+y
 " allows multiple pasting of copied text
@@ -73,12 +71,12 @@ nnoremap msb :botr vs<CR>:b
 " immediately send its contents to another tmux window using Slime or
 " to clipboard
 nnoremap mbl o<CR># ---------- [] ----------:<CR><CR><ESC>2k13la
-nmap m] :<c-u>call JumpToPattern(v:count1, 0, '\%$\\|^# ----------', '')<cr>
-xmap m] :<c-u>call JumpToPattern(v:count1, 1, '\%$\\|^# ----------', '')<cr>
-nmap m[ :<c-u>call JumpToPattern(v:count1, 0, '\%^\\|^# ----------', 'b')<cr>
-xmap m[ :<c-u>call JumpToPattern(v:count1, 1, '\%^\\|^# ----------', 'b')<cr>
-nmap my wm[Vm]y'>
-nmap mY wm[Vm]"+y'>
+nmap <c-]> :<c-u>call JumpToPattern(v:count1, 0, '\%$\\|^# ----------', '')<cr>
+xmap <c-]> :<c-u>call JumpToPattern(v:count1, 1, '\%$\\|^# ----------', '')<cr>
+nmap <c-[> :<c-u>call JumpToPattern(v:count1, 0, '\%^\\|^# ----------', 'b')<cr>
+xmap <c-[> :<c-u>call JumpToPattern(v:count1, 1, '\%^\\|^# ----------', 'b')<cr>
+nmap my w<c-[>V<c-]>y'>
+nmap mY w<c-[>V<c-]>"+y'>
 " ipdb trace above current line
 nnoremap mp Oimport ipdb; ipdb.set_trace()<ESC>:w<CR>
 " timeit
@@ -129,7 +127,7 @@ let g:slime_python_ipython = 1
 let g:slime_default_config = {"socket_name": "default", "target_pane": ".0"}
 let g:slime_dont_ask_default = 1
 xmap mss <Plug>SlimeRegionSend'>
-nmap mss wm[Vm]:SlimeSend<CR>'>
+nmap mss w<c-[>V<c-]>:SlimeSend<CR>'>
 " winresize
 let g:winresizer_start_key = 'mw'
 " UltiSnips stuff
