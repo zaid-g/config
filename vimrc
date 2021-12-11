@@ -21,7 +21,7 @@ noremap mK <c-k>
 " copy doesn't jump cursor back in visual mode
 vmap y ygv<Esc>
 " copy to system clipboard
-noremap Y "+y
+map Y "+y
 " allows multiple pasting of copied text
 xnoremap p pgvy
 " word completion using tab and shift tab (instead of c-n c-p)
