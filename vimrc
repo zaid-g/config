@@ -77,8 +77,8 @@ nmap <c-j> :<c-u>call JumpToPattern(v:count1, 0, '\%$\\|^# ----------', '')<cr>
 xmap <c-j> :<c-u>call JumpToPattern(v:count1, 1, '\%$\\|^# ----------', '')<cr>
 nmap <c-k> :<c-u>call JumpToPattern(v:count1, 0, '\%^\\|^# ----------', 'b')<cr>
 xmap <c-k> :<c-u>call JumpToPattern(v:count1, 1, '\%^\\|^# ----------', 'b')<cr>
-nmap my w<c-[>V<c-]>y'>
-nmap mY w<c-[>V<c-]>"+y'>
+nmap my w<c-k>V<c-j>y'>
+nmap mY w<c-k>V<c-j>"+y'>
 " ipdb trace above current line
 nnoremap mp Oimport ipdb; ipdb.set_trace()<ESC>:w<CR>
 " timeit
@@ -129,7 +129,7 @@ let g:slime_python_ipython = 1
 let g:slime_default_config = {"socket_name": "default", "target_pane": ".0"}
 let g:slime_dont_ask_default = 1
 xmap mss <Plug>SlimeRegionSend'>
-nmap mss w<c-[>V<c-]>:SlimeSend<CR>'>
+nmap mss w<c-k>V<c-j>:SlimeSend<CR>'>
 " winresize
 let g:winresizer_start_key = 'mw'
 " UltiSnips stuff
