@@ -73,12 +73,12 @@ nnoremap msb :botr vs<CR>:b
 " immediately send its contents to another tmux window using Slime or
 " to clipboard
 nnoremap mbl o<CR># ---------- [] ----------:<CR><CR><ESC>2k13la
-nmap <c-j> :<c-u>call JumpToPattern(v:count1, 0, '\%$\\|^# ----------', '')<cr>
-xmap <c-j> :<c-u>call JumpToPattern(v:count1, 1, '\%$\\|^# ----------', '')<cr>
-nmap <c-k> :<c-u>call JumpToPattern(v:count1, 0, '\%^\\|^# ----------', 'b')<cr>
-xmap <c-k> :<c-u>call JumpToPattern(v:count1, 1, '\%^\\|^# ----------', 'b')<cr>
-nmap my w<c-k>V<c-j>ygv<Esc> " hacky way at beginning
-nmap mY w<c-k>V<c-j>"+ygv<Esc> " hacky way at beginning
+nmap <silent> <c-j> :<c-u>call JumpToPattern(v:count1, 0, '\%$\\|^# ----------', '')<cr>
+xmap <silent> <c-j> :<c-u>call JumpToPattern(v:count1, 1, '\%$\\|^# ----------', '')<cr>
+nmap <silent> <c-k> :<c-u>call JumpToPattern(v:count1, 0, '\%^\\|^# ----------', 'b')<cr>
+xmap <silent> <c-k> :<c-u>call JumpToPattern(v:count1, 1, '\%^\\|^# ----------', 'b')<cr>
+nmap my w<c-k>V<c-j>ygv<Esc>
+nmap mY w<c-k>V<c-j>"+ygv<Esc>
 " ipdb trace above current line
 nnoremap mp Oimport ipdb; ipdb.set_trace()<ESC>:w<CR>
 " timeit
@@ -128,8 +128,8 @@ let g:slime_target = "tmux"
 let g:slime_python_ipython = 1
 let g:slime_default_config = {"socket_name": "default", "target_pane": ".0"}
 let g:slime_dont_ask_default = 1
-xmap mss <Plug>SlimeRegionSendgv<Esc>
-nmap mss w<c-k>V<c-j>:SlimeSend<CR>gv<Esc>
+xmap <silent> mss <Plug>SlimeRegionSendgv<Esc>
+nmap <silent> mss w<c-k>V<c-j>:SlimeSend<CR>gv<Esc>
 " winresize
 let g:winresizer_start_key = 'mw'
 " UltiSnips stuff
