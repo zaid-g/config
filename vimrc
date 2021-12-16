@@ -18,8 +18,6 @@ noremap mj J
 noremap mk K
 noremap mJ <c-j>
 noremap mK <c-k>
-" copy doesn't jump cursor back in visual mode
-vmap y ygv<Esc>
 " copy to system clipboard
 map Y "+y
 " allows multiple pasting of copied text
@@ -128,7 +126,7 @@ let g:slime_target = "tmux"
 let g:slime_python_ipython = 1
 let g:slime_default_config = {"socket_name": "default", "target_pane": ".0"}
 let g:slime_dont_ask_default = 1
-xmap <silent> mss <Plug>SlimeRegionSendgv<Esc>
+xmap <silent> mss <Plug>SlimeRegionSend
 nmap <silent> mss w<c-k>V<c-j>:SlimeSend<CR>gv<Esc>
 " winresize
 let g:winresizer_start_key = 'mw'
