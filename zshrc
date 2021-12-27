@@ -81,6 +81,12 @@ function Pyvenv(){
     . ./".$project_name"/bin/activate
     Pip3
     builtin cd ..
+    touch requirements.txt
+    if ! [ -e .git ]; then
+        git init
+        wget https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore
+        mv Python.gitignore .gitignore
+    fi;
 }
 alias PT="pytest -sxvv"
 alias PTDB="pytest -sxvv --pdb"
