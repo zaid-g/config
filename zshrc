@@ -126,6 +126,13 @@ alias GB="git branch --sort=-committerdate"
 alias GPUSH="git push -u origin HEAD"
 alias GPULL='git pull origin $(git rev-parse --abbrev-ref HEAD)'
 # docker
+function DOCK(){
+    sudo docker run -it $@ main
+}
+function DOCKCWD(){
+    current_working_directory=${PWD##*/}
+    sudo docker run -it -v $PWD:/home/ubuntu/$current_working_directory $@ main
+}
 alias D="docker"
 alias SD="sudo docker"
 alias DB="docker build"
