@@ -1,6 +1,7 @@
 #Download base image ubuntu 20.04
 FROM ubuntu:20.04
 
+# noninteractive so apt install doesn't break
 ARG DEBIAN_FRONTEND=noninteractive
 
 # Update Ubuntu Software repository
@@ -9,7 +10,6 @@ RUN apt-get update
 RUN apt upgrade -y
 RUN apt-get upgrade -y
 
-# noninteractive and tz data so apt install doesn't break
 
 RUN apt-get install git -y
 RUN apt install zsh -y
@@ -17,8 +17,15 @@ RUN apt install python3 -y
 RUN apt install vim -y
 RUN apt install python3-pip -y
 RUN apt-get install texlive-full -y --fix-missing
+RUN apt install ruby-dev ruby-bundler nodejs -y
+RUN apt install sudo -y
+
+# user and root pwd
+RUN echo 'root:Docker!' | chpasswd
 
 RUN useradd -ms /usr/bin/zsh ubuntu
+RUN echo 'ubuntu:Docker!' | chpasswd
+RUN adduser ubuntu sudo
 USER ubuntu
 WORKDIR /home/ubuntu
 RUN mkdir env
