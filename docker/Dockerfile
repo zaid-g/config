@@ -5,12 +5,23 @@ FROM ubuntu:20.04
 ARG DEBIAN_FRONTEND=noninteractive
 
 # Update Ubuntu Software repository
+RUN apt clean
 RUN apt update
-RUN apt-get update
 RUN apt upgrade -y
+RUN apt-get clean
+RUN apt-get update
 RUN apt-get upgrade -y
 
+# user and root pwd
+RUN echo 'root:Docker!' | chpasswd
 
+## locales for utf support
+RUN apt-get install -y locales locales-all
+ENV LC_ALL en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US.UTF-8
+
+# install packages
 RUN apt-get install git -y
 RUN apt install zsh -y
 RUN apt install python3 -y
@@ -20,9 +31,7 @@ RUN apt-get install texlive-full -y --fix-missing
 RUN apt install ruby-dev ruby-bundler nodejs -y
 RUN apt install sudo -y
 
-# user and root pwd
-RUN echo 'root:Docker!' | chpasswd
-
+# add ubuntu user and update env
 RUN useradd -ms /usr/bin/zsh ubuntu
 RUN echo 'ubuntu:Docker!' | chpasswd
 RUN adduser ubuntu sudo
@@ -37,6 +46,5 @@ WORKDIR /home/ubuntu/env/dotfiles
 RUN . ./vim-nvim-plugins.sh
 WORKDIR /home/ubuntu
 RUN echo 'PS1="%B%{$fg[green]%}[%{$fg[green]%}%n%{$fg[green]%}@%{$fg[green]%}%M %{$fg[green]%}%~%{$fg[green]%}]%{$reset_color%}$%b "' >> .zshrc
-
 
 ENTRYPOINT /usr/bin/zsh

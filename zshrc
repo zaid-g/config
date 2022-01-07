@@ -92,7 +92,11 @@ alias PT="pytest -sxvv"
 alias PTDB="pytest -sxvv --pdb"
 # grep
 function GREP(){
-    grep -rni **/*.$1 -e $2
+    if [ "$#" -eq 1 ]; then
+        grep -rni **/* -e $1
+    else
+        grep -rni **/*.$1 -e $2
+    fi
 }
 # tmux
 alias T="tmux"
