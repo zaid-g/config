@@ -30,7 +30,7 @@ bindkey -M menuselect 'j' vi-down-line-or-history
 bindkey -v '^?' backward-delete-char
 
 
-## aliases
+## aliases and functions
 alias S="sudo"
 alias C="clear"
 function CD(){
@@ -90,6 +90,10 @@ function Pyvenv(){
 }
 alias PT="pytest -sxvv"
 alias PTDB="pytest -sxvv --pdb"
+# grep
+function GREP(){
+    grep -rni **/*.$1 -e $2
+}
 # tmux
 alias T="tmux"
 alias TLS="tmux ls"
