@@ -57,6 +57,7 @@ alias PO="systemctl poweroff"
 alias I="python3 -m IPython"
 alias P="python3"
 function Pip3(){
+    pip3 install wheel
     pip3 install ipdb
     pip3 install neovim
     pip3 install pyright

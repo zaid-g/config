@@ -30,6 +30,7 @@ RUN apt install python3-pip -y
 RUN apt-get install texlive-full -y --fix-missing
 RUN apt install ruby-dev ruby-bundler nodejs -y
 RUN apt install sudo -y
+RUN apt install python3-venv -y
 
 # add ubuntu user and update env
 RUN useradd -ms /usr/bin/zsh ubuntu
