@@ -1,5 +1,5 @@
 mkdir -p ~/app/neovim
-cd ~/app
+cd ~/app/neovim
 nvim_latest_github_path=$(curl -s https://github.com/neovim/neovim/releases/latest | grep -Po '".*"' )
 # cut " "
 nvim_latest_github_path="${nvim_latest_github_path:1:-1}"
