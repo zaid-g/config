@@ -107,7 +107,7 @@ alias TKS="tmux kill-session -t"
 alias TKAs="tmux kill-server"
 # vim, VM taken
 function Vim(){
-    ~/app/nvim.appimage "$@" || nvim "$@" || vim "$@"
+    ~/app/neovim/nvim-linux64/bin/nvim "$@" || nvim "$@" || vim "$@"
 }
 function VPY(){
     if [[ -z "$1" ]] ; then
