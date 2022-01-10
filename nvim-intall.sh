@@ -1,3 +1,4 @@
+rm -rf ~/app/neovim
 mkdir -p ~/app/neovim
 cd ~/app/neovim
 nvim_latest_version=$(curl -s https://github.com/neovim/neovim/releases/latest | grep -Po '".*"' )
@@ -18,3 +19,6 @@ wget $nvim_linux64_checksum_link
 # check shasums
 sha256sum -c nvim.appimage.sha256sum
 sha256sum -c nvim-linux64.tar.gz.sha256sum
+# decompress the tar linux code
+tar -zxvf nvim-link.tar.gz
+
