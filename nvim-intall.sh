@@ -1,13 +1,15 @@
 mkdir -p ~/app/neovim
 cd ~/app/neovim
-nvim_latest_github_path=$(curl -s https://github.com/neovim/neovim/releases/latest | grep -Po '".*"' )
-# cut " "
-nvim_latest_github_path="${nvim_latest_github_path:1:-1}"
+nvim_latest_version=$(curl -s https://github.com/neovim/neovim/releases/latest | grep -Po '".*"' )
+# get version
+nvim_latest_version="${nvim_latest_version:47:-1}"
+# get download link
+nvim_base_download_link=https://github.com/neovim/neovim/releases/download/${nvim_latest_version}
 # append assets
-nvim_appimage_link=$nvim_latest_github_path/nvim.appimage
-nvim_appimage_checksum_link=$nvim_latest_github_path/nvim.appimage.sha256sum
-nvim_linux64_link=$nvim_latest_github_path/nvim-linux64.tar.gz
-nvim_linux64_checksum_link=$nvim_latest_github_path/nvim-linux64.tar.gz.sha256sum
+nvim_appimage_link=$nvim_base_download_link/nvim.appimage
+nvim_appimage_checksum_link=$nvim_base_download_link/nvim.appimage.sha256sum
+nvim_linux64_link=$nvim_base_download_link/nvim-linux64.tar.gz
+nvim_linux64_checksum_link=$nvim_base_download_link/nvim-linux64.tar.gz.sha256sum
 # download
 wget $nvim_appimage_link
 wget $nvim_appimage_checksum_link
