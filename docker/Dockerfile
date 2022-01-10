@@ -33,6 +33,7 @@ RUN apt install sudo -y
 RUN apt install python3-venv -y
 RUN apt install wget -y
 RUN apt install curl -y
+RUN apt install golang -y
 
 # add ubuntu user and update env
 RUN useradd -ms /usr/bin/zsh ubuntu
@@ -46,7 +47,9 @@ RUN git clone https://github.com/zaid-g/dotfiles.git
 WORKDIR /home/ubuntu/env/dotfiles
 RUN . ./update.sh
 WORKDIR /home/ubuntu/env/dotfiles
-RUN . ./vim-nvim-plugins.sh
+RUN . ./vim-nvim-plugins-install-update.sh
+WORKDIR /home/ubuntu/env/dotfiles
+RUN . ./nvim-install-update.sh
 WORKDIR /home/ubuntu
 RUN echo 'PS1="%B%{$fg[green]%}[%{$fg[green]%}%n%{$fg[green]%}@%{$fg[green]%}%M %{$fg[green]%}%~%{$fg[green]%}]%{$reset_color%}$%b "' >> .zshrc
 

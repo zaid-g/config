@@ -1,8 +1,9 @@
 rm -rf ~/app/neovim
 mkdir -p ~/app/neovim
 cd ~/app/neovim
-nvim_latest_version=$(curl -s https://github.com/neovim/neovim/releases/latest | grep -Po '".*"' )
 # get version
+nvim_latest_version=$(curl -s https://github.com/neovim/neovim/releases/latest)
+nvim_latest_version=$(echo $nvim_latest_version | grep -Po '".*"')
 nvim_latest_version="${nvim_latest_version:47:-1}"
 # get download link
 nvim_base_download_link=https://github.com/neovim/neovim/releases/download/${nvim_latest_version}
