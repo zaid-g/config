@@ -20,4 +20,4 @@ wget $nvim_linux64_checksum_link
 sha256sum -c nvim.appimage.sha256sum
 sha256sum -c nvim-linux64.tar.gz.sha256sum
 # decompress the tar linux code
-tar -zxvf nvim-linux64.tar.gz
+tar -zxf nvim-linux64.tar.gz
