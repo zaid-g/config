@@ -31,6 +31,8 @@ RUN apt-get install texlive-full -y --fix-missing
 RUN apt install ruby-dev ruby-bundler nodejs -y
 RUN apt install sudo -y
 RUN apt install python3-venv -y
+RUN apt install wget -y
+RUN apt install curl -y
 
 # add ubuntu user and update env
 RUN useradd -ms /usr/bin/zsh ubuntu
