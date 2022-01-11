@@ -34,6 +34,7 @@ RUN apt install python3-venv -y
 RUN apt install wget -y
 RUN apt install curl -y
 RUN apt install golang -y
+RUN apt install tmux -y
 
 # add ubuntu user and update env
 RUN useradd -ms /usr/bin/zsh ubuntu
@@ -49,7 +50,7 @@ RUN . ./update.sh
 WORKDIR /home/ubuntu/dev/environment
 RUN . ./vim-nvim-plugins-install-update.sh
 WORKDIR /home/ubuntu/dev/environment
-RUN . ./nvim-install-update.sh
+RUN bash ./nvim-intall-update.sh
 WORKDIR /home/ubuntu
 RUN echo 'PS1="%B%{$fg[green]%}[%{$fg[green]%}%n%{$fg[green]%}@%{$fg[green]%}%M %{$fg[green]%}%~%{$fg[green]%}]%{$reset_color%}$%b "' >> .zshrc
 
