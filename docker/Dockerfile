@@ -41,14 +41,14 @@ RUN echo 'ubuntu:Docker!' | chpasswd
 RUN adduser ubuntu sudo
 USER ubuntu
 WORKDIR /home/ubuntu
-RUN mkdir env
-WORKDIR /home/ubuntu/env
-RUN git clone https://github.com/zaid-g/dotfiles.git
-WORKDIR /home/ubuntu/env/dotfiles
+RUN mkdir dev
+WORKDIR /home/ubuntu/dev
+RUN git clone https://github.com/zaid-g/environment.git
+WORKDIR /home/ubuntu/dev/environment
 RUN . ./update.sh
-WORKDIR /home/ubuntu/env/dotfiles
+WORKDIR /home/ubuntu/dev/environment
 RUN . ./vim-nvim-plugins-install-update.sh
-WORKDIR /home/ubuntu/env/dotfiles
+WORKDIR /home/ubuntu/dev/environment
 RUN . ./nvim-install-update.sh
 WORKDIR /home/ubuntu
 RUN echo 'PS1="%B%{$fg[green]%}[%{$fg[green]%}%n%{$fg[green]%}@%{$fg[green]%}%M %{$fg[green]%}%~%{$fg[green]%}]%{$reset_color%}$%b "' >> .zshrc
