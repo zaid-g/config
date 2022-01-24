@@ -41,10 +41,10 @@ function! JumpToPattern(count, visual, pattern, flags)
     endfor
 endfunction
 " bufdo e without loss of syntax highlighting and switching buffers
-nnoremap me <c-w>n:bufdo e<CR>:q
+nnoremap me :tabdo e<CR>
 "" cursor/visual highlight and search
 " shortcut to highlight search whole word under cursor
-nnoremap ml :<c-u>let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<CR>wb
+nnoremap <silent> ml :<c-u>let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<CR>wb
 " shortcut to highlight search what's being selected in visual mode
 vnoremap ml :<c-u>let temp_variable=@"<CR>gvy:<c-u>let @/='\V<C-R>=escape(@",'/\')<CR>'<CR>:let @"=temp_variable<CR>:<c-u>set hlsearch<CR>
 "" find and replace mappings
