@@ -62,6 +62,7 @@ function Pip3(){
     pip3 install neovim
     pip3 install pyright
     pip3 install pandas
+    pip3 install black
 }
 function cd() {
     builtin cd $1
