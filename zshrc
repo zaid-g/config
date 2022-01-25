@@ -46,7 +46,7 @@ function CD(){
         cd ~/dev/$current_proj_directory
     fi
 }
-alias CDD="cd ~/dev/environment"
+alias CDE="cd ~/dev/environment"
 alias RS="source ~/.zshrc && cd ."
 alias LL="ls -lt"
 alias LA="ls -A"
@@ -140,8 +140,7 @@ function DOCK(){
     sudo docker run -it $@ main
 }
 function DOCKCWD(){
-    current_working_directory=${PWD##*/}
-    sudo docker run -it -v $PWD:/home/ubuntu/$current_working_directory $@ main
+    sudo docker run -it -v $PWD:$PWD $@ main
 }
 alias D="docker"
 alias SD="sudo docker"
