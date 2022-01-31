@@ -101,7 +101,7 @@ function GREP(){
     fi
 }
 # tmux
-alias T="tmux"
+alias T="tmux -2"
 alias TLS="tmux ls"
 alias TAS="tmux attach-session -t"
 alias TKS="tmux kill-session -t"
