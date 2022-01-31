@@ -38,7 +38,7 @@ RUN apt install tmux -y
 
 # add ubuntu user and update env
 RUN useradd -ms /usr/bin/zsh ubuntu
-RUN echo 'ubuntu:Docker!' | chpasswd
+RUN echo 'ubuntu:docker' | chpasswd
 RUN adduser ubuntu sudo
 USER ubuntu
 WORKDIR /home/ubuntu
