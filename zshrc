@@ -140,7 +140,7 @@ function DOCK(){
     sudo docker run -it $@ main
 }
 function DOCKCWD(){
-    sudo docker run -it -v $PWD:$PWD $@ main
+    sudo docker run -it -v $PWD:$PWD  -w $PWD $@ main
 }
 alias D="docker"
 alias SD="sudo docker"
@@ -161,3 +161,6 @@ alias X="xdg-open"
 
 # Load zsh-syntax-highlighting; should be last.
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null
+
+# force activate venv if docker
+cd .
