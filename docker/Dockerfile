@@ -51,6 +51,8 @@ WORKDIR /home/ubuntu/dev/environment
 RUN . ./vim-nvim-plugins-install-update.sh
 WORKDIR /home/ubuntu/dev/environment
 RUN bash ./nvim-intall-update.sh
+WORKDIR /home/ubuntu/dev/environment
+RUN bash ./pip3.sh
 WORKDIR /home/ubuntu
 RUN echo 'PS1="%B%{$fg[green]%}[%{$fg[green]%}%n%{$fg[green]%}@%{$fg[green]%}%M %{$fg[green]%}%~%{$fg[green]%}]%{$reset_color%}$%b "' >> .zshrc
 
