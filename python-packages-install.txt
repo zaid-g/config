@@ -1,0 +1,6 @@
+wheel
+ipdb
+neovim
+pyright
+pandas
+black

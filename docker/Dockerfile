@@ -36,6 +36,9 @@ RUN apt install curl -y
 RUN apt install golang -y
 RUN apt install tmux -y
 
+# dummy operation
+RUN pwd
+
 # add ubuntu user and update env
 RUN useradd -ms /usr/bin/zsh ubuntu
 RUN echo 'ubuntu:docker' | chpasswd
@@ -51,6 +54,8 @@ WORKDIR /home/ubuntu/dev/environment
 RUN . ./vim-nvim-plugins-install-update.sh
 WORKDIR /home/ubuntu/dev/environment
 RUN bash ./nvim-intall-update.sh
+WORKDIR /home/ubuntu/dev/environment
+RUN pip3 install -r ./python-packages-install.txt
 WORKDIR /home/ubuntu
 RUN echo 'PS1="%B%{$fg[green]%}[%{$fg[green]%}%n%{$fg[green]%}@%{$fg[green]%}%M %{$fg[green]%}%~%{$fg[green]%}]%{$reset_color%}$%b "' >> .zshrc
 
