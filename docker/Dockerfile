@@ -37,7 +37,7 @@ RUN apt install golang -y
 RUN apt install tmux -y
 
 # dummy operation
-RUN pwd
+RUN cd
 
 # add ubuntu user and update env
 RUN useradd -ms /usr/bin/zsh ubuntu
