@@ -136,7 +136,9 @@ alias GPUSH="git push -u origin HEAD"
 alias GPULL='git pull origin $(git rev-parse --abbrev-ref HEAD)'
 # docker
 function DOCK(){
-    sudo docker run -it $@ main
+    rm -rf ~/.clipboard
+    mkdir -p ~/.clipboard
+    sudo docker run -it -v $HOME/dev/environment:/home/ubuntu/dev/environment -v $HOME/.clipboard:/home/ubuntu/.clipboard $@ main
 }
 function DOCKCWD(){
     rm -rf ~/.clipboard
