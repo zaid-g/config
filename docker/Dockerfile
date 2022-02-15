@@ -35,6 +35,9 @@ RUN apt install wget -y
 RUN apt install curl -y
 RUN apt install golang -y
 RUN apt install tmux -y
+RUN curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+RUN apt install nodejs -y
+RUN npm i -g pyright 
 
 # dummy operation
 RUN cd
@@ -62,6 +65,7 @@ RUN echo 'PS1="%B%{$fg[green]%}[%{$fg[green]%}%n%{$fg[green]%}@%{$fg[green]%}%M 
 # efm go package
 RUN GO111MODULE=on go get github.com/mattn/efm-langserver@latest
 RUN echo 'export PATH=$PATH:~/go/bin' >> .zshrc
+RUN echo 'cd .' >> .zshrc
 
 
 ENTRYPOINT ["tmux", "-2"]

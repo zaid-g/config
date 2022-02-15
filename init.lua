@@ -33,6 +33,7 @@ local on_attach = function(client, bufnr)
 
 end
 
+vim.lsp.set_log_level("debug")
 -- Use a loop to conveniently call 'setup' on multiple servers and
 -- map buffer local keybindings when the language server attaches
 local servers = {'pyright'}
@@ -44,6 +45,7 @@ for _, lsp in ipairs(servers) do
     }
   }
 end
+
 
 -- efm
 require('lspconfig').efm.setup {
