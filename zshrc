@@ -140,8 +140,8 @@ function DOCK(){
     sudo docker run -it $@ main
 }
 function DOCKCWD(){
-    mkdir -p ~/.clipboard
     rm -rf ~/.clipboard
+    mkdir -p ~/.clipboard
     sudo docker run -it -v $PWD:$PWD -v $HOME/dev/environment:/home/ubuntu/dev/environment -v $HOME/.clipboard:/home/ubuntu/.clipboard -w $PWD $@ main
 }
 alias D="docker"
