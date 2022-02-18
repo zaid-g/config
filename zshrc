@@ -106,19 +106,19 @@ alias TAS="tmux attach-session -t"
 alias TKS="tmux kill-session -t"
 alias TKAs="tmux kill-server"
 # vim, VM taken
-function Vim(){
+function V(){
     ~/app/neovim/nvim-linux64/bin/nvim "$@" || nvim "$@" || vim "$@"
 }
 function VPY(){
     if [[ -z "$1" ]] ; then
-        Vim **/*.py
+        V **/*.py
     else
-        Vim $1/**/*.py
+        V $1/**/*.py
     fi
 }
-alias V="Vim"
-alias VS="Vim -S"
-alias VU="Vim ~/doc/it/tools/useful-commands.txt.sh"
+alias VS="V -S"
+alias VU="V ~/doc/it/tools/useful-commands.txt.sh"
+alias VN="V ~/doc/general/notes.txt"
 # git
 alias G="git"
 alias GS="git status"
