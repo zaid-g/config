@@ -38,11 +38,19 @@ RUN apt install tmux -y
 RUN curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
 RUN apt install nodejs -y
 RUN npm i -g pyright 
+RUN apt install postgresql postgresql-contrib -y
 
 # dummy operation
 RUN cd
 
+# postgresql user add
+USER postgres
+#RUN service postgresql start
+#RUN createuser -s ubuntu
+#RUN createdb ubuntu
+
 # add ubuntu user and update env
+USER root
 RUN useradd -ms /usr/bin/zsh ubuntu
 RUN echo 'ubuntu:docker' | chpasswd
 RUN adduser ubuntu sudo
