@@ -1,11 +1,12 @@
+# run this file without sudo
 sudo apt-get install git -y
 mkdir ~/dev
 cd ~/dev
 git clone https://github.com/zaid-g/environment.git
 cd ~/dev/environment
 . ./update.sh
-. ./vim-nvim-plugins-install-update.sh
 . ./nvim-install-update.sh
+. ./nvim-plugins-install-update.sh
 pip3 install -r ./python-packages-install.txt
 echo 'PS1="%B%{$fg[green]%}[%{$fg[green]%}%n%{$fg[green]%}@%{$fg[green]%}%M %{$fg[green]%}%~%{$fg[green]%}]%{$reset_color%}$%b "' >> ~/.zshrc
 echo '. ~/.xinitrc' >> ~/.zshrc
@@ -18,3 +19,6 @@ sudo npm i -g pyright
 sudo chsh -s /usr/bin/zsh
 GO111MODULE=on go get github.com/mattn/efm-langserver@latest
 echo 'export PATH=$PATH:~/go/bin' >> ~/.zshrc
+
+# change resolution
+# change keyboard repeat keys delay and speed 200, 50
