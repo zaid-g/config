@@ -160,8 +160,8 @@ alias SDI="sudo docker image"
 # xdg open (open file from terminal with default app)
 alias X="xdg-open"
 # copy vim clipboard using xclip
-alias XCV="xclip -selection clipboard ~/.clipboard/vim-clipboard.txt"
-alias XCT="xclip -selection clipboard ~/.clipboard/tmux-clipboard.txt"
+alias XCV="xclip -selection clipboard ~/.clipboard/vim-clipboard.txt && rm ~/.clipboard/vim-clipboard.txt"
+alias XCT="xclip -selection clipboard ~/.clipboard/tmux-clipboard.txt && rm ~/.clipboard/tmux-clipboard.txt"
 
 
 
