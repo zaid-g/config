@@ -24,5 +24,5 @@ chsh -s /usr/bin/zsh
 GO111MODULE=on go get github.com/mattn/efm-langserver@latest
 echo 'export PATH=$PATH:~/go/bin' >> ~/.zshrc
 
-# change resolution
+# change resolution 1600x900
 # change keyboard repeat keys delay and speed 200, 50
