@@ -1,6 +1,4 @@
 #!/bin/bash
-set -e # any failure will cause script to exit
-
 # run this file without sudo
 
 sudo apt-get install git -y
