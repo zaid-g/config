@@ -1,4 +1,8 @@
+#!/bin/bash
+set -e # any failure will cause script to exit
+
 # run this file without sudo
+
 sudo apt-get install git -y
 mkdir ~/dev
 cd ~/dev
@@ -16,7 +20,7 @@ sudo apt-get install texlive-full -y --fix-missing
 curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
 sudo apt install nodejs -y
 sudo npm i -g pyright
-sudo chsh -s /usr/bin/zsh
+chsh -s /usr/bin/zsh
 GO111MODULE=on go get github.com/mattn/efm-langserver@latest
 echo 'export PATH=$PATH:~/go/bin' >> ~/.zshrc
 
