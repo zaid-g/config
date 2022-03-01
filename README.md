@@ -1,2 +1,1 @@
-dotfiles
-
+config files and install scripts
