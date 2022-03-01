@@ -41,5 +41,5 @@ touch -a ~/.xinitrc
 grep -qxF 'setxkbmap -option caps:swapescape' ~/.xinitrc || echo "$(printf 'setxkbmap -option caps:swapescape\n'; cat ~/.xinitrc)" > ~/.xinitrc
 grep -qxF 'xset r rate 225 40' ~/.xinitrc || echo "$(printf 'xset r rate 225 40\n'; cat ~/.xinitrc)" > ~/.xinitrc
 
-# return to environment dir
-cd ~/dev/environment
+# return to scripts dir
+cd ~/dev/environment/scripts

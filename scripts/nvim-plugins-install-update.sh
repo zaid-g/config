@@ -7,4 +7,4 @@ git clone https://github.com/doums/darcula.git
 git clone https://github.com/SirVer/ultisnips.git
 git clone git://github.com/honza/vim-snippets.git
 git clone https://github.com/neovim/nvim-lspconfig.git
-cd ~/dev/environment
+cd ~/dev/environment/scripts
