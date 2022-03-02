@@ -41,7 +41,7 @@ function! JumpToPattern(count, visual, pattern, flags)
     endfor
 endfunction
 " bufdo e without loss of syntax highlighting and switching buffers
-nnoremap me :tabdo e<CR>
+nnoremap me :tabdo windo e<CR>
 "" cursor/visual highlight and search
 " shortcut to highlight search whole word under cursor
 nnoremap <silent> ml :<c-u>let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<CR>wb
