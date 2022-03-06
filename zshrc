@@ -78,7 +78,11 @@ function Pyvenv(){
     deactivate
     mkdir -p .venv
     builtin cd .venv
-    python3 -m venv ".$project_name"
+    if [ "$#" -eq 1 ]; then
+        python3 -m venv ".$project_name"
+    else
+        $1 -m venv ".$project_name"
+    fi
     . ./".$project_name"/bin/activate
     Pip3
     builtin cd ..
