@@ -111,14 +111,11 @@ alias TKS="tmux kill-session -t"
 alias TKAs="tmux kill-server"
 # vim, VM taken
 function V(){
-    ~/app/neovim/nvim-linux64/bin/nvim "$@" || nvim "$@" || vim "$@"
-}
-function VPY(){
-    if [[ -z "$1" ]] ; then
-        V **/*.py
-    else
-        V $1/**/*.py
-    fi
+    file_patterns=()
+    for i in "$@"; do
+        file_patterns+=(**/*.$i)
+    done
+    ~/app/neovim/nvim-linux64/bin/nvim ${file_patterns[@]} || nvim ${file_patterns[@]} || vim ${file_patterns[@]}
 }
 alias VS="V -S"
 alias VU="V ~/doc/it/tools/useful-commands.txt.sh"
