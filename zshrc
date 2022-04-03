@@ -78,7 +78,7 @@ function Pyvenv(){
     deactivate
     mkdir -p .venv
     builtin cd .venv
-    if [ "$#" -eq 1 ]; then
+    if [ "$#" -eq 0 ]; then
         python3 -m venv ".$project_name"
     else
         $1 -m venv ".$project_name"
