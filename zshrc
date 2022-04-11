@@ -76,6 +76,7 @@ function cd() {
 function Pyvenv(){
     project_name="$(basename $PWD)"
     deactivate
+    mkdir -p .vim
     mkdir -p .venv
     builtin cd .venv
     if [ "$#" -eq 0 ]; then
@@ -120,7 +121,10 @@ function VP(){
     done
     ~/app/neovim/nvim-linux64/bin/nvim ${patterns[@]} || nvim ${patterns[@]} || vim ${patterns[@]}
 }
-alias VS="V -S"
+function VS(){
+    git_branch=$(git branch --show-current)
+    V -S .vim/$git_branch.vim
+}
 alias VU="V ~/doc/it/tools/useful-commands.txt.sh"
 alias VN="V ~/doc/general/notes.txt"
 # git

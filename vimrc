@@ -64,6 +64,12 @@ nnoremap mci :let @a=1 \| %s/search/\='replace'.(@a+setreg('a',@a+1))/g
 noremap mx "_x
 " split window vertically on new column
 nnoremap msb :botr vs<CR>:b 
+" git branch sessions
+function! MakeSessionGit()
+    let git_branch=substitute(system('git branch --show-current'), '\n\+$', '', '')
+    execute "mksession! .vim/".git_branch.".vim"
+endfunction
+nnoremap mks :<c-u>call MakeSessionGit()<CR>
 
 
 "" python file mappings
