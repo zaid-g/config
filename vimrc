@@ -70,6 +70,8 @@ function! MakeSessionGit()
     execute "mksession! .vim/".git_branch.".vim"
 endfunction
 nnoremap mks :<c-u>call MakeSessionGit()<CR>
+" recursively load files of type
+nnoremap mn :<c-u>args **/*.
 
 
 "" python file mappings
