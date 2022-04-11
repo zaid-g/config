@@ -67,11 +67,13 @@ nnoremap msb :botr vs<CR>:b
 " git branch sessions
 function! MakeSessionGit()
     let git_branch=substitute(system('git branch --show-current'), '\n\+$', '', '')
-    execute "mksession! .vim/".git_branch.".vim"
+    silent! execute('!mkdir -p .vim/'.git_branch.'.vim')
+    silent! execute('!rm -rf .vim/'.git_branch.'.vim')
+    silent! execute "mksession! .vim/".git_branch.".vim"
 endfunction
 nnoremap mks :<c-u>call MakeSessionGit()<CR>
 " recursively load files of type
-nnoremap mn :<c-u>args **/*.
+nnoremap mar :<c-u>args **/*.
 
 
 "" python file mappings
