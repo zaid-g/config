@@ -19,7 +19,7 @@ noremap mk K
 noremap mJ <c-j>
 noremap mK <c-k>
 " copy to system clipboard
-map <silent> Y "+y:call writefile(getreg('+', 1, 1), expand('~/.clipboard/vim-clipboard.txt'))<CR>
+map <silent> Y "+y
 " allows multiple pasting of copied text
 xnoremap p pgvy
 " word completion using tab and shift tab (instead of c-n c-p)

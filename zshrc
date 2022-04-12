@@ -56,7 +56,7 @@ alias PO="systemctl poweroff"
 # python
 alias I="python3 -m IPython"
 alias P="python3"
-function Pip3(){
+function PIP3(){
     pip3 install wheel
     pip3 install ipdb
     pip3 install neovim
@@ -73,7 +73,7 @@ function cd() {
             . ./.venv/.*/bin/activate
     fi
 }
-function Pyvenv(){
+function PVENV(){
     project_name="$(basename $PWD)"
     deactivate
     mkdir -p .vim
@@ -85,7 +85,7 @@ function Pyvenv(){
         $1 -m venv ".$project_name"
     fi
     . ./".$project_name"/bin/activate
-    Pip3
+    PIP3
     builtin cd ..
     touch requirements.txt
     if ! [ -e .git ]; then
@@ -144,14 +144,10 @@ alias GPUSH="git push -u origin HEAD"
 alias GPULL='git pull origin $(git rev-parse --abbrev-ref HEAD)'
 # docker
 function DOCK(){
-    rm -rf ~/.clipboard
-    mkdir -p ~/.clipboard
-    sudo docker run -it -v $HOME/dev/environment:/home/ubuntu/dev/environment -v $HOME/.clipboard:/home/ubuntu/.clipboard $@ main
+    sudo docker run -it -v $HOME/dev/environment:/home/ubuntu/dev/environment $@ main
 }
 function DOCKCWD(){
-    rm -rf ~/.clipboard
-    mkdir -p ~/.clipboard
-    sudo docker run -it -v $PWD:$PWD -v $HOME/dev/environment:/home/ubuntu/dev/environment -v $HOME/.clipboard:/home/ubuntu/.clipboard -w $PWD $@ main
+    sudo docker run -it -v $PWD:$PWD -v $HOME/dev/environment:/home/ubuntu/dev/environment -w $PWD $@ main
 }
 alias D="docker"
 alias SD="sudo docker"
@@ -167,9 +163,6 @@ alias DI="docker image"
 alias SDI="sudo docker image"
 # xdg open (open file from terminal with default app)
 alias X="xdg-open"
-# copy vim clipboard using xclip
-alias XCV="xclip -selection clipboard ~/.clipboard/vim-clipboard.txt && rm ~/.clipboard/vim-clipboard.txt"
-alias XCT="xclip -selection clipboard ~/.clipboard/tmux-clipboard.txt && rm ~/.clipboard/tmux-clipboard.txt"
 
 
 

@@ -5,7 +5,6 @@ mkdir -p ~/dev/
 mkdir -p ~/doc/
 mkdir -p ~/misc/
 mkdir -p ~/pic/
-mkdir -p ~/.clipboard
 mkdir -p ~/.config/nvim
 mkdir -p ~/.ipython/profile_default
 cd ~/dev
