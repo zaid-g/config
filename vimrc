@@ -4,9 +4,9 @@
 """""""""""""""""""""""""
 
 
-" frees up m to use for my own bindings
+" frees up m to use for my own mappings
 noremap mm m
-" frees up \ to use for my own bindings in insert mode
+" frees up \ to use for my own mappings in insert mode
 inoremap \\ \
 
 " resource config
