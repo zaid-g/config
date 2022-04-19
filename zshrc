@@ -119,7 +119,7 @@ function VP(){
     for i in "$@"; do
         patterns+=(**/*.$i)
     done
-    ~/app/neovim/nvim-linux64/bin/nvim ${patterns[@]} || nvim ${patterns[@]} || vim ${patterns[@]}
+    V ${patterns[@]}
 }
 function VS(){
     git_branch=$(git branch --show-current)
