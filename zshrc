@@ -169,7 +169,6 @@ alias X="xdg-open"
 
 
 
-
 # ---------- [Syntax highlighting] ----------:
 
 # should be last.

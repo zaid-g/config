@@ -1,9 +1,3 @@
-"""""""""""""""""""""""""
-" Author: Zaid Gharaybeh
-"
-"""""""""""""""""""""""""
-
-
 " frees up m to use for my own mappings
 noremap mm m
 " frees up \ to use for my own mappings in insert mode
