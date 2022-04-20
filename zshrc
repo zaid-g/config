@@ -1,20 +1,20 @@
-#. <path>
+# ---------- [vim mode] ----------:
 
-
-
-
-#vim mode
 bindkey -v
 export KEYTIMEOUT=1
 
 
-# Enable colors and change prompt:
+
+# ---------- [Enable colors and change prompt] ----------:
+
 autoload -U colors && colors
 #PS1="%B%{$fg[red]%}[%{$fg[yellow]%}%n%{$fg[green]%}@%{$fg[blue]%}%M %{$fg[magenta]%}%~%{$fg[red]%}]%{$reset_color%}$%b "
 PS1="%B%{$fg[red]%}[%{$fg[red]%}%n%{$fg[red]%}@%{$fg[red]%}%M %{$fg[red]%}%~%{$fg[red]%}]%{$reset_color%}$%b "
 
 
-## auto-completion
+
+# ---------- [auto-completion] ----------:
+
 # 0 -- vanilla completion (abc => abc)
 # 1 -- smart case completion (abc => Abc)
 # 2 -- word flex completion (abc => A-big-Car)
@@ -25,15 +25,8 @@ zstyle ':completion:*' matcher-list '' \
   'r:|?=** m:{a-z\-}={A-Z\_}'
 
 
-# Use vim keys in tab complete menu:
-bindkey -M menuselect 'h' vi-backward-char
-bindkey -M menuselect 'k' vi-up-line-or-history
-bindkey -M menuselect 'l' vi-forward-char
-bindkey -M menuselect 'j' vi-down-line-or-history
-bindkey -v '^?' backward-delete-char
+# ---------- [aliases and functions] ----------:
 
-
-## aliases and functions
 alias S="sudo"
 alias C="clear"
 function CD(){
@@ -169,5 +162,8 @@ alias X="xdg-open"
 
 
 
-# Load zsh-syntax-highlighting; should be last.
+
+# ---------- [Syntax highlighting] ----------:
+
+# should be last.
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null

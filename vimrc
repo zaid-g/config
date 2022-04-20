@@ -80,7 +80,7 @@ nnoremap mar :<c-u>args **/*.
 " block abstraction and execution: make blocks in file and be able to
 " immediately send its contents to another tmux window using Slime or
 " to clipboard
-nnoremap mbl o<CR># ---------- [] ----------:<CR><CR><ESC>2k13la
+nnoremap mbl o<CR><CR><CR><ESC>2ki# ---------- [] ----------:<ESC>BBa
 nmap <silent> <c-j> :<c-u>call JumpToPattern(v:count1, 0, '\%$\\|^# ----------', '')<cr>zz
 xmap <silent> <c-j> :<c-u>call JumpToPattern(v:count1, 1, '\%$\\|^# ----------', '')<cr>zz
 nmap <silent> <c-k> :<c-u>call JumpToPattern(v:count1, 0, '\%^\\|^# ----------', 'b')<cr>zz
