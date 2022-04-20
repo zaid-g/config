@@ -15,6 +15,13 @@ PS1="%B%{$fg[red]%}[%{$fg[red]%}%n%{$fg[red]%}@%{$fg[red]%}%M %{$fg[red]%}%~%{$f
 
 # ---------- [auto-completion] ----------:
 
+autoload -U compinit
+zmodload zsh/complist
+compinit
+_comp_options+=(globdots)              # Include hidden files.
+zstyle ':completion:*' menu select
+bindkey -M menuselect '^[[Z' reverse-menu-complete
+
 # 0 -- vanilla completion (abc => abc)
 # 1 -- smart case completion (abc => Abc)
 # 2 -- word flex completion (abc => A-big-Car)
