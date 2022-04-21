@@ -68,6 +68,10 @@ endfunction
 nnoremap mks :<c-u>call MakeSessionGit()<CR>
 " recursively load files of type
 nnoremap mar :<c-u>args **/*.
+" easier reach expand/complete mode
+inoremap <c-c> <c-x>
+" stop preview window from spawning when using omnicomplete
+set completeopt-=preview
 
 
 "" python file mappings
