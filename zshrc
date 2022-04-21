@@ -50,6 +50,11 @@ function CD(){
     fi
 }
 alias CDE="cd ~/dev/environment"
+function UE(){
+    current_working_directory=$(pwd)
+    . ~/dev/environment/scripts/update.sh
+    cd $current_working_directory
+}
 alias RS="source ~/.zshrc && cd ."
 alias LL="ls -lt"
 alias LA="ls -A"
