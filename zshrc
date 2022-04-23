@@ -171,6 +171,8 @@ alias DI="docker image"
 alias SDI="sudo docker image"
 # xdg open (open file from terminal with default app)
 alias X="xdg-open"
+# discord
+alias DISCORD="snap run discord"
 
 
 
