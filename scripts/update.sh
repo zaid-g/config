@@ -19,17 +19,17 @@ cd environment
 ## source config files
 # neovim
 touch -a ~/.config/nvim/init.vim
-grep -qxF 'luafile ~/dev/environment/init.lua' ~/.config/nvim/init.vim || echo "$(cat ~/.config/nvim/init.vim;printf 'luafile ~/dev/environment/init.lua\n')" > ~/.config/nvim/init.vim
-grep -qxF 'source ~/dev/environment/vimrc' ~/.config/nvim/init.vim || echo "$(printf 'source ~/dev/environment/vimrc\n'; cat ~/.config/nvim/init.vim)" > ~/.config/nvim/init.vim
+grep -qF 'luafile ~/dev/environment/init.lua' ~/.config/nvim/init.vim || echo "$(cat ~/.config/nvim/init.vim;printf 'luafile ~/dev/environment/init.lua\n')" > ~/.config/nvim/init.vim
+grep -qF 'source ~/dev/environment/vimrc' ~/.config/nvim/init.vim || echo "$(printf 'source ~/dev/environment/vimrc\n'; cat ~/.config/nvim/init.vim)" > ~/.config/nvim/init.vim
 # vim
 touch -a ~/.vimrc
-grep -qxF 'source ~/dev/environment/vimrc' ~/.vimrc || echo "$(printf 'source ~/dev/environment/vimrc\n'; cat ~/.vimrc)" > ~/.vimrc
+grep -qF 'source ~/dev/environment/vimrc' ~/.vimrc || echo "$(printf 'source ~/dev/environment/vimrc\n'; cat ~/.vimrc)" > ~/.vimrc
 # zsh
 touch -a ~/.zshrc
-grep -qxF '. ~/dev/environment/zshrc' ~/.zshrc || echo "$(printf '. ~/dev/environment/zshrc\n'; cat ~/.zshrc)" > ~/.zshrc
+grep -qF '. ~/dev/environment/zshrc' ~/.zshrc || echo "$(printf '. ~/dev/environment/zshrc\n'; cat ~/.zshrc)" > ~/.zshrc
 # tmux
 touch -a ~/.tmux.conf
-grep -qxF 'source-file ~/dev/environment/tmux.conf' ~/.tmux.conf || echo "$(printf 'source-file ~/dev/environment/tmux.conf\n'; cat ~/.tmux.conf)" > ~/.tmux.conf
+grep -qF 'source-file ~/dev/environment/tmux.conf' ~/.tmux.conf || echo "$(printf 'source-file ~/dev/environment/tmux.conf\n'; cat ~/.tmux.conf)" > ~/.tmux.conf
 # pycodestyle
 cp pycodestyle ~/.config/
 # ipython
@@ -37,8 +37,8 @@ cp ipython_config.py ~/.ipython/profile_default/
 
 # X switch capslock with escape
 touch -a ~/.xinitrc
-grep -qxF 'setxkbmap -option caps:swapescape' ~/.xinitrc || echo "$(printf 'setxkbmap -option caps:swapescape\n'; cat ~/.xinitrc)" > ~/.xinitrc
-grep -qxF 'xset r rate 225 40' ~/.xinitrc || echo "$(printf 'xset r rate 225 40\n'; cat ~/.xinitrc)" > ~/.xinitrc
+grep -qF 'setxkbmap -option caps:swapescape' ~/.xinitrc || echo "$(printf 'setxkbmap -option caps:swapescape\n'; cat ~/.xinitrc)" > ~/.xinitrc
+grep -qF 'xset r rate 225 40' ~/.xinitrc || echo "$(printf 'xset r rate 225 40\n'; cat ~/.xinitrc)" > ~/.xinitrc
 
 # return to scripts dir
 cd ~/dev/environment/scripts
