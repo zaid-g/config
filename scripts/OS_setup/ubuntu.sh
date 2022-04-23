@@ -33,6 +33,6 @@ sudo snap install discord
 # to update
 sudo snap refresh
 # to run
-snap run discord
-# to remove
-sudo snap remove discord
+#snap run discord
+## to remove
+#sudo snap remove discord
