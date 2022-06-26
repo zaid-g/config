@@ -1,5 +1,5 @@
 #!/bin/bash
-# run this file without sudo
+# run this file without sudo but make sure sudo no need pwd (run sudo command b4)
 
 sudo apt-get install git -y
 mkdir ~/dev
@@ -14,7 +14,6 @@ echo 'PS1="%B%{$fg[green]%}[%{$fg[green]%}%n%{$fg[green]%}@%{$fg[green]%}%M %{$f
 echo '. ~/.xinitrc' >> ~/.zshrc
 
 sudo apt install zsh python3-pip python3-venv ruby-dev ruby-bundler wget curl golang tmux postgresql postgresql-contrib xclip htop xournal -y
-sudo apt-get install texlive-full -y --fix-missing
 curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
 sudo apt install nodejs -y
 sudo npm i -g pyright
@@ -22,17 +21,8 @@ GO111MODULE=on go get github.com/mattn/efm-langserver@latest
 echo 'export PATH=$PATH:~/go/bin' >> ~/.zshrc
 chsh -s /usr/bin/zsh
 
-# change resolution 1600x900
-# change keyboard repeat keys delay and speed 200, 50
+sudo apt-get install texlive-full -y --fix-missing
 
-# install discord and snap
-sudo apt install snapd -y
-#reboot
-sudo snap install core
-sudo snap install discord
-# to update
-sudo snap refresh
-# to run
-#snap run discord
-## to remove
-#sudo snap remove discord
+# change resolution 1600x900
+# change keyboard repeat keys delay and speed 225, 40
+# install discord
