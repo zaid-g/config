@@ -1,5 +1,9 @@
 #!/bin/bash
+
 # run this file without sudo but make sure sudo no need pwd (run sudo command b4)
+sudo touch /hi
+
+set -e # break script if any command fails
 
 sudo apt-get install git -y
 mkdir ~/dev

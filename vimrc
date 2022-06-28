@@ -3,6 +3,7 @@ noremap mm m
 " frees up \ to use for my own mappings in insert mode
 inoremap \\ \
 
+
 " resource config
 noremap mso :source $MYVIMRC<CR>
 " addtional scroll movements, moving text
@@ -39,8 +40,16 @@ nnoremap me :tabdo windo e<CR>
 "" cursor/visual highlight and search
 " shortcut to highlight search whole word under cursor
 nnoremap <silent> ml :<c-u>let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<CR>wb
-" shortcut to highlight search what's being selected in visual mode
-vnoremap ml :<c-u>let temp_variable=@"<CR>gvy:<c-u>let @/='\V<C-R>=escape(@",'/\')<CR>'<CR>:let @"=temp_variable<CR>:<c-u>set hlsearch<CR>
+" shortcut to highlight search what's being selected in visual mode (works
+" multi line)
+function SetSearchVisualSelection()
+    let clipboard_original_content=@"
+    normal gvy " this overwrites clipboard
+    let raw_search=@"
+    let @/=substitute(escape(raw_search, '\/.*$^~[]'), "\n", '\\n', "g")
+    let @"=clipboard_original_content
+endfunction
+vnoremap ml :call SetSearchVisualSelection()<CR>:set hlsearch<CR>
 "" find and replace mappings
 " change currently searched for pattern
 nnoremap mcs :%s/<C-R>=@/<CR>//g<Left><Left>
