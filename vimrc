@@ -21,6 +21,9 @@ xnoremap p pgvy
 " can still use C-t and C-d to insert/remove tabs from text
 inoremap <TAB> <c-n>
 inoremap <S-TAB> <c-p>
+"" special characters
+" checkmark
+inoremap \c <c-k>OK
 " word count, and because of conflict with tmux prefix
 vnoremap g<c-n> g<C-g>2gs
 nnoremap g<c-n> g<C-g>
