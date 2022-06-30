@@ -23,7 +23,9 @@ inoremap <TAB> <c-n>
 inoremap <S-TAB> <c-p>
 "" special characters
 " checkmark
-inoremap \c <c-k>OK
+inoremap \c <c-v>u2705
+" crossmark
+inoremap \C <c-v>u274c
 " word count, and because of conflict with tmux prefix
 vnoremap g<c-n> g<C-g>2gs
 nnoremap g<c-n> g<C-g>
