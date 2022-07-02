@@ -17,6 +17,8 @@ noremap mK <c-k>
 map <silent> Y "+y
 " allows multiple pasting of copied text
 xnoremap p pgvy
+" do not overwrite register with s
+nnoremap s "_s
 " word completion using tab and shift tab (instead of c-n c-p)
 " can still use C-t and C-d to insert/remove tabs from text
 inoremap <TAB> <c-n>
