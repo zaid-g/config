@@ -2,9 +2,8 @@ rm -rf ~/app/neovim
 mkdir -p ~/app/neovim
 cd ~/app/neovim
 # get version
-nvim_latest_version=$(curl -s https://github.com/neovim/neovim/releases/latest)
-nvim_latest_version=$(echo $nvim_latest_version | grep -o '".*"')
-nvim_latest_version="${nvim_latest_version:47:-1}"
+nvim_latest_version=$(curl -Ls -o /dev/null -w %{url_effective} https://github.com/neovim/neovim/releases/latest)
+nvim_latest_version=echo $nvim_latest_version | grep -o 'v[0-9].*'
 # get download link
 nvim_base_download_link=https://github.com/neovim/neovim/releases/download/${nvim_latest_version}
 # append assets
