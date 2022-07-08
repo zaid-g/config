@@ -160,3 +160,5 @@ let g:UltiSnipsJumpForwardTrigger="<c-n>"
 let g:UltiSnipsJumpBackwardTrigger="<c-p>"
 let g:UltiSnipsEditSplit="vertical"
 let g:ultisnips_python_style = 'google'
+" enunch plugin stuff
+nnoremap mRN :Rename 

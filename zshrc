@@ -49,7 +49,7 @@ function CD(){
         cd ~/dev/$current_proj_directory
     fi
 }
-alias CDE="cd ~/dev/environment"
+alias CDE="cd ~/dev/environment/scripts"
 function UE(){
     current_working_directory=$(pwd)
     . ~/dev/environment/scripts/update.sh
