@@ -56,9 +56,9 @@ function UE(){
     cd $current_working_directory
 }
 alias RS="source ~/.zshrc && cd ."
+alias ls="ls --color=auto"
 alias LL="ls -lt --color=auto"
 alias LA="ls -A --color=auto"
-alias L='ls -CF --color=auto'
 alias VM="virt-manager"
 alias PO="systemctl poweroff"
 # python
