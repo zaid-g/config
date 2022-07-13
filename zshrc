@@ -100,6 +100,7 @@ function PVENV(){
         git init
         wget https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore
         mv Python.gitignore .gitignore
+        echo "\n# vim\n.vim" >> .gitignore
     fi;
 }
 alias PT="pytest -sxvv"
