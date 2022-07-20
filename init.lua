@@ -1,4 +1,4 @@
-local nvim_lsp = require('lspconfig')
+vim.lsp.set_log_level("debug")
 
 -- Use an on_attach function to only map the following keys
 -- after the language server attaches to the current buffer
@@ -30,25 +30,23 @@ local on_attach = function(client, bufnr)
   buf_set_keymap('n', ']d', '<cmd>lua vim.lsp.diagnostic.goto_next()<CR>', opts)
   buf_set_keymap('n', 'mq', '<cmd>lua vim.lsp.diagnostic.set_loclist()<CR>', opts)
   buf_set_keymap('n', 'mf', '<cmd>lua vim.lsp.buf.formatting()<CR>', opts)
-
 end
 
-vim.lsp.set_log_level("debug")
--- Use a loop to conveniently call 'setup' on multiple servers and
--- map buffer local keybindings when the language server attaches
-local servers = {'pyright'}
-for _, lsp in ipairs(servers) do
-  nvim_lsp[lsp].setup {
+
+local nvim_lsp = require('lspconfig')
+
+
+-- pyright. check out OS install script
+nvim_lsp.pyright.setup{
     on_attach = on_attach,
     flags = {
       debounce_text_changes = 150,
     }
-  }
-end
+}
 
 
--- efm
-require('lspconfig').efm.setup {
+-- efm. check out OS install script
+nvim_lsp.efm.setup {
     on_attach = on_attach,
     flags = {
       debounce_text_changes = 150,
@@ -65,5 +63,39 @@ require('lspconfig').efm.setup {
                 {formatCommand = "black --quiet -", formatStdin = true}
             }
         }
+    }
+}
+
+-- jsonls. `npm i -g vscode-langservers-extracted`
+nvim_lsp.jsonls.setup{
+    on_attach = on_attach,
+    flags = {
+      debounce_text_changes = 150,
+    },
+    init_options = {documentFormatting = true},
+    filetypes = {"json", "jsonc"},
+    settings = {
+        rootMarkers = {".git/"}
+    }
+}
+
+-- ccls (for c/c++). `brew install ccls`
+nvim_lsp.ccls.setup {
+    on_attach = on_attach,
+    flags = {
+      debounce_text_changes = 150,
+    },
+    init_options = {
+        documentFormatting = true,
+        compilationDatabaseDirectory = "build";
+        index = {
+          threads = 0;
+        };
+        clang = {
+          excludeArgs = { "-frounding-math"} ;
+        };
+    },
+    settings = {
+        rootMarkers = {".git/"}
     }
 }
