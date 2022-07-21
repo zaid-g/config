@@ -120,9 +120,7 @@ alias TAS="tmux attach-session -t"
 alias TKS="tmux kill-session -t"
 alias TKAs="tmux kill-server"
 # vim, VM taken
-function V(){
-    ~/app/neovim/nvim-linux64/bin/nvim $@ || nvim $@ || vim $@
-}
+alias V="~/app/neovim/nvim-linux64/bin/nvim"
 function VP(){
     patterns=()
     for i in "$@"; do
