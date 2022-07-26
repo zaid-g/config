@@ -9,16 +9,16 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
 endif
 let s:shortmess_save = &shortmess
 set shortmess=aoO
-badd +0 ~/doc/notes.txt
-badd +0 ~/doc/cheatsheet.txt.sh
+badd +0 ~/doc/notes.md
+badd +0 ~/doc/cheatsheet.md
 argglobal
 %argdel
-$argadd ~/doc/notes.txt
-$argadd ~/doc/cheatsheet.txt.sh
+$argadd ~/doc/notes.md
+$argadd ~/doc/cheatsheet.md
 set stal=2
 tabnew +setlocal\ bufhidden=wipe
 tabrewind
-edit ~/doc/notes.txt
+edit ~/doc/notes.md
 argglobal
 setlocal fdm=manual
 setlocal fde=0
@@ -37,11 +37,11 @@ normal! zt
 keepjumps 1
 normal! 0
 tabnext
-edit ~/doc/cheatsheet.txt.sh
+edit ~/doc/cheatsheet.md
 argglobal
-if bufexists(fnamemodify("~/doc/cheatsheet.txt.sh", ":p")) | buffer ~/doc/cheatsheet.txt.sh | else | edit ~/doc/cheatsheet.txt.sh | endif
+if bufexists(fnamemodify("~/doc/cheatsheet.md", ":p")) | buffer ~/doc/cheatsheet.md | else | edit ~/doc/cheatsheet.md | endif
 if &buftype ==# 'terminal'
-  silent file ~/doc/cheatsheet.txt.sh
+  silent file ~/doc/cheatsheet.md
 endif
 setlocal fdm=manual
 setlocal fde=0
