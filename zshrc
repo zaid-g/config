@@ -105,6 +105,10 @@ function PVENV(){
 }
 alias PT="pytest -sxvv"
 alias PTDB="pytest -sxvv --pdb"
+# find
+function FIND(){
+    find . -type f -iname "*${@}*"
+}
 # grep
 function GREP(){
     if [ "$#" -eq 1 ]; then
