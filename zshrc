@@ -36,6 +36,9 @@ zstyle ':completion:*' matcher-list '' \
 
 alias S="sudo"
 alias C="clear"
+function MV(){
+    mv ~/Downloads .
+}
 function CD(){
     current_working_directory=$(pwd)
     dev_or_doc=$(echo "$current_working_directory" | awk -F "/" '{print $4}')
