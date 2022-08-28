@@ -10,6 +10,7 @@ export KEYTIMEOUT=1
 autoload -U colors && colors
 #PS1="%B%{$fg[red]%}[%{$fg[yellow]%}%n%{$fg[green]%}@%{$fg[blue]%}%M %{$fg[magenta]%}%~%{$fg[red]%}]%{$reset_color%}$%b "
 PS1="%B%{$fg[red]%}[%{$fg[red]%}%n%{$fg[red]%}@%{$fg[red]%}%M %{$fg[red]%}%~%{$fg[red]%}]%{$reset_color%}$%b "
+zle_highlight=('region:bg=168,fg=251')
 
 
 
@@ -52,6 +53,8 @@ function CD(){
         cd ~/dev/$current_proj_directory
     fi
 }
+alias mv="mv -v"
+alias MV="mv ~/Downloads/$(ls -Art ~/Downloads | tail -n 1) ."
 alias CDE="cd ~/dev/environment/scripts"
 function UE(){
     current_working_directory=$(pwd)
