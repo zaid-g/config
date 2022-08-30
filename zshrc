@@ -51,7 +51,10 @@ function CD(){
     fi
 }
 alias mv="mv -v"
-alias MV="mv ~/Downloads/$(ls -Art ~/Downloads | tail -n 1) ."
+function MV(){
+    latest_download=~/Downloads/$(ls -Art ~/Downloads | tail -n 1)
+    mv $latest_download .
+}
 alias CDE="cd ~/dev/environment/scripts"
 function UE(){
     current_working_directory=$(pwd)
