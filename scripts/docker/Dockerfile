@@ -58,14 +58,14 @@ USER ubuntu
 WORKDIR /home/ubuntu
 RUN mkdir dev
 WORKDIR /home/ubuntu/dev
-RUN git clone https://github.com/zaid-g/environment.git
-WORKDIR /home/ubuntu/dev/environment
+RUN git clone https://github.com/zaid-g/config.git
+WORKDIR /home/ubuntu/dev/config
 RUN . ./update.sh
-WORKDIR /home/ubuntu/dev/environment
+WORKDIR /home/ubuntu/dev/config
 RUN . ./vim-nvim-plugins-install-update.sh
-WORKDIR /home/ubuntu/dev/environment
+WORKDIR /home/ubuntu/dev/config
 RUN bash ./nvim-intall-update.sh
-WORKDIR /home/ubuntu/dev/environment
+WORKDIR /home/ubuntu/dev/config
 RUN pip3 install -r ./python-packages-install.txt
 WORKDIR /home/ubuntu
 RUN echo 'PS1="%B%{$fg[green]%}[%{$fg[green]%}%n%{$fg[green]%}@%{$fg[green]%}%M %{$fg[green]%}%~%{$fg[green]%}]%{$reset_color%}$%b "' >> .zshrc

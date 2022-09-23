@@ -8,8 +8,8 @@ set -e # break script if any command fails
 sudo apt-get install git -y
 mkdir ~/dev
 cd ~/dev
-git clone https://github.com/zaid-g/environment.git
-cd ~/dev/environment
+git clone https://github.com/zaid-g/config.git
+cd ~/dev/config
 . ./scripts/update.sh
 . ./scripts/nvim-install-update.sh
 . ./scripts/nvim-plugins-install-update.sh

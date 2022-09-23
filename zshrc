@@ -56,10 +56,10 @@ function MV(){
     latest_download=~/Downloads/$(ls -Art ~/Downloads | tail -n 1)
     mv $latest_download .
 }
-alias CDE="cd ~/dev/environment/scripts"
+alias CDE="cd ~/dev/config/scripts"
 function UE(){
     current_working_directory=$(pwd)
-    . ~/dev/environment/scripts/update.sh
+    . ~/dev/config/scripts/update.sh
     cd $current_working_directory
 }
 alias RS="source ~/.zshrc && cd ."
@@ -143,8 +143,8 @@ function VS(){
     git_branch=$(git branch --show-current)
     V -S .vim/$git_branch.vim
 }
-alias VC="V -S ~/dev/environment/scripts/VC_session.vim"
-alias VN="V -S ~/dev/environment/scripts/VN_session.vim"
+alias VC="V -S ~/dev/config/scripts/VC_session.vim"
+alias VN="V -S ~/dev/config/scripts/VN_session.vim"
 # git
 alias G="git"
 alias GS="git status"
@@ -162,10 +162,10 @@ alias GPUSH="git push -u origin HEAD"
 alias GPULL='git pull origin $(git rev-parse --abbrev-ref HEAD)'
 # docker
 function DOCK(){
-    sudo docker run -it -v $HOME/dev/environment:/home/ubuntu/dev/environment $@ main
+    sudo docker run -it -v $HOME/dev/config:/home/ubuntu/dev/config $@ main
 }
 function DOCKCWD(){
-    sudo docker run -it -v $PWD:$PWD -v $HOME/dev/environment:/home/ubuntu/dev/environment -w $PWD $@ main
+    sudo docker run -it -v $PWD:$PWD -v $HOME/dev/config:/home/ubuntu/dev/config -w $PWD $@ main
 }
 alias D="docker"
 alias SD="sudo docker"
