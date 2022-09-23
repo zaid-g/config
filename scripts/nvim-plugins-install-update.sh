@@ -8,4 +8,4 @@ git clone https://github.com/SirVer/ultisnips.git
 git clone https://github.com/honza/vim-snippets.git
 git clone https://github.com/neovim/nvim-lspconfig.git
 git clone https://github.com/tpope/vim-eunuch.git
-cd ~/dev/config/scripts
+cd ~/doc/projects/config/scripts

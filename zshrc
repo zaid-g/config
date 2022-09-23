@@ -38,28 +38,15 @@ zstyle ':completion:*' matcher-list '' \
 
 alias S="sudo"
 alias C="clear"
-function CD(){
-    current_working_directory=$(pwd)
-    dev_or_doc=$(echo "$current_working_directory" | awk -F "/" '{print $4}')
-    if [[ "$dev_or_doc" == "dev" ]]; then
-        current_proj_directory=$(echo "$current_working_directory" | awk -F "/" '{print $5}')
-        mkdir -p ~/doc/projects/$current_proj_directory
-        cd ~/doc/projects/$current_proj_directory
-    elif [[ "$dev_or_doc" == "doc" ]]; then
-        current_proj_directory=$(echo "$current_working_directory" | awk -F "/" '{print $6}')
-        mkdir -p ~/dev/$current_proj_directory
-        cd ~/dev/$current_proj_directory
-    fi
-}
 alias mv="mv -v"
 function MV(){
     latest_download=~/Downloads/$(ls -Art ~/Downloads | tail -n 1)
     mv $latest_download .
 }
-alias CDC="cd ~/dev/config/scripts"
+alias CDC="cd ~/doc/projects/config/scripts"
 function UE(){
     current_working_directory=$(pwd)
-    . ~/dev/config/scripts/update.sh
+    . ~/doc/projects/config/scripts/update.sh
     cd $current_working_directory
 }
 alias RS="source ~/.zshrc && cd ."
@@ -148,8 +135,8 @@ function VS(){
     git_branch=$(git branch --show-current)
     V -S .vim/$git_branch.vim
 }
-alias VC="V -S ~/dev/config/scripts/VC_session.vim"
-alias VN="V -S ~/dev/config/scripts/VN_session.vim"
+alias VC="V -S ~/doc/projects/config/scripts/VC_session.vim"
+alias VN="V -S ~/doc/projects/config/scripts/VN_session.vim"
 # git
 alias G="git"
 alias GS="git status"
@@ -167,10 +154,10 @@ alias GPUSH="git push -u origin HEAD"
 alias GPULL='git pull origin $(git rev-parse --abbrev-ref HEAD)'
 # docker
 function DOCK(){
-    sudo docker run -it -v $HOME/dev/config:/home/ubuntu/dev/config $@ main
+    sudo docker run -it -v $HOME/doc/projects/config:/home/ubuntu/doc/projects/config $@ main
 }
 function DOCKCWD(){
-    sudo docker run -it -v $PWD:$PWD -v $HOME/dev/config:/home/ubuntu/dev/config -w $PWD $@ main
+    sudo docker run -it -v $PWD:$PWD -v $HOME/doc/projects/config:/home/ubuntu/doc/projects/config -w $PWD $@ main
 }
 alias D="docker"
 alias SD="sudo docker"

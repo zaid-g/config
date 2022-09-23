@@ -56,16 +56,18 @@ RUN echo 'ubuntu:docker' | chpasswd
 RUN adduser ubuntu sudo
 USER ubuntu
 WORKDIR /home/ubuntu
-RUN mkdir dev
-WORKDIR /home/ubuntu/dev
+RUN mkdir doc
+WORKDIR /home/ubuntu/doc
+RUN mkdir projects
+WORKDIR /home/ubuntu/doc/projects
 RUN git clone https://github.com/zaid-g/config.git
-WORKDIR /home/ubuntu/dev/config
+WORKDIR /home/ubuntu/doc/projects/config
 RUN . ./update.sh
-WORKDIR /home/ubuntu/dev/config
+WORKDIR /home/ubuntu/doc/projects/config
 RUN . ./vim-nvim-plugins-install-update.sh
-WORKDIR /home/ubuntu/dev/config
+WORKDIR /home/ubuntu/doc/projects/config
 RUN bash ./nvim-intall-update.sh
-WORKDIR /home/ubuntu/dev/config
+WORKDIR /home/ubuntu/doc/projects/config
 RUN pip3 install -r ./python-packages-install.txt
 WORKDIR /home/ubuntu
 RUN echo 'PS1="%B%{$fg[green]%}[%{$fg[green]%}%n%{$fg[green]%}@%{$fg[green]%}%M %{$fg[green]%}%~%{$fg[green]%}]%{$reset_color%}$%b "' >> .zshrc

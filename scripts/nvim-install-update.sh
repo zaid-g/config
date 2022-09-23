@@ -21,4 +21,4 @@ sha256sum -c nvim.appimage.sha256sum
 sha256sum -c nvim-linux64.tar.gz.sha256sum
 # decompress the tar linux code
 tar -zxf nvim-linux64.tar.gz
-cd ~/dev/config/scripts
+cd ~/doc/projects/config/scripts

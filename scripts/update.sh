@@ -1,13 +1,12 @@
 #make dirs
 mkdir -p ~/app/
 mkdir -p ~/dat/
-mkdir -p ~/dev/
 mkdir -p ~/doc/
 mkdir -p ~/misc/
 mkdir -p ~/pic/
 mkdir -p ~/.config/nvim
 mkdir -p ~/.ipython/profile_default
-cd ~/dev
+cd ~/doc/projects
 
 #remove old repo
 rm -rf config
@@ -19,17 +18,17 @@ cd config
 ## source config files
 # neovim
 touch -a ~/.config/nvim/init.vim
-grep -qF 'luafile ~/dev/config/init.lua' ~/.config/nvim/init.vim || echo "$(cat ~/.config/nvim/init.vim;printf 'luafile ~/dev/config/init.lua\n')" > ~/.config/nvim/init.vim
-grep -qF 'source ~/dev/config/vimrc' ~/.config/nvim/init.vim || echo "$(printf 'source ~/dev/config/vimrc\n'; cat ~/.config/nvim/init.vim)" > ~/.config/nvim/init.vim
+grep -qF 'luafile ~/doc/projects/config/init.lua' ~/.config/nvim/init.vim || echo "$(cat ~/.config/nvim/init.vim;printf 'luafile ~/doc/projects/config/init.lua\n')" > ~/.config/nvim/init.vim
+grep -qF 'source ~/doc/projects/config/vimrc' ~/.config/nvim/init.vim || echo "$(printf 'source ~/doc/projects/config/vimrc\n'; cat ~/.config/nvim/init.vim)" > ~/.config/nvim/init.vim
 # vim
 touch -a ~/.vimrc
-grep -qF 'source ~/dev/config/vimrc' ~/.vimrc || echo "$(printf 'source ~/dev/config/vimrc\n'; cat ~/.vimrc)" > ~/.vimrc
+grep -qF 'source ~/doc/projects/config/vimrc' ~/.vimrc || echo "$(printf 'source ~/doc/projects/config/vimrc\n'; cat ~/.vimrc)" > ~/.vimrc
 # zsh
 touch -a ~/.zshrc
-grep -qF '. ~/dev/config/zshrc' ~/.zshrc || echo "$(printf '. ~/dev/config/zshrc\n'; cat ~/.zshrc)" > ~/.zshrc
+grep -qF '. ~/doc/projects/config/zshrc' ~/.zshrc || echo "$(printf '. ~/doc/projects/config/zshrc\n'; cat ~/.zshrc)" > ~/.zshrc
 # tmux
 touch -a ~/.tmux.conf
-grep -qF 'source-file ~/dev/config/tmux.conf' ~/.tmux.conf || echo "$(printf 'source-file ~/dev/config/tmux.conf\n'; cat ~/.tmux.conf)" > ~/.tmux.conf
+grep -qF 'source-file ~/doc/projects/config/tmux.conf' ~/.tmux.conf || echo "$(printf 'source-file ~/doc/projects/config/tmux.conf\n'; cat ~/.tmux.conf)" > ~/.tmux.conf
 # pycodestyle
 cp pycodestyle ~/.config/
 # ipython
@@ -41,4 +40,4 @@ grep -qF 'setxkbmap -option caps:swapescape' ~/.xinitrc || echo "$(printf 'setxk
 grep -qF 'xset r rate 225 40' ~/.xinitrc || echo "$(printf 'xset r rate 225 40\n'; cat ~/.xinitrc)" > ~/.xinitrc
 
 # return to scripts dir
-cd ~/dev/config/scripts
+cd ~/doc/projects/config/scripts

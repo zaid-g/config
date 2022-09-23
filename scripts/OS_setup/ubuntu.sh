@@ -6,10 +6,10 @@ sudo touch /hi
 set -e # break script if any command fails
 
 sudo apt-get install git -y
-mkdir ~/dev
-cd ~/dev
+mkdir -p ~/doc/projects
+cd ~/doc/projects
 git clone https://github.com/zaid-g/config.git
-cd ~/dev/config
+cd ~/doc/projects/config
 . ./scripts/update.sh
 . ./scripts/nvim-install-update.sh
 . ./scripts/nvim-plugins-install-update.sh
