@@ -56,7 +56,7 @@ function MV(){
     latest_download=~/Downloads/$(ls -Art ~/Downloads | tail -n 1)
     mv $latest_download .
 }
-alias CDE="cd ~/dev/config/scripts"
+alias CDC="cd ~/dev/config/scripts"
 function UE(){
     current_working_directory=$(pwd)
     . ~/dev/config/scripts/update.sh
@@ -80,20 +80,25 @@ function PIP3(){
 }
 function cd() {
     builtin cd $1
-    if [[ -d ./.venv ]] ; then
+    current_working_directory_leaf="$(basename $PWD)"
+    if [[ -d ~/.virtualenvs/.$current_working_directory_leaf ]] ; then
         if [[ -z "$VIRTUAL_ENV" ]] ; then
-            . ./.venv/.*/bin/activate
+            . ~/.virtualenvs/.$current_working_directory_leaf/bin/activate
         fi
             deactivate
-            . ./.venv/.*/bin/activate
+            . ~/.virtualenvs/.$current_working_directory_leaf/bin/activate
     fi
 }
 function PVENV(){
+    current_working_directory=$(pwd)
     project_name="$(basename $PWD)"
     deactivate
+    if [ -d ~/.virtualenvs/.$project_name ]; then
+        rm -rf ~/.virtualenvs/.$project_name
+    fi
     mkdir -p .vim
-    mkdir -p .venv
-    builtin cd .venv
+    mkdir -p ~/.virtualenvs
+    builtin cd ~/.virtualenvs
     if [ "$#" -eq 0 ]; then
         python3 -m venv ".$project_name"
     else
@@ -101,7 +106,7 @@ function PVENV(){
     fi
     . ./".$project_name"/bin/activate
     PIP3
-    builtin cd ..
+    builtin cd $current_working_directory
     touch requirements.txt
     if ! [ -e .git ]; then
         git init
