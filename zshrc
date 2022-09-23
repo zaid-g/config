@@ -44,6 +44,7 @@ function MV(){
     mv $latest_download .
 }
 alias CDC="cd ~/doc/projects/config/scripts"
+alias CDP="cd ~/doc/projects"
 function UC(){
     current_working_directory=$(pwd)
     . ~/doc/projects/config/scripts/update.sh
@@ -106,7 +107,7 @@ alias PT="pytest -sxvv"
 alias PTDB="pytest -sxvv --pdb"
 # find
 function FIND(){
-    find . -type f -iname "*${@}*"
+    find . -not -path '*/.*' -type f -iname "*${@}*"
 }
 # grep
 function GREP(){
@@ -175,8 +176,6 @@ alias SDI="sudo docker image"
 alias X="xdg-open"
 # discord
 alias DISCORD="snap run discord"
-
-
 
 # ---------- [Syntax highlighting] ----------:
 
