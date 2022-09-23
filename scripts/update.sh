@@ -1,7 +1,7 @@
 #make dirs
 mkdir -p ~/app/
 mkdir -p ~/dat/
-mkdir -p ~/doc/
+mkdir -p ~/doc/projects
 mkdir -p ~/misc/
 mkdir -p ~/pic/
 mkdir -p ~/.config/nvim
