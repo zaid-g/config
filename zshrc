@@ -44,7 +44,7 @@ function MV(){
     mv $latest_download .
 }
 alias CDC="cd ~/doc/projects/config/scripts"
-function UE(){
+function UC(){
     current_working_directory=$(pwd)
     . ~/doc/projects/config/scripts/update.sh
     cd $current_working_directory
