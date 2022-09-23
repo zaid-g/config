@@ -9,16 +9,16 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
 endif
 let s:shortmess_save = &shortmess
 set shortmess=aoO
-badd +0 ~/doc/notes.md
+badd +0 ~/doc/quicknotes.md
 badd +0 ~/doc/cheatsheet.md
 argglobal
 %argdel
-$argadd ~/doc/notes.md
+$argadd ~/doc/quicknotes.md
 $argadd ~/doc/cheatsheet.md
 set stal=2
 tabnew +setlocal\ bufhidden=wipe
 tabrewind
-edit ~/doc/notes.md
+edit ~/doc/quicknotes.md
 argglobal
 setlocal fdm=manual
 setlocal fde=0
