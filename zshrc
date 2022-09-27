@@ -115,7 +115,7 @@ function GREP(){
     if [ "$#" -eq 1 ]; then
         grep -rni --exclude-dir='.*' -e $1
     else
-        grep -rni --exclude-dir='.*' --include="*.$1*" -e $2
+        grep -rni --exclude-dir='.*' --include=$1 -e $2
     fi
 }
 # tmux
