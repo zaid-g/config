@@ -45,6 +45,7 @@ function MV(){
 }
 alias CDC="cd ~/doc/projects/config/scripts"
 alias CDP="cd ~/doc/projects"
+alias CDD="cd ~/Downloads"
 function UC(){
     current_working_directory=$(pwd)
     . ~/doc/projects/config/scripts/update.sh
