@@ -38,10 +38,10 @@ zstyle ':completion:*' matcher-list '' \
 
 alias S="sudo"
 alias C="clear"
-alias mv="mv -vn"
+alias mv="mv --backup=t -v"
 function MV(){
     latest_download=~/Downloads/$(ls -Art ~/Downloads | tail -n 1)
-    mv $latest_download .
+    mv -b $latest_download .
 }
 alias CDC="cd ~/doc/projects/config/scripts"
 alias CDP="cd ~/doc/projects"
