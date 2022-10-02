@@ -38,7 +38,7 @@ zstyle ':completion:*' matcher-list '' \
 
 alias S="sudo"
 alias C="clear"
-alias mv="mv -v"
+alias mv="mv -vn"
 function MV(){
     latest_download=~/Downloads/$(ls -Art ~/Downloads | tail -n 1)
     mv $latest_download .
