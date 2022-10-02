@@ -41,7 +41,13 @@ alias C="clear"
 alias mv="mv -v"
 function MV(){
     latest_download=~/Downloads/$(ls -Art ~/Downloads | tail -n 1)
-    mv --backup=t $latest_download .
+    current_working_directory=$(pwd)
+    if [ "$#" -eq 0 ]; then
+        mv --backup=t $latest_download .
+    else
+        latest_download_file_name=$(basename ${latest_download})
+        mv --backup=t $latest_download ${1}_$latest_download_file_name
+    fi
 }
 alias CDC="cd ~/doc/projects/config/scripts"
 alias CDP="cd ~/doc/projects"
