@@ -49,7 +49,7 @@ function MV(){
         mv --backup=t $latest_download ${1}_$latest_download_file_name
     fi
 }
-alias CDC="cd ~/doc/projects/config/scripts"
+alias CDC="cd ~/doc/projects/config"
 alias CDP="cd ~/doc/projects"
 alias CDD="cd ~/Downloads"
 function UC(){
@@ -110,7 +110,7 @@ function PVENV(){
         echo "\n# vim\n.vim\n.ccls*" >> .gitignore
     fi;
 }
-alias PT="pytest -sxvv"
+alias PT="python3 -m pytest -sxvv"
 alias PTDB="pytest -sxvv --pdb"
 # find
 function FIND(){
