@@ -111,6 +111,7 @@ xnoremap mvt <ESC>`<Oimport time; my_start_time = time.time()<ESC>`>oprint("my_e
 "" timeout settings
 set timeoutlen=1000 ttimeoutlen=0
 "" visual settings
+silent! colo koehler
 silent! colo darcula
 " highlight search results
 set hlsearch
@@ -128,8 +129,8 @@ set t_Co=256
 au WinLeave * set nocursorline
 au WinEnter * set cursorline
 set cursorline
-highlight clear CursorLine
 highlight CursorLineNR ctermbg=darkgrey
+highlight clear CursorLine
 "" other settings
 set autoread
 " redefine tabs as spaces and auto indent

@@ -183,6 +183,7 @@ alias SDI="sudo docker image"
 alias X="xdg-open"
 # discord
 alias DISCORD="snap run discord"
+alias BLACK="python3 -m black **/*.py"
 
 # ---------- [Syntax highlighting] ----------:
 
