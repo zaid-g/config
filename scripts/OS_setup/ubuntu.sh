@@ -6,9 +6,9 @@ sudo touch ~/misc
 
 sudo apt install git python3 python3-venv python3-pip -y
 cd ~/doc/projects/config
-. ./scripts/update.sh
-. ./scripts/nvim-install-update.sh
-. ./scripts/nvim-plugins-install-update.sh
+. ~/doc/projects/config/scripts/update.sh
+. ~/doc/projects/config/scripts/nvim-install-update.sh
+. ~/doc/projects/config/scripts/nvim-plugins-install-update.sh
 
 set -e # break script if any command fails after this line
 
