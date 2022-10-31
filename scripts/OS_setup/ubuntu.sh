@@ -1,14 +1,11 @@
 #!/bin/bash
 
-# run this file without sudo but make sure sudo no need pwd (run sudo command b4)
-sudo touch /hi
+# run this file without sudo
+sudo touch ~/misc
 
 set -e # break script if any command fails
 
 sudo apt-get install git -y
-mkdir -p ~/doc/projects
-cd ~/doc/projects
-git clone https://github.com/zaid-g/config.git
 cd ~/doc/projects/config
 . ./scripts/update.sh
 . ./scripts/nvim-install-update.sh
