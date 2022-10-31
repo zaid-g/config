@@ -3,13 +3,15 @@
 # run this file without sudo
 sudo touch ~/misc
 
-set -e # break script if any command fails
 
 sudo apt-get install git -y
 cd ~/doc/projects/config
 . ./scripts/update.sh
 . ./scripts/nvim-install-update.sh
 . ./scripts/nvim-plugins-install-update.sh
+
+set -e # break script if any command fails after this line
+
 pip3 install -r ./scripts/python-packages-install.txt
 echo 'PS1="%B%{$fg[green]%}[%{$fg[green]%}%n%{$fg[green]%}@%{$fg[green]%}%M %{$fg[green]%}%~%{$fg[green]%}]%{$reset_color%}$%b "' >> ~/.zshrc
 echo '. ~/.xinitrc' >> ~/.zshrc
