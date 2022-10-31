@@ -12,6 +12,7 @@ cd ~/doc/projects/config
 
 set -e # break script if any command fails after this line
 
+sudo apt install python3 python3-venv
 pip3 install -r ./scripts/python-packages-install.txt
 echo 'PS1="%B%{$fg[green]%}[%{$fg[green]%}%n%{$fg[green]%}@%{$fg[green]%}%M %{$fg[green]%}%~%{$fg[green]%}]%{$reset_color%}$%b "' >> ~/.zshrc
 echo '. ~/.xinitrc' >> ~/.zshrc
