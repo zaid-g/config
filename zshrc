@@ -84,7 +84,8 @@ function cd() {
             . ~/.virtualenvs/.$current_working_directory_leaf/bin/activate
     fi
 }
-function PVENV(){
+function PVENV(){(
+    set -e
     current_working_directory=$(pwd)
     project_name="$(basename $PWD)"
     deactivate
@@ -100,7 +101,6 @@ function PVENV(){
         $1 -m venv ".$project_name"
     fi
     . ./".$project_name"/bin/activate
-    PIP3
     builtin cd $current_working_directory
     touch requirements.txt
     if ! [ -e .git ]; then
@@ -109,7 +109,8 @@ function PVENV(){
         mv Python.gitignore .gitignore
         echo "\n# vim\n.vim\n.ccls*" >> .gitignore
     fi;
-}
+    PIP3 # keep at end
+)}
 alias PT="python3 -m pytest -sxvv"
 alias PTDB="pytest -sxvv --pdb"
 # find
