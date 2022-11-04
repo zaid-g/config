@@ -115,7 +115,7 @@ alias PT="python3 -m pytest -sxvv"
 alias PTDB="pytest -sxvv --pdb"
 # find
 function FIND(){
-    find . -not -path '*/.*' -type f -iname "*${@}*"
+    find . -not -path '*/.*' -iname "*${@}*"
 }
 # grep
 function GREP(){
