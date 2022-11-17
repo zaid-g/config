@@ -43,10 +43,10 @@ function MV(){
     latest_download=~/Downloads/$(ls -Art ~/Downloads | tail -n 1)
     current_working_directory=$(pwd)
     if [ "$#" -eq 0 ]; then
-        mv --backup=t $latest_download .
+        mv $latest_download .
     else
         latest_download_file_name=$(basename ${latest_download})
-        mv --backup=t $latest_download ${1}_$latest_download_file_name
+        mv $latest_download ${1}_$latest_download_file_name
     fi
 }
 alias CDC="cd ~/doc/projects/config"
@@ -85,7 +85,6 @@ function cd() {
     fi
 }
 function PVENV(){(
-    set -e
     current_working_directory=$(pwd)
     project_name="$(basename $PWD)"
     deactivate
@@ -132,7 +131,7 @@ alias TAS="tmux attach-session -t"
 alias TKS="tmux kill-session -t"
 alias TKAs="tmux kill-server"
 # vim, VM taken
-alias V="~/app/neovim/nvim-linux64/bin/nvim"
+alias V="~/app/neovim/nvim.appimage"
 function VP(){
     patterns=()
     for i in "$@"; do

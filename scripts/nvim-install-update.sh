@@ -1,24 +1,12 @@
+set -e
+
 rm -rf ~/app/neovim
-mkdir -p ~/app/neovim
+mkdir -p ~/app/neovim/
 cd ~/app/neovim
-# get version
-nvim_latest_version=$(curl -Ls -o /dev/null -w %{url_effective} https://github.com/neovim/neovim/releases/latest)
-nvim_latest_version=$(echo $nvim_latest_version | grep -o 'v[0-9].*')
-# get download link
-nvim_base_download_link=https://github.com/neovim/neovim/releases/download/${nvim_latest_version}
-# append assets
-nvim_appimage_link=$nvim_base_download_link/nvim.appimage
-nvim_appimage_checksum_link=$nvim_base_download_link/nvim.appimage.sha256sum
-nvim_linux64_link=$nvim_base_download_link/nvim-linux64.tar.gz
-nvim_linux64_checksum_link=$nvim_base_download_link/nvim-linux64.tar.gz.sha256sum
-# download
-wget $nvim_appimage_link
-wget $nvim_appimage_checksum_link
-wget $nvim_linux64_link
-wget $nvim_linux64_checksum_link
-# check shasums
-sha256sum -c nvim.appimage.sha256sum
-sha256sum -c nvim-linux64.tar.gz.sha256sum
-# decompress the tar linux code
-tar -zxf nvim-linux64.tar.gz
-cd ~/doc/projects/config/scripts
+# linux appimage
+curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
+chmod u+x nvim.appimage
+# os x binary
+cd ~/app/neovim
+curl -LO https://github.com/neovim/neovim/releases/download/nightly/nvim-macos.tar.gz
+tar xzf nvim-macos.tar.gz
