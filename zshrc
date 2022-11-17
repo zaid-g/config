@@ -145,6 +145,7 @@ function VS(){
 }
 alias VC="V -S ~/doc/projects/config/scripts/VC_session.vim"
 alias VN="V -S ~/doc/projects/config/scripts/VN_session.vim"
+alias VZSH="V ~/.zshrc"
 # git
 alias G="git"
 alias GS="git status"
