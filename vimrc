@@ -42,6 +42,12 @@ function! JumpToPattern(count, visual, pattern, flags)
         call search(a:pattern, a:flags)
     endfor
 endfunction
+" jump to pattern without overriding current searched for/highlighted pattern
+function! ForwardJumpToPattern()
+    let search_original_content=@"
+    /
+endfunction
+noremap m/ :call ForwardJumpToPattern()<CR>
 " bufdo e without loss of syntax highlighting and switching buffers
 nnoremap me :tabdo windo e<CR>
 "" cursor/visual highlight and search
@@ -94,11 +100,11 @@ set completeopt-=preview
 " block abstraction and execution: make blocks in file and be able to
 " immediately send its contents to another tmux window using Slime or
 " to clipboard
-nnoremap mbl o<CR><CR><CR><ESC>2ki# ---------- [] ----------:<ESC>BBa
-nmap <silent> <c-j> :<c-u>call JumpToPattern(v:count1, 0, '\%$\\|^# ----------', '')<cr>zz
-xmap <silent> <c-j> :<c-u>call JumpToPattern(v:count1, 1, '\%$\\|^# ----------', '')<cr>zz
-nmap <silent> <c-k> :<c-u>call JumpToPattern(v:count1, 0, '\%^\\|^# ----------', 'b')<cr>zz
-xmap <silent> <c-k> :<c-u>call JumpToPattern(v:count1, 1, '\%^\\|^# ----------', 'b')<cr>zz
+nnoremap mbl o<CR><CR><CR><ESC>2ki# %% -------- [] ----------:<ESC>BBa
+nmap <silent> <c-j> :<c-u>call JumpToPattern(v:count1, 0, '\%$\\|^# %% --------', '')<cr>zz
+xmap <silent> <c-j> :<c-u>call JumpToPattern(v:count1, 1, '\%$\\|^# %% --------', '')<cr>zz
+nmap <silent> <c-k> :<c-u>call JumpToPattern(v:count1, 0, '\%^\\|^# %% --------', 'b')<cr>zz
+xmap <silent> <c-k> :<c-u>call JumpToPattern(v:count1, 1, '\%^\\|^# %% --------', 'b')<cr>zz
 nmap my w<c-k>V<c-j>ygv<Esc>
 nmap mY w<c-k>V<c-j>"+ygv<Esc>
 " ipdb trace above current line
