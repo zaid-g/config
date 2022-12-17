@@ -92,8 +92,8 @@ nnoremap mks :<c-u>call MakeSessionGit()<CR>
 nnoremap mar :<c-u>args **/*.
 " easier reach expand/complete mode
 inoremap <c-c> <c-x>
-" stop preview window from spawning when using omnicomplete
-set completeopt-=preview
+" scratch window
+nnoremap msw <c-w>n:setlocal buftype=nofile<CR>:setlocal bufhidden=hide<CR>:setlocal noswapfile<CR>
 
 
 "" python file mappings
@@ -149,6 +149,8 @@ set shiftwidth=4
 set expandtab
 " Fully disable mouse functionality
 set mouse=
+" Stop preview window from spawning when using omnicomplete
+set completeopt-=preview
 
 
 
