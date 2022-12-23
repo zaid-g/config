@@ -5,6 +5,8 @@ mkdir -p ~/doc/projects
 mkdir -p ~/misc/
 mkdir -p ~/pic/
 mkdir -p ~/.config/nvim
+mkdir -p ~/.config/sway
+mkdir -p ~/.config/waybar
 mkdir -p ~/.ipython/profile_default
 cd ~/doc/projects
 
@@ -33,11 +35,8 @@ grep -qF 'source-file ~/doc/projects/config/tmux.conf' ~/.tmux.conf || echo "$(p
 cp pycodestyle ~/.config/
 # ipython
 cp ipython_config.py ~/.ipython/profile_default/
-
-# X switch capslock with escape
-touch -a ~/.xinitrc
-grep -qF 'setxkbmap -option caps:swapescape' ~/.xinitrc || echo "$(printf 'setxkbmap -option caps:swapescape\n'; cat ~/.xinitrc)" > ~/.xinitrc
-grep -qF 'xset r rate 225 40' ~/.xinitrc || echo "$(printf 'xset r rate 225 40\n'; cat ~/.xinitrc)" > ~/.xinitrc
+# sway
+cp sway/* ~/.config/sway/
 
 # return to scripts dir
 cd ~/doc/projects/config/scripts
