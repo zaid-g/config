@@ -74,7 +74,7 @@ function PIP3(){
 }
 function cd() {
     builtin cd $1
-    current_working_directory_leaf="$(basename $PWD)"
+    current_working_directory_leaf="$(basename $(pwd))"
     if [[ -d ~/.virtualenvs/.$current_working_directory_leaf ]] ; then
         if [[ -z "$VIRTUAL_ENV" ]] ; then
             . ~/.virtualenvs/.$current_working_directory_leaf/bin/activate
@@ -85,7 +85,7 @@ function cd() {
 }
 function PVENV(){(
     current_working_directory=$(pwd)
-    project_name="$(basename $PWD)"
+    project_name="$(basename $(pwd))"
     deactivate
     if [ -d ~/.virtualenvs/.$project_name ]; then
         rm -rf ~/.virtualenvs/.$project_name
@@ -165,7 +165,7 @@ function DOCK(){
     sudo docker run -it -v $HOME/doc/projects/config:/home/ubuntu/doc/projects/config $@ main
 }
 function DOCKCWD(){
-    sudo docker run -it -v $PWD:$PWD -v $HOME/doc/projects/config:/home/ubuntu/doc/projects/config -w $PWD $@ main
+    sudo docker run -it -v $(pwd):$(pwd) -v $HOME/doc/projects/config:/home/ubuntu/doc/projects/config -w $(pwd) $@ main
 }
 alias D="docker"
 alias SD="sudo docker"

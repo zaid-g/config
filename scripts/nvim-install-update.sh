@@ -1,6 +1,6 @@
 set -e
 
-current_working_directory=$(PWD)
+current_working_directory=$(pwd)
 rm -rf ~/app/neovim
 mkdir -p ~/app/neovim/
 # linux appimage
