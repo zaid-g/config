@@ -37,6 +37,7 @@ cp pycodestyle ~/.config/
 cp ipython_config.py ~/.ipython/profile_default/
 # sway
 cp sway/* ~/.config/sway/
+chmod +x ~/.config/sway/clamshell.sh
 
 # return to scripts dir
 cd ~/doc/projects/config/scripts
