@@ -223,11 +223,12 @@ input "type:keyboard" {
 }
 
 
+set $laptop eDP-1
 output HDMI-A-1 res 1920x1080@120.000000Hz position 0,1080
-output eDP-1 res 1920x1080 position 0,0
-exec_always /home/debian11/.config/sway/clamshell.sh
-bindswitch --reload --locked lid:on output eDP-1 disable
-bindswitch --reload --locked lid:off output eDP-1 enable
+output $laptop res 1920x1080 position 0,0
+exec_always ~/.config/sway/clamshell.sh
+bindswitch --reload --locked lid:on output $laptop disable
+bindswitch --reload --locked lid:off output $laptop enable
 
 
 
