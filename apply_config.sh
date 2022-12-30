@@ -11,7 +11,7 @@ mkdir -p ~/.config/waybar
 mkdir -p ~/.ipython/profile_default
 
 ## source config files
-echo "***         Sourcing Files         ***
+echo "***         Sourcing Files         ***"
 # nvim
 touch -a ~/.config/nvim/init.vim
 grep -qF 'luafile ~/doc/projects/config/vim/init.lua' ~/.config/nvim/init.vim || echo "$(cat ~/.config/nvim/init.vim;printf 'luafile ~/doc/projects/config/vim/init.lua\n')" > ~/.config/nvim/init.vim
