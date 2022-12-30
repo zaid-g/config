@@ -56,6 +56,8 @@ function UC(){
     . ~/doc/projects/config/scripts/update.sh
     cd $current_working_directory
 }
+alias AC="bash ~/doc/projects/config/apply_config.sh"
+alias FAAC="bash ~/doc/projects/config/fetch_and_apply_config.sh"
 alias RS="source ~/.zshrc && cd ."
 alias ls="ls --color=auto"
 alias LL="ls -lt --color=auto"
