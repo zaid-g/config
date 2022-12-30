@@ -8,14 +8,6 @@ mkdir -p ~/.config/nvim
 mkdir -p ~/.config/sway
 mkdir -p ~/.config/waybar
 mkdir -p ~/.ipython/profile_default
-cd ~/doc/projects
-
-#remove old repo
-rm -rf config
-#clone new repo, try ssh first so if key exists u can push
-git clone git@github.com:zaid-g/config.git
-git clone https://github.com/zaid-g/config.git
-cd config
 
 ## source config files
 # nvim
@@ -32,12 +24,9 @@ grep -qF '. ~/doc/projects/config/zsh/zshrc' ~/.zshrc || echo "$(printf '. ~/doc
 touch -a ~/.tmux.conf
 grep -qF 'source-file ~/doc/projects/config/tmux/tmux.conf' ~/.tmux.conf || echo "$(printf 'source-file ~/doc/projects/config/tmux/tmux.conf\n'; cat ~/.tmux.conf)" > ~/.tmux.conf
 # pycodestyle
-cp python/pycodestyle ~/.config/
+cp ~/doc/projects/config/python/pycodestyle ~/.config/
 # ipython
-cp python/ipython_config.py ~/.ipython/profile_default/
+cp ~/doc/projects/config/python/ipython_config.py ~/.ipython/profile_default/
 # sway
-cp sway/* ~/.config/sway/
+cp ~/doc/projects/config/sway/* ~/.config/sway/
 chmod +x ~/.config/sway/clamshell.sh
-
-# return to scripts dir
-cd ~/doc/projects/config/scripts

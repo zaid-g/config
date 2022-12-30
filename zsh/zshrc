@@ -142,8 +142,8 @@ function VS(){
     git_branch=$(git branch --show-current)
     V -S .vim/$git_branch.vim
 }
-alias VC="V -S ~/doc/projects/config/scripts/VC_session.vim"
-alias VN="V -S ~/doc/projects/config/scripts/VN_session.vim"
+alias VC="V -S ~/doc/projects/config/vim/VC_session.vim"
+alias VN="V -S ~/doc/projects/config/vim/VN_session.vim"
 alias VZSH="V ~/.zshrc"
 # git
 alias G="git"
