@@ -224,15 +224,21 @@ input "type:keyboard" {
 
 
 set $laptop eDP-1
+
+# resolution
 output HDMI-A-1 res 1920x1080@120.000000Hz position 0,1080
 output $laptop res 1920x1080 position 0,0
+
+# clamshell mode
 exec_always ~/.config/sway/clamshell.sh
 bindswitch --reload --locked lid:on output $laptop disable
 bindswitch --reload --locked lid:off output $laptop enable
 
+# idle/lock/sleep/hibernate/logout
 exec swayidle -w \
          timeout 300 'swaylock -f -c 000000' \
          timeout 600 'swaymsg "output * dpms off"' resume 'swaymsg "output * dpms on"' \
          before-sleep 'swaylock -f -c 000000'
+bindsym $mod+z exec swaylock
 
 include /etc/sway/config.d/*
