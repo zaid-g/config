@@ -8,6 +8,7 @@ mkdir -p ~/pic/
 mkdir -p ~/.config/nvim
 mkdir -p ~/.config/sway
 mkdir -p ~/.config/waybar
+mkdir -p ~/.config/alacritty
 mkdir -p ~/.ipython/profile_default
 
 ## source config files
@@ -31,4 +32,6 @@ cp ~/doc/projects/config/python/pycodestyle ~/.config/
 cp ~/doc/projects/config/python/ipython_config.py ~/.ipython/profile_default/
 # sway
 cp ~/doc/projects/config/sway/* ~/.config/sway/
+# alacritty
+cp ~/doc/projects/config/alacritty/* ~/.config/alacritty/
 chmod +x ~/.config/sway/clamshell.sh
