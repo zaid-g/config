@@ -42,12 +42,6 @@ function! JumpToPattern(count, visual, pattern, flags)
         call search(a:pattern, a:flags)
     endfor
 endfunction
-" jump to pattern without overriding current searched for/highlighted pattern
-function! ForwardJumpToPattern()
-    let search_original_content=@"
-    /
-endfunction
-noremap m/ :call ForwardJumpToPattern()<CR>
 " bufdo e without loss of syntax highlighting and switching buffers
 nnoremap me :tabdo windo e<CR>
 "" cursor/visual highlight and search
@@ -105,6 +99,7 @@ xmap <silent> <c-k> :<c-u>call JumpToPattern(v:count1, 1, '\%^\\|^# %% --------'
 nmap my w<c-k>V<c-j>ygv<Esc>
 nmap mY w<c-k>V<c-j>"+ygv<Esc>
 nnoremap m/ /# %% -----.*.*<left><left>
+nnoremap m? ?# %% -----.*.*<left><left>
 " ipdb trace above current line
 nnoremap mp Oimport ipdb; ipdb.set_trace()<ESC>:w<CR>
 " timeit
