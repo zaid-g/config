@@ -94,9 +94,6 @@ nnoremap mar :<c-u>args **/*.
 inoremap <c-c> <c-x>
 " scratch window
 nnoremap msw <c-w>n:setlocal buftype=nofile<CR>:setlocal bufhidden=hide<CR>:setlocal noswapfile<CR>
-
-
-"" python file mappings
 " block abstraction and execution: make blocks in file and be able to
 " immediately send its contents to another tmux window using Slime or
 " to clipboard
@@ -107,6 +104,7 @@ nmap <silent> <c-k> :<c-u>call JumpToPattern(v:count1, 0, '\%^\\|^# %% --------'
 xmap <silent> <c-k> :<c-u>call JumpToPattern(v:count1, 1, '\%^\\|^# %% --------', 'b')<cr>zz
 nmap my w<c-k>V<c-j>ygv<Esc>
 nmap mY w<c-k>V<c-j>"+ygv<Esc>
+nnoremap m/ /# %% -----.*.*<left><left>
 " ipdb trace above current line
 nnoremap mp Oimport ipdb; ipdb.set_trace()<ESC>:w<CR>
 " timeit
