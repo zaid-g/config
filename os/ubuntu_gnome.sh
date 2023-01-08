@@ -39,3 +39,4 @@ sudo apt autoremove -y
 
 # optional stuff
 sudo apt-get install texlive-full
+sudo apt-get install freecad
