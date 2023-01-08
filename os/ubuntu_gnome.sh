@@ -32,6 +32,7 @@ sudo apt install nodejs -y
 sudo npm i -g pyright
 sudo npm i -g vscode-langservers-extracted
 go install github.com/mattn/efm-langserver@latest
+echo 'export PATH="/home/$USER/go/bin:$PATH"' >> ~/.zshrc
 
 # cleanup
 sudo apt autoremove -y
