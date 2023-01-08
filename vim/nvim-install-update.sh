@@ -1,6 +1,5 @@
 set -e
 
-current_working_directory=$(pwd)
 rm -rf ~/app/neovim
 mkdir -p ~/app/neovim/
 # linux appimage
@@ -13,4 +12,3 @@ mv squashfs-root squashfs-root-neovim
 cd ~/app/neovim
 curl -LO https://github.com/neovim/neovim/releases/download/nightly/nvim-macos.tar.gz
 tar xzf nvim-macos.tar.gz
-cd $current_working_directory
