@@ -7,6 +7,8 @@ set -e # break script if any command fails after this line
 sudo echo "Running ..."
 
 ## packages & setup environment
+sudo apt update -y
+sudo apt upgrade -y
 sudo apt install git python3 python3-venv python3-pip zsh wget curl golang tmux htop xournal ccls -y
 . ~/doc/projects/config/vim/nvim-install-update.sh
 . ~/doc/projects/config/vim/nvim-plugins-install-update.sh
@@ -17,7 +19,6 @@ pip3 install -r ~/doc/projects/config/python/python-packages-install.txt
 ## zsh
 # default shell
 sudo chsh -s $(which zsh) $(whoami)
-echo 'PS1="%B%{$fg[green]%}[%{$fg[green]%}%n%{$fg[green]%}@%{$fg[green]%}%M %{$fg[green]%}%~%{$fg[green]%}]%{$reset_color%}$%b "' >> ~/.zshrc
 
 # Language servers
 curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
@@ -27,7 +28,7 @@ sudo npm i -g vscode-langservers-extracted
 go install github.com/mattn/efm-langserver@latest
 
 # cleanup
-sudo apt autoremove
+sudo apt autoremove -y
 
 # optional stuff
 sudo apt-get install texlive-full
