@@ -24,8 +24,7 @@ curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
 sudo apt install nodejs -y
 sudo npm i -g pyright
 sudo npm i -g vscode-langservers-extracted
-GO111MODULE=on go get github.com/mattn/efm-langserver@latest
-echo 'export PATH=$PATH:~/go/bin' >> ~/.zshrc
+go install github.com/mattn/efm-langserver@latest
 
 # cleanup
 sudo apt autoremove
