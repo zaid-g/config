@@ -4,7 +4,7 @@
 set -e # break script if any command fails after this line
 
 # for sudo
-sudo touch ~/misc
+sudo echo "Running ..."
 
 ## packages & setup environment
 sudo apt install git python3 python3-venv python3-pip zsh wget curl golang tmux htop xournal ccls -y
