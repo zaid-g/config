@@ -104,6 +104,8 @@ nnoremap m? ?# %% -----.*.*<left><left>
 nnoremap mp Oimport ipdb; ipdb.set_trace()<ESC>:w<CR>
 " timeit
 xnoremap mvt <ESC>`<Oimport time; my_start_time = time.time()<ESC>`>oprint("my_end_time - my_start_time = ", time.time() - my_start_time)<ESC>
+" plantuml on current buffer
+nnoremap <silent> mP :!plantuml %&<CR><CR>
 
 
 """ settings
