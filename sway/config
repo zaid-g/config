@@ -204,15 +204,14 @@ bindsym $mod+r mode "resize"
 # Read `man 5 sway-bar` for more information about this section.
 bar {
     position top
-
-    # When the status_command prints a new line to stdout, swaybar updates.
-    # The default just shows the current date and time.
-    status_command while date +'%Y-%m-%d %l:%M:%S %p'; do sleep 1; done
+    # Keep in mind that the current directory of this config file is $HOME
+    status_command while ~/.config/sway/status.sh; do sleep 1; done
 
     colors {
+        # Text color of status bar
         statusline #ffffff
+        # Background of status bar
         background #323232
-        inactive_workspace #32323200 #32323200 #5c5c5c
     }
 }
 
@@ -240,5 +239,10 @@ exec swayidle -w \
          timeout 600 'swaymsg "output * dpms off"' resume 'swaymsg "output * dpms on"' \
          before-sleep 'swaylock -f -c 000000'
 bindsym $mod+z exec swaylock
+
+# brightness
+bindsym --locked XF86MonBrightnessUp exec light -T 1.4
+bindsym --locked XF86MonBrightnessDown exec light -T 0.72
+
 
 include /etc/sway/config.d/*

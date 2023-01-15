@@ -35,3 +35,4 @@ cp ~/doc/projects/config/sway/* ~/.config/sway/
 # alacritty
 cp ~/doc/projects/config/alacritty/* ~/.config/alacritty/
 chmod +x ~/.config/sway/clamshell.sh
+chmod +x ~/.config/sway/status.sh
