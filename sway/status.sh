@@ -18,6 +18,13 @@ battery_status=$(cat /sys/class/power_supply/BAT0/status)
 # Battery percentage
 battery_percentage=$(upower -i $(upower -e | grep 'BAT') | grep -E "percentage" | awk '{print $2}')
 
+# SSID name (e.g. wifi name)
+if [[ $(iwgetid -r) ]]; then
+    ssid_name=$(iwgetid -r)\ 🌐
+else
+    ssid_name=
+fi
+
 # Emojis and characters for the status bar
-# 💎 💻 💡 🔌 ⚡ 📁 \|
-echo $uptime_formatted ↑ $battery_status $battery_percentage 🔋 $date_formatted
+# 💎 💻 💡 🔌 ⚡ 📁 📶 🌐
+echo $uptime_formatted ↑ $ssid_name $battery_status $battery_percentage 🔋 $date_formatted
