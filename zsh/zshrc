@@ -135,6 +135,7 @@ alias TAS="tmux attach-session -t"
 alias TKS="tmux kill-session -t"
 alias TKAs="tmux kill-server"
 # vim, VM taken
+alias V='$NEOVIM_EDITOR'
 function VP(){
     patterns=()
     for i in "$@"; do
