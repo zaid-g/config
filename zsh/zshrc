@@ -1,11 +1,11 @@
-# ---------- [vim mode] ----------:
+# %% ---------- [vim mode] ----------:
 
 bindkey -v
 export KEYTIMEOUT=1
 
 
 
-# ---------- [Enable colors and change prompt] ----------:
+# %% ---------- [Enable colors and change prompt] ----------:
 
 autoload -U colors && colors
 PS1=" %{$fg[green]%}%~%{$fg[green]%} %{$reset_color%}$%b "
@@ -14,7 +14,7 @@ zle_highlight=('paste:bg=168,fg=251', 'region:bg=168,fg=251')
 
 
 
-# ---------- [auto-completion] ----------:
+# %% ---------- [auto-completion] ----------:
 
 autoload -U compinit
 zmodload zsh/complist
@@ -33,7 +33,15 @@ zstyle ':completion:*' matcher-list '' \
   'r:|?=** m:{a-z\-}={A-Z\_}'
 
 
-# ---------- [aliases and functions] ----------:
+
+# %% -------- [exports] ----------:
+
+export NEOVIM_EDITOR=~/app/neovim/squashfs-root-neovim/AppRun
+export GNU_GREP=$(which grep)
+export GNU_FIND=$(which find)
+
+
+# %% ---------- [aliases and functions] ----------:
 
 alias S="sudo"
 alias C="clear"
@@ -51,11 +59,6 @@ function MV(){
 alias CDC="cd ~/doc/projects/config"
 alias CDP="cd ~/doc/projects"
 alias CDD="cd ~/Downloads"
-function UC(){
-    current_working_directory=$(pwd)
-    . ~/doc/projects/config/scripts/update.sh
-    cd $current_working_directory
-}
 alias AC="bash ~/doc/projects/config/apply_config.sh"
 alias FAAC="bash ~/doc/projects/config/fetch_and_apply_config.sh"
 alias RS="source ~/.zshrc && cd ."
@@ -115,14 +118,14 @@ alias PT="python3 -m pytest -sxvv"
 alias PTDB="pytest -sxvv --pdb"
 # find
 function FIND(){
-    find . -not -path '*/.*' -iname "*${@}*"
+    $GNU_FIND . -not -path '*/.*' -iname "*${@}*"
 }
 # grep
 function GREP(){
     if [ "$#" -eq 1 ]; then
-        grep -rni --exclude-dir='.*' -e $1
+        $GNU_GREP -rni --exclude-dir='.*' -e $1
     else
-        grep -rni --exclude-dir='.*' --include="*.$1" -e $2
+        $GNU_GREP -rni --exclude-dir='.*' --include="*.$1" -e $2
     fi
 }
 # tmux
@@ -132,21 +135,20 @@ alias TAS="tmux attach-session -t"
 alias TKS="tmux kill-session -t"
 alias TKAs="tmux kill-server"
 # vim, VM taken
-alias V="~/app/neovim/squashfs-root-neovim/AppRun"
 function VP(){
     patterns=()
     for i in "$@"; do
         patterns+=(**/*.$i)
     done
-    V ${patterns[@]}
+    $NEOVIM_EDITOR ${patterns[@]}
 }
 function VS(){
     git_branch=$(git branch --show-current)
-    V -S .vim/$git_branch.vim
+    $NEOVIM_EDITOR -S .vim/$git_branch.vim
 }
-alias VC="V -S ~/doc/projects/config/vim/VC_session.vim"
-alias VN="V -S ~/doc/projects/config/vim/VN_session.vim"
-alias VZSH="V ~/.zshrc"
+alias VC="$NEOVIM_EDITOR -S ~/doc/projects/config/vim/VC_session.vim"
+alias VN="$NEOVIM_EDITOR -S ~/doc/projects/config/vim/VN_session.vim"
+alias VZSH="$NEOVIM_EDITOR ~/.zshrc"
 # git
 alias G="git"
 alias GS="git status"
@@ -187,7 +189,7 @@ alias X="xdg-open"
 alias DISCORD="snap run discord"
 alias BLACK="python3 -m black **/*.py"
 
-# ---------- [Syntax highlighting] ----------:
+# %% ---------- [Syntax highlighting] ----------:
 
 # should be last.
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null
