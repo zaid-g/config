@@ -7,7 +7,7 @@ cd ~/app/neovim
 curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
 chmod u+x nvim.appimage
 ./nvim.appimage --appimage-extract
-mv squashfs-root squashfs-root-neovim
+mv squashfs-root squashfs-root
 # os x binary
 cd ~/app/neovim
 curl -LO https://github.com/neovim/neovim/releases/download/nightly/nvim-macos.tar.gz

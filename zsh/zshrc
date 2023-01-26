@@ -36,7 +36,7 @@ zstyle ':completion:*' matcher-list '' \
 
 # %% -------- [exports] ----------:
 
-export NEOVIM_EDITOR=~/app/neovim/squashfs-root-neovim/AppRun
+export NEOVIM_EDITOR=~/app/neovim/squashfs-root/AppRun
 export GNU_GREP=$(which grep)
 export GNU_FIND=$(which find)
 
