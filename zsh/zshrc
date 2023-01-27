@@ -1,18 +1,14 @@
-# %% ---------- [vim mode] ----------:
+# %% ---------- [vi mode] ----------:
 
 bindkey -v
 export KEYTIMEOUT=1
 
-
-
-# %% ---------- [Enable colors and change prompt] ----------:
+# %% ---------- [colors and prompt] ----------:
 
 autoload -U colors && colors
 PS1=" %{$fg[green]%}%~%{$fg[green]%} %{$reset_color%}$%b "
 zle_highlight=('region:bg=168,fg=251')
 zle_highlight=('paste:bg=168,fg=251', 'region:bg=168,fg=251')
-
-
 
 # %% ---------- [auto-completion] ----------:
 
@@ -33,50 +29,47 @@ zstyle ':completion:*' matcher-list '' \
   'r:|?=** m:{a-z\-}={A-Z\_}'
 
 
+# %% -------- [vim] ----------:
 
-# %% -------- [exports] ----------:
 
 export NEOVIM_EDITOR=~/app/neovim/squashfs-root/AppRun
+# vim, VM taken
+alias V='$NEOVIM_EDITOR'
+function VP(){
+    patterns=()
+    for i in "$@"; do
+        patterns+=(**/*.$i)
+    done
+    $NEOVIM_EDITOR ${patterns[@]}
+}
+function VS(){
+    git_branch=$(git branch --show-current)
+    $NEOVIM_EDITOR -S .vim/$git_branch.vim
+}
+alias VC='$NEOVIM_EDITOR -S ~/doc/projects/config/vim/VC_session.vim'
+alias VN='$NEOVIM_EDITOR -S ~/doc/projects/config/vim/VN_session.vim'
+alias VZSH='$NEOVIM_EDITOR ~/.zshrc'
+
+# %% -------- [grep] ----------:
+
 export GNU_GREP=$(which grep)
-export GNU_FIND=$(which find)
-
-
-# %% ---------- [aliases and functions] ----------:
-
-alias S="sudo"
-alias C="clear"
-alias mv="mv -v"
-function MV(){
-    latest_download=~/Downloads/$(ls -Art ~/Downloads | tail -n 1)
-    current_working_directory=$(pwd)
-    if [ "$#" -eq 0 ]; then
-        mv $latest_download .
+function GREP(){
+    if [ "$#" -eq 1 ]; then
+        $GNU_GREP -rni --exclude-dir='.*' -e $1
     else
-        latest_download_file_name=$(basename ${latest_download})
-        mv $latest_download ${1}_$latest_download_file_name
+        $GNU_GREP -rni --exclude-dir='.*' --include="*.$1" -e $2
     fi
 }
-alias CDC="cd ~/doc/projects/config"
-alias CDP="cd ~/doc/projects"
-alias CDD="cd ~/Downloads"
-alias AC="bash ~/doc/projects/config/apply_config.sh"
-alias FAAC="bash ~/doc/projects/config/fetch_and_apply_config.sh"
-alias RS="source ~/.zshrc && cd ."
-alias ls="ls --color=auto"
-alias LL="ls -lt --color=auto"
-alias LA="ls -A --color=auto"
-alias VM="virt-manager"
-alias PO="systemctl poweroff"
-# python
-alias I="python3 -m IPython"
-alias P="python3"
-function PIP3(){
-    pip3 install wheel
-    pip3 install ipdb
-    pip3 install neovim
-    pip3 install pandas
-    pip3 install black
+
+# %% -------- [find] ----------:
+
+export GNU_FIND=$(which find)
+function FIND(){
+    $GNU_FIND . -not -path '*/.*' -iname "*${@}*"
 }
+
+# %% -------- [cd] ----------:
+
 function cd() {
     builtin cd $1
     current_working_directory_leaf="$(basename $(pwd))"
@@ -88,6 +81,56 @@ function cd() {
             . ~/.virtualenvs/.$current_working_directory_leaf/bin/activate
     fi
 }
+
+alias CDC="cd ~/doc/projects/config"
+alias CDP="cd ~/doc/projects"
+alias CDD="cd ~/Downloads"
+
+# %% -------- [mv] ----------:
+
+alias mv="mv -v"
+
+function MV(){
+    latest_download=~/Downloads/$(ls -Art ~/Downloads | tail -n 1)
+    current_working_directory=$(pwd)
+    if [ "$#" -eq 0 ]; then
+        mv $latest_download .
+    else
+        latest_download_file_name=$(basename ${latest_download})
+        mv $latest_download ${1}_$latest_download_file_name
+    fi
+}
+
+
+# %% -------- [config] ----------:
+
+alias AC="bash ~/doc/projects/config/apply_config.sh"
+alias FAAC="bash ~/doc/projects/config/fetch_and_apply_config.sh"
+
+
+# %% -------- [ls] ----------:
+
+alias ls="ls --color=auto"
+alias LL="ls -lt --color=auto"
+alias LA="ls -A --color=auto"
+
+
+# %% -------- [python] ----------:
+
+alias I="python3 -m IPython"
+alias P="python3"
+alias PT="python3 -m pytest -sxvv"
+alias PTDB="pytest -sxvv --pdb"
+alias BLACK="python3 -m black **/*.py"
+
+function PIP3(){
+    pip3 install wheel
+    pip3 install ipdb
+    pip3 install neovim
+    pip3 install pandas
+    pip3 install black
+}
+
 function PVENV(){(
     current_working_directory=$(pwd)
     project_name="$(basename $(pwd))"
@@ -114,43 +157,18 @@ function PVENV(){(
     fi;
     PIP3 # keep at end
 )}
-alias PT="python3 -m pytest -sxvv"
-alias PTDB="pytest -sxvv --pdb"
-# find
-function FIND(){
-    $GNU_FIND . -not -path '*/.*' -iname "*${@}*"
-}
-# grep
-function GREP(){
-    if [ "$#" -eq 1 ]; then
-        $GNU_GREP -rni --exclude-dir='.*' -e $1
-    else
-        $GNU_GREP -rni --exclude-dir='.*' --include="*.$1" -e $2
-    fi
-}
-# tmux
+
+
+# %% -------- [tmux] ----------:
+
 alias T="tmux -2"
 alias TLS="tmux ls"
 alias TAS="tmux attach-session -t"
 alias TKS="tmux kill-session -t"
-alias TKAs="tmux kill-server"
-# vim, VM taken
-alias V='$NEOVIM_EDITOR'
-function VP(){
-    patterns=()
-    for i in "$@"; do
-        patterns+=(**/*.$i)
-    done
-    $NEOVIM_EDITOR ${patterns[@]}
-}
-function VS(){
-    git_branch=$(git branch --show-current)
-    $NEOVIM_EDITOR -S .vim/$git_branch.vim
-}
-alias VC='$NEOVIM_EDITOR -S ~/doc/projects/config/vim/VC_session.vim'
-alias VN='$NEOVIM_EDITOR -S ~/doc/projects/config/vim/VN_session.vim'
-alias VZSH='$NEOVIM_EDITOR ~/.zshrc'
-# git
+alias TKAS="tmux kill-server"
+
+# %% -------- [git] ----------:
+
 alias G="git"
 alias GS="git status"
 alias GD="git diff"
@@ -165,7 +183,10 @@ alias GFO="git fetch origin"
 alias GB="git branch --sort=-committerdate"
 alias GPUSH="git push -u origin HEAD"
 alias GPULL='git pull origin $(git rev-parse --abbrev-ref HEAD)'
-# docker
+
+
+# %% -------- [docker] ----------:
+
 function DOCK(){
     sudo docker run -it -v $HOME/doc/projects/config:/home/ubuntu/doc/projects/config $@ main
 }
@@ -173,24 +194,25 @@ function DOCKCWD(){
     sudo docker run -it -v $(pwd):$(pwd) -v $HOME/doc/projects/config:/home/ubuntu/doc/projects/config -w $(pwd) $@ main
 }
 alias D="docker"
-alias SD="sudo docker"
 alias DB="docker build"
-alias SDB="sudo docker build"
 alias DR="docker run"
-alias SDR="sudo docker run"
 alias DC="docker container"
-alias SDC="sudo docker container"
 alias DCE="docker container exec"
-alias SDCE="sudo docker container exec"
 alias DI="docker image"
-alias SDI="sudo docker image"
+
+
+# %% -------- [others] ----------:
+
+alias S="sudo"
+alias C="clear"
+alias RS="source ~/.zshrc && cd ."
+alias VM="virt-manager"
+alias PO="systemctl poweroff"
 # xdg open (open file from terminal with default app)
 alias X="xdg-open"
-# discord
 alias DISCORD="snap run discord"
-alias BLACK="python3 -m black **/*.py"
 
-# %% ---------- [Syntax highlighting] ----------:
+# %% ---------- [syntax highlighting] ----------:
 
 # should be last.
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null
