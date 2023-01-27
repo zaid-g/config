@@ -67,8 +67,6 @@ WORKDIR /home/ubuntu/doc/projects/config
 RUN . ./vim-nvim-plugins-install-update.sh
 WORKDIR /home/ubuntu/doc/projects/config
 RUN bash ./nvim-intall-update.sh
-WORKDIR /home/ubuntu/doc/projects/config
-RUN pip3 install -r ./python-packages-install.txt
 WORKDIR /home/ubuntu
 RUN echo 'PS1="%B%{$fg[green]%}[%{$fg[green]%}%n%{$fg[green]%}@%{$fg[green]%}%M %{$fg[green]%}%~%{$fg[green]%}]%{$reset_color%}$%b "' >> .zshrc
 

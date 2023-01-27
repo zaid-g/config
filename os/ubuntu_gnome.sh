@@ -19,8 +19,7 @@ sudo apt install git python3 python3-venv python3-pip zsh wget curl golang tmux 
 . ~/doc/projects/config/vim/nvim-install-update.sh
 . ~/doc/projects/config/vim/nvim-plugins-install-update.sh
 . ~/doc/projects/config/apply_config.sh
-# get neovim and basic python libraries
-pip3 install -r ~/doc/projects/config/python/python-packages-install.txt
+PIP3
 
 ## zsh
 # default shell
