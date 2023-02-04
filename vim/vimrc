@@ -116,6 +116,7 @@ set timeoutlen=1000 ttimeoutlen=0
 "" visual settings
 silent! colo koehler
 silent! colo darcula-solid
+set termguicolors
 " highlight search results
 set hlsearch
 " highlight opposite [({
@@ -126,9 +127,7 @@ set nu
 syntax on
 "
 set laststatus=2
-" for vim to have consistent colors within tmux
-set background=dark
-set t_Co=256
+"
 au WinLeave * set nocursorline
 au WinEnter * set cursorline
 set cursorline

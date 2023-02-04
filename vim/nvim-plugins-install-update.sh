@@ -24,6 +24,7 @@ git clone https://github.com/nvim-treesitter/nvim-treesitter-textobjects.git
 
 # color scheme
 git clone https://github.com/briones-gabriel/darcula-solid.nvim.git
+git clone https://github.com/rktjmp/lush.nvim.git
 
 # indent blankline
 git clone https://github.com/lukas-reineke/indent-blankline.nvim.git
