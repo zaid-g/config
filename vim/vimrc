@@ -115,7 +115,7 @@ nnoremap <silent> <leader>P :w<CR>:!plantuml %&<CR><CR>
 set timeoutlen=1000 ttimeoutlen=0
 "" visual settings
 silent! colo koehler
-silent! colo darcula
+silent! colo darcula-solid
 " highlight search results
 set hlsearch
 " highlight opposite [({
