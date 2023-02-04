@@ -75,7 +75,7 @@ nnoremap <leader>ci :let @a=1 \| %s/search/\='replace'.(@a+setreg('a',@a+1))/g
 " delete to black hole register
 noremap <leader>x "_x
 " split window vertically on new column
-nnoremap <leader>sb :botr vs<CR>:b 
+nnoremap <leader>sb :botr vs<CR>:b
 " git branch sessions
 function! MakeSessionGit()
     let git_branch=substitute(system('git branch --show-current'), '\n\+$', '', '')
@@ -152,7 +152,7 @@ set completeopt-=preview
 
 
 "" Package/Plugin settings
-" Slime 
+" Slime
 noremap <leader>sc :<C-u>SlimeConfig<CR>
 let g:slime_target = "tmux"
 let g:slime_python_ipython = 1
@@ -161,12 +161,6 @@ let g:slime_dont_ask_default = 1
 xmap <silent> <leader>ss <Plug>SlimeRegionSend
 nmap <silent> <leader>ss w<c-k>V<c-j>:SlimeSend<CR>gv<Esc>
 " winresize
-let g:winresizer_start_key = 'mw'
-" UltiSnips stuff
-let g:UltiSnipsExpandTrigger="\\u"
-let g:UltiSnipsJumpForwardTrigger="<c-n>"
-let g:UltiSnipsJumpBackwardTrigger="<c-p>"
-let g:UltiSnipsEditSplit="vertical"
-let g:ultisnips_python_style = 'google'
+let g:winresizer_start_key = '<leader>w'
 " enunch plugin stuff
-nnoremap <leader>RN :Rename 
+nnoremap <leader>RN :Rename
