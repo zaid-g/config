@@ -1,18 +1,20 @@
 " frees up m to use for my own mappings
 noremap mm m
+" mapleader
+let mapleader = "m"
 " frees up \ to use for my own mappings in insert mode
 inoremap \\ \
 
 
 " resource config
-noremap mrs :source $MYVIMRC<CR>
+noremap <leader>rs :source $MYVIMRC<CR>
 " addtional scroll movements, moving text
 noremap <silent> J @="j\<lt>C-E>"<CR>
 noremap <silent> K @="k\<lt>C-Y>"<CR>
-noremap mj J
-noremap mk K
-noremap mJ <c-j>
-noremap mK <c-k>
+noremap <leader>j Jx$
+noremap <leader>k K
+noremap <leader>J <c-j>
+noremap <leader>K <c-k>
 " copy to system clipboard
 map <silent> Y "+y
 " allows multiple pasting of copied text
@@ -43,10 +45,10 @@ function! JumpToPattern(count, visual, pattern, flags)
     endfor
 endfunction
 " bufdo e without loss of syntax highlighting and switching buffers
-nnoremap me :tabdo windo e<CR>
+nnoremap <leader>e :tabdo windo e<CR>
 "" cursor/visual highlight and search
 " shortcut to highlight search whole word under cursor
-nnoremap <silent> ml :<c-u>let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<CR>wb
+nnoremap <silent> <leader>l :<c-u>let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<CR>wb
 " shortcut to highlight search what's being selected in visual mode (works
 " multi line)
 function SetSearchVisualSelection()
@@ -56,24 +58,24 @@ function SetSearchVisualSelection()
     let @/=substitute(escape(raw_search, '\/.*$^~[]'), "\n", '\\n', "g")
     let @"=clipboard_original_content
 endfunction
-vnoremap ml :call SetSearchVisualSelection()<CR>:set hlsearch<CR>
+vnoremap <leader>l :call SetSearchVisualSelection()<CR>:set hlsearch<CR>
 "" find and replace mappings
 " change currently searched for pattern
-nnoremap mcs :%s/<C-R>=@/<CR>//g<Left><Left>
-vnoremap mcs :s/<C-R>=@/<CR>//g<Left><Left>
+nnoremap <leader>cs :%s/<C-R>=@/<CR>//g<Left><Left>
+vnoremap <leader>cs :s/<C-R>=@/<CR>//g<Left><Left>
 " change typed pattern
-nnoremap mct :%s//g<Left><Left>
-vnoremap mct :s//g<Left><Left>
+nnoremap <leader>ct :%s//g<Left><Left>
+vnoremap <leader>ct :s//g<Left><Left>
 " find and replace in all buffers searched for pattern
-nnoremap mbdcs :bufdo %s/<C-R>=@/<CR>//g \| update<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>
+nnoremap <leader>bdcs :bufdo %s/<C-R>=@/<CR>//g \| update<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>
 " find and replace in all buffers typed pattern
-nnoremap mbdct :bufdo %s///g \| update<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>
+nnoremap <leader>bdct :bufdo %s///g \| update<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>
 " find and replace occurences with incrementing counter appended
-nnoremap mci :let @a=1 \| %s/search/\='replace'.(@a+setreg('a',@a+1))/g
+nnoremap <leader>ci :let @a=1 \| %s/search/\='replace'.(@a+setreg('a',@a+1))/g
 " delete to black hole register
-noremap mx "_x
+noremap <leader>x "_x
 " split window vertically on new column
-nnoremap msb :botr vs<CR>:b 
+nnoremap <leader>sb :botr vs<CR>:b 
 " git branch sessions
 function! MakeSessionGit()
     let git_branch=substitute(system('git branch --show-current'), '\n\+$', '', '')
@@ -81,31 +83,31 @@ function! MakeSessionGit()
     silent! execute('!rm -rf .vim/'.git_branch.'.vim')
     silent! execute "mksession! .vim/".git_branch.".vim"
 endfunction
-nnoremap mks :<c-u>call MakeSessionGit()<CR>
+nnoremap <leader>ks :<c-u>call MakeSessionGit()<CR>
 " recursively load files of type
-nnoremap mar :<c-u>args **/*.
+nnoremap <leader>ar :<c-u>args **/*.
 " easier reach expand/complete mode
 inoremap <c-c> <c-x>
 " scratch window
-nnoremap msw <c-w>n:setlocal buftype=nofile<CR>:setlocal bufhidden=hide<CR>:setlocal noswapfile<CR>
+nnoremap <leader>sw <c-w>n:setlocal buftype=nofile<CR>:setlocal bufhidden=hide<CR>:setlocal noswapfile<CR>
 " block abstraction and execution: make blocks in file and be able to
 " immediately send its contents to another tmux window using Slime or
 " to clipboard
-nnoremap mbl o<CR><CR><CR><ESC>2ki# %% -------- [] ----------:<ESC>BBa
+nnoremap <leader>bl o<CR><CR><CR><ESC>2ki# %% -------- [] ----------:<ESC>BBa
 nmap <silent> <c-j> :<c-u>call JumpToPattern(v:count1, 0, '\%$\\|^# %% --------', '')<cr>zz
 xmap <silent> <c-j> :<c-u>call JumpToPattern(v:count1, 1, '\%$\\|^# %% --------', '')<cr>zz
 nmap <silent> <c-k> :<c-u>call JumpToPattern(v:count1, 0, '\%^\\|^# %% --------', 'b')<cr>zz
 xmap <silent> <c-k> :<c-u>call JumpToPattern(v:count1, 1, '\%^\\|^# %% --------', 'b')<cr>zz
-nmap my w<c-k>V<c-j>ygv<Esc>
-nmap mY w<c-k>V<c-j>"+ygv<Esc>
-nnoremap m/ /# %% -----.*.*<left><left>
-nnoremap m? ?# %% -----.*.*<left><left>
+nmap <leader>y w<c-k>V<c-j>ygv<Esc>
+nmap <leader>Y w<c-k>V<c-j>"+ygv<Esc>
+nnoremap <leader>/ /# %% -----.*.*<left><left>
+nnoremap <leader>? ?# %% -----.*.*<left><left>
 " ipdb trace above current line
-nnoremap mp Oimport ipdb; ipdb.set_trace()<ESC>:w<CR>
+nnoremap <leader>p Oimport ipdb; ipdb.set_trace()<ESC>:w<CR>
 " timeit
-xnoremap mvt <ESC>`<Oimport time; my_start_time = time.time()<ESC>`>oprint("my_end_time - my_start_time = ", time.time() - my_start_time)<ESC>
+xnoremap <leader>vt <ESC>`<Oimport time; my_start_time = time.time()<ESC>`>oprint("my_end_time - my_start_time = ", time.time() - my_start_time)<ESC>
 " plantuml on current buffer
-nnoremap <silent> mP :w<CR>:!plantuml %&<CR><CR>
+nnoremap <silent> <leader>P :w<CR>:!plantuml %&<CR><CR>
 
 
 """ settings
@@ -151,13 +153,13 @@ set completeopt-=preview
 
 "" Package/Plugin settings
 " Slime 
-noremap msc :<C-u>SlimeConfig<CR>
+noremap <leader>sc :<C-u>SlimeConfig<CR>
 let g:slime_target = "tmux"
 let g:slime_python_ipython = 1
 let g:slime_default_config = {"socket_name": "default", "target_pane": ".0"}
 let g:slime_dont_ask_default = 1
-xmap <silent> mss <Plug>SlimeRegionSend
-nmap <silent> mss w<c-k>V<c-j>:SlimeSend<CR>gv<Esc>
+xmap <silent> <leader>ss <Plug>SlimeRegionSend
+nmap <silent> <leader>ss w<c-k>V<c-j>:SlimeSend<CR>gv<Esc>
 " winresize
 let g:winresizer_start_key = 'mw'
 " UltiSnips stuff
@@ -167,4 +169,4 @@ let g:UltiSnipsJumpBackwardTrigger="<c-p>"
 let g:UltiSnipsEditSplit="vertical"
 let g:ultisnips_python_style = 'google'
 " enunch plugin stuff
-nnoremap mRN :Rename 
+nnoremap <leader>RN :Rename 
