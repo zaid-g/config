@@ -15,7 +15,7 @@ gsettings set org.gnome.desktop.peripherals.keyboard delay 250
 ## packages & setup environment
 sudo apt update -y
 sudo apt upgrade -y
-sudo apt install git python3 python3-venv python3-pip zsh wget curl golang tmux htop xournal ccls -y
+sudo apt install git python3 python3-venv python3-pip zsh wget curl golang tmux htop xournal ccls xclip meshlab freecad -y
 . ~/doc/projects/config/vim/nvim-install-update.sh
 . ~/doc/projects/config/vim/nvim-plugins-install-update.sh
 . ~/doc/projects/config/apply_config.sh
@@ -38,4 +38,3 @@ sudo apt autoremove -y
 
 # optional stuff
 sudo apt-get install texlive-full
-sudo apt-get install freecad
