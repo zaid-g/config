@@ -75,7 +75,7 @@ nnoremap <leader>ci :let @a=1 \| %s/search/\='replace'.(@a+setreg('a',@a+1))/g
 " delete to black hole register
 noremap <leader>x "_x
 " split window vertically on new column
-nnoremap <leader>sb :botr vs<CR>:b
+nnoremap <leader>sb :botr vs<CR>:b 
 " git branch sessions
 function! MakeSessionGit()
     let git_branch=substitute(system('git branch --show-current'), '\n\+$', '', '')
