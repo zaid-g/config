@@ -3,6 +3,7 @@
 
 ## Notes:
 # for remapping capslock, download PowerToys
+# for controlling backlight, turn off HDR in display settings windows
 # ---------------
 
 set -e # break script if any command fails after this line
@@ -17,7 +18,6 @@ sudo apt install git python3 python3-venv python3-pip zsh wget curl golang tmux 
 bash ~/doc/projects/config/vim/nvim-install-update.sh
 bash ~/doc/projects/config/vim/nvim-plugins-install-update.sh
 bash ~/doc/projects/config/apply_config.sh
-PIP3
 
 ## zsh
 # default shell
