@@ -14,10 +14,17 @@ sudo echo "Running ..."
 ## packages & setup environment
 sudo apt update -y
 sudo apt upgrade -y
-sudo apt install git python3 python3-venv python3-pip zsh wget curl golang tmux htop xournal ccls meshlab freecad -y
+sudo apt install git python3 python3-venv python3-pip zsh wget curl unzip golang tmux htop xournal ccls meshlab freecad -y
 bash ~/doc/projects/config/vim/nvim-install-update.sh
 bash ~/doc/projects/config/vim/nvim-plugins-install-update.sh
 bash ~/doc/projects/config/apply_config.sh
+
+# win32yank.exe for neovim clipboard
+curl -sLo/tmp/win32yank.zip https://github.com/equalsraf/win32yank/releases/download/v0.0.4/win32yank-x64.zip
+unzip -p /tmp/win32yank.zip win32yank.exe > /tmp/win32yank.exe
+chmod +x /tmp/win32yank.exe
+sudo mv /tmp/win32yank.exe /usr/local/bin/
+echo "set clipboard=unnamedplus" >> ~/.config/nvim/init.vim
 
 ## zsh
 # default shell
