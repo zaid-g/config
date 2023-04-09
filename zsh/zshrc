@@ -47,7 +47,6 @@ function VS(){
     $NEOVIM_EDITOR -S .vim/$git_branch.vim
 }
 alias VC='$NEOVIM_EDITOR -S ~/doc/projects/config/vim/VC_session.vim'
-alias VN='$NEOVIM_EDITOR -S ~/doc/projects/config/vim/VN_session.vim'
 alias VZSH='$NEOVIM_EDITOR ~/.zshrc'
 
 # %% -------- [grep] ----------:
@@ -178,7 +177,7 @@ then
     tmux new-session -d -s $SESSION
     # misc
     tmux rename-window -t 0 'misc'
-    tmux send-keys -t 'misc' 'VN' C-m
+    tmux send-keys -t 'misc' 'VC' C-m
     #
     tmux new-window -t $SESSION:1 -n 'projects'
     tmux send-keys -t 'projects' 'cd ~/doc/projects' C-m
