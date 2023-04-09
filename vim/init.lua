@@ -36,7 +36,7 @@ vim.keymap.set("n", "<leader>?", require("telescope.builtin").oldfiles, {desc = 
 vim.keymap.set("n", "<leader><space>", require("telescope.builtin").buffers, {desc = "[ ] Find existing buffers"})
 vim.keymap.set(
     "n",
-    "<leader>/",
+    "<leader>t/",
     function()
         -- You can pass additional configuration to telescope to change theme, layout, etc.
         require("telescope.builtin").current_buffer_fuzzy_find(
