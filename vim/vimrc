@@ -89,7 +89,7 @@ nnoremap <leader>ar :<c-u>args **/*.
 " easier reach expand/complete mode
 inoremap <c-c> <c-x>
 " scratch window
-nnoremap <leader>tw <c-w>n:setlocal buftype=nofile<CR>:setlocal bufhidden=hide<CR>:setlocal noswapfile<CR>
+nnoremap <leader>sw <c-w>n:setlocal buftype=nofile<CR>:setlocal bufhidden=hide<CR>:setlocal noswapfile<CR>
 " block abstraction and execution: make blocks in file and be able to
 " immediately send its contents to another tmux window using Slime or
 " to clipboard
