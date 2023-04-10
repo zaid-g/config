@@ -9,7 +9,15 @@ vim.wo.signcolumn = "yes"
 vim.o.completeopt = "menuone"
 
 -- Enable Comment.nvim
-require("Comment").setup()
+require("Comment").setup{
+    ---LHS of operator-pending mappings in NORMAL and VISUAL mode
+    opleader = {
+        ---Line-comment keymap
+        line = '<leader>cc',
+        ---Block-comment keymap
+        block = '<leader>cb',
+    }
+}
 
 -- Enable `lukas-reineke/indent-blankline.nvim`
 -- See `:help indent_blankline.txt`
