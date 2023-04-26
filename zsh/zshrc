@@ -130,7 +130,7 @@ function PIP3(){
     pip3 install black
 }
 
-function PVENV(){(
+function PVENV(){
     current_working_directory=$(pwd)
     project_name="$(basename $(pwd))"
     deactivate
@@ -155,7 +155,7 @@ function PVENV(){(
         echo "\n# vim\n.vim\n.ccls*" >> .gitignore
     fi;
     PIP3 # keep at end
-)}
+}
 
 
 # %% -------- [tmux] ----------:
