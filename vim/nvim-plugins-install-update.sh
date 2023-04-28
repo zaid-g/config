@@ -35,3 +35,6 @@ git clone https://github.com/numToStr/Comment.nvim.git
 # fuzzy finder
 git clone https://github.com/nvim-telescope/telescope.nvim.git
 git clone https://github.com/nvim-lua/plenary.nvim.git # idk why/if this is needed
+
+# copilot
+git clone https://github.com/zbirenbaum/copilot.lua.git
