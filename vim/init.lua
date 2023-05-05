@@ -220,13 +220,13 @@ local lsp_flags = {
     debounce_text_changes = 150
 }
 
--- pyright. check out OS install script
+-- pyright. check out OS install script. `npm i -g pyright`
 require("lspconfig")["pyright"].setup {
     on_attach = on_attach,
     flags = lsp_flags
 }
 
--- efm. check out OS install script
+-- efm. check out OS install script. `brew install efm-langserver`
 require("lspconfig")["efm"].setup {
     on_attach = on_attach,
     flags = lsp_flags,
@@ -275,7 +275,7 @@ require("lspconfig")["ccls"].setup {
     }
 }
 
--- copilot
+-- copilot (need to install node `brew install node`)
 require('copilot').setup({
   panel = {
     enabled = true,
