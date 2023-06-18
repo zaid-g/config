@@ -47,7 +47,7 @@ function VS(){
     $NEOVIM_EDITOR -S .vim/$git_branch.vim
 }
 alias VC='$NEOVIM_EDITOR -S ~/doc/projects/config/vim/VC_session.vim'
-alias VZSH='$NEOVIM_EDITOR ~/.zshrc'
+alias VZ='$NEOVIM_EDITOR ~/.zshrc'
 
 # %% -------- [grep] ----------:
 
