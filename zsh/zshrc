@@ -152,7 +152,7 @@ function PVENV(){
     if ! [ -e .git ]; then
         git init
         wget https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore
-        wget https://github.com/pre-commit/pre-commit/blob/main/.pre-commit-config.yaml
+        wget https://raw.githubusercontent.com/pre-commit/pre-commit/main/.pre-commit-config.yaml
         mv Python.gitignore .gitignore
         echo "\n# vim\n.vim\n.ccls*" >> .gitignore
     fi;
