@@ -121,6 +121,7 @@ alias P="python3"
 alias PT="python3 -m pytest -sxvv"
 alias PTDB="pytest -sxvv --pdb"
 alias BLACK="python3 -m black **/*.py"
+alias PC="pre-commit run -a"
 
 function PIP3(){
     pip3 install wheel
