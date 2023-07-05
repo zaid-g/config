@@ -235,10 +235,10 @@ bindswitch --reload --locked lid:off output $laptop enable
 
 # idle/lock/sleep/hibernate/logout
 exec swayidle -w \
-         timeout 600 'swaylock -f -c 222222' \
+         timeout 600 'swaylock -f -c 666666' \
          timeout 900 'swaymsg "output * dpms off"' resume 'swaymsg "output * dpms on"' \
-         before-sleep 'swaylock -f -c 222222'
-bindsym $mod+z exec swaylock -f -c 222222
+         before-sleep 'swaylock -f -c 666666'
+bindsym $mod+z exec swaylock -f -c 666666
 
 # brightness
 bindsym --locked XF86MonBrightnessUp exec sudo light -T 1.4
