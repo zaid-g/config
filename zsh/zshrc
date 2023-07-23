@@ -84,6 +84,7 @@ function cd() {
 alias CDC="cd ~/doc/projects/config"
 alias CDP="cd ~/doc/projects"
 alias CDD="cd ~/Downloads"
+alias CDM="cd ~/misc"
 
 # %% -------- [mv] ----------:
 
@@ -233,6 +234,7 @@ alias PO="systemctl poweroff"
 # xdg open (open file from terminal with default app)
 alias X="xdg-open"
 alias DISCORD="snap run discord"
+alias FF="firefox"
 
 # %% ---------- [syntax highlighting] ----------:
 
