@@ -126,7 +126,8 @@ alias PC="pre-commit run -a"
 
 function PIP3(){
     pip3 install wheel
-    pip3 install ipdb
+    pip3 install ipdb==0.13.11
+    pip3 install ipython==7.31.1
     pip3 install neovim
     pip3 install pandas
     pip3 install black
