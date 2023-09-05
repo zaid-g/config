@@ -236,6 +236,7 @@ alias PO="systemctl poweroff"
 alias X="xdg-open"
 alias DISCORD="snap run discord"
 alias FF="firefox"
+alias GRIM='grim -g "$(slurp)" ~/Downloads/screenshot"$(date +'%Y-%m-%dT%H:%M:%S').png"'
 
 # %% ---------- [syntax highlighting] ----------:
 
