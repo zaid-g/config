@@ -100,8 +100,8 @@ nmap <silent> <c-k> :<c-u>call JumpToPattern(v:count1, 0, '\%^\\|^# %% --------'
 xmap <silent> <c-k> :<c-u>call JumpToPattern(v:count1, 1, '\%^\\|^# %% --------', 'b')<cr>zz
 nmap <leader>y w<c-k>V<c-j>ygv<Esc>
 nmap <leader>Y w<c-k>V<c-j>"+ygv<Esc>
-nnoremap <leader>/ /# %% -----.*.*<left><left>
-nnoremap <leader>? ?# %% -----.*.*<left><left>
+nnoremap <leader>/ /# %% -----.*.*<left><left>\c
+nnoremap <leader>? ?# %% -----.*.*<left><left>\c
 " ipdb trace above current line
 nnoremap <leader>p Oimport ipdb; ipdb.set_trace()<ESC>:w<CR>
 " timeit
