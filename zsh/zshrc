@@ -236,7 +236,7 @@ alias PO="systemctl poweroff"
 alias X="xdg-open"
 alias DISCORD="snap run discord"
 alias FF="firefox"
-alias PM="sudo pacman -Syu"
+alias PMU="sudo pacman -Syu"
 function GRIM(){
     if [ "$#" -eq 1 ]; then
         grim -g "$(slurp)" ~/Downloads/screenshot-"$1"-"$(date +'%Y-%m-%dT%H:%M:%S').png"
