@@ -112,7 +112,8 @@ alias FAAC="bash ~/doc/projects/config/fetch_and_apply_config.sh"
 
 alias ls="ls --color=auto"
 alias LL="ls -lt --color=auto"
-alias LA="ls -A --color=auto"
+alias LLALL="ls -lA --color=auto"
+alias LLA="ls -l --color=auto"
 
 
 # %% -------- [python] ----------:
@@ -236,6 +237,7 @@ alias PO="systemctl poweroff"
 alias X="xdg-open"
 alias DISCORD="snap run discord"
 alias FF="firefox"
+alias CHROME="google-chrome-stable --ozone-platform=wayland"
 alias PMU="sudo pacman -Syu"
 function GRIM(){
     if [ "$#" -eq 1 ]; then
