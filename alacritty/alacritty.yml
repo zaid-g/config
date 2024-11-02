@@ -8,3 +8,6 @@ cursor:
   style:
     blinking: Always
   blink_interval: 50
+
+env:
+  TERM: xterm-256color
