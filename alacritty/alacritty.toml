@@ -1,0 +1,14 @@
+[cursor]
+blink_interval = 50
+
+[cursor.style]
+blinking = "Always"
+
+[font]
+size = 11.5
+
+[env]
+TERM = "xterm-256color"
+
+[window]
+option_as_alt = "Both"
