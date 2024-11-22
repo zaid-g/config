@@ -64,7 +64,7 @@ function GREP(){
 
 export GNU_FIND=$(which find)
 function FIND(){
-    $GNU_FIND . -not -path '*/.*' -iname "*${@}*"
+    $GNU_FIND . -not -path '*/.*' -iregex ".*${@}.*"
 }
 
 # %% -------- [cd] ----------:
