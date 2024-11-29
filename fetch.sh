@@ -1,4 +1,4 @@
-cd ~/doc/projects
+cd ~/doc/apps
 #remove old repo
 rm -rf config
 #clone new repo, try ssh first so if key exists u can push

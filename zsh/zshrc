@@ -46,7 +46,7 @@ function VS(){
     git_branch=$(git branch --show-current)
     $NEOVIM_EDITOR -S .vim/$git_branch.vim
 }
-alias VC='$NEOVIM_EDITOR -S ~/doc/projects/config/vim/VC_session.vim'
+alias VC='$NEOVIM_EDITOR -S ~/doc/apps/config/vim/VC_session.vim'
 alias VZ='$NEOVIM_EDITOR ~/.zshrc'
 
 # %% -------- [grep] ----------:
@@ -81,8 +81,8 @@ function cd() {
     fi
 }
 
-alias CDC="cd ~/doc/projects/config"
-alias CDP="cd ~/doc/projects"
+alias CDC="cd ~/doc/apps/config"
+alias CDP="cd ~/doc/apps"
 alias CDD="cd ~/Downloads"
 alias CDM="cd ~/misc"
 
@@ -104,8 +104,8 @@ function MV(){
 
 # %% -------- [config] ----------:
 
-alias AC="bash ~/doc/projects/config/apply_config.sh"
-alias FAAC="bash ~/doc/projects/config/fetch_and_apply_config.sh"
+alias AC="bash ~/doc/apps/config/apply_config.sh"
+alias FAAC="bash ~/doc/apps/config/fetch_and_apply_config.sh"
 
 
 # %% -------- [ls] ----------:
@@ -186,8 +186,8 @@ then
     tmux rename-window -t 0 'misc'
     tmux send-keys -t 'misc' 'VC' C-m
     #
-    tmux new-window -t $SESSION:1 -n 'projects'
-    tmux send-keys -t 'projects' 'cd ~/doc/projects' C-m
+    tmux new-window -t $SESSION:1 -n 'doc'
+    tmux send-keys -t 'doc' 'cd ~/doc' C-m
 fi
 # Attach Session, on the Main window
 tmux attach-session -t $SESSION:0
@@ -214,10 +214,10 @@ alias GPULL='git pull origin $(git rev-parse --abbrev-ref HEAD)'
 # %% -------- [docker] ----------:
 
 function DOCK(){
-    sudo docker run -it -v $HOME/doc/projects/config:/home/ubuntu/doc/projects/config $@ main
+    sudo docker run -it -v $HOME/doc/apps/config:/home/ubuntu/doc/apps/config $@ main
 }
 function DOCKCWD(){
-    sudo docker run -it -v $(pwd):$(pwd) -v $HOME/doc/projects/config:/home/ubuntu/doc/projects/config -w $(pwd) $@ main
+    sudo docker run -it -v $(pwd):$(pwd) -v $HOME/doc/apps/config:/home/ubuntu/doc/apps/config -w $(pwd) $@ main
 }
 alias D="docker"
 alias DB="docker build"
