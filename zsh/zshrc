@@ -82,8 +82,9 @@ function cd() {
 }
 
 alias CDC="cd ~/doc/apps/config"
-alias CDP="cd ~/doc/apps"
-alias CDD="cd ~/Downloads"
+alias CDA="cd ~/doc/apps"
+alias CDDN="cd ~/Downloads"
+alias CDDC="cd ~/doc"
 alias CDM="cd ~/misc"
 
 # %% -------- [mv] ----------:
