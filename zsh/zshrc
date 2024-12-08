@@ -46,7 +46,7 @@ function VS(){
     git_branch=$(git branch --show-current)
     $NEOVIM_EDITOR -S .vim/$git_branch.vim
 }
-alias VC='$NEOVIM_EDITOR -S ~/doc/apps/config/vim/VC_session.vim'
+alias VC='$NEOVIM_EDITOR -S ~/doc/config/vim/VC_session.vim'
 alias VZ='$NEOVIM_EDITOR ~/.zshrc'
 
 # %% -------- [grep] ----------:
@@ -81,8 +81,8 @@ function cd() {
     fi
 }
 
-alias CDC="cd ~/doc/apps/config"
-alias CDA="cd ~/doc/apps"
+alias CDC="cd ~/doc/config"
+alias CDA="cd ~/doc"
 alias CDD="cd ~/Downloads"
 alias CD="cd ~/doc"
 alias CDM="cd ~/misc"
@@ -105,8 +105,8 @@ function MV(){
 
 # %% -------- [config] ----------:
 
-alias AC="bash ~/doc/apps/config/apply_config.sh"
-alias FAAC="bash ~/doc/apps/config/fetch_and_apply_config.sh"
+alias AC="bash ~/doc/config/apply_config.sh"
+alias FAAC="bash ~/doc/config/fetch_and_apply_config.sh"
 
 
 # %% -------- [ls] ----------:
@@ -215,10 +215,10 @@ alias GPULL='git pull origin $(git rev-parse --abbrev-ref HEAD)'
 # %% -------- [docker] ----------:
 
 function DOCK(){
-    sudo docker run -it -v $HOME/doc/apps/config:/home/ubuntu/doc/apps/config $@ main
+    sudo docker run -it -v $HOME/doc/config:/home/ubuntu/doc/config $@ main
 }
 function DOCKCWD(){
-    sudo docker run -it -v $(pwd):$(pwd) -v $HOME/doc/apps/config:/home/ubuntu/doc/apps/config -w $(pwd) $@ main
+    sudo docker run -it -v $(pwd):$(pwd) -v $HOME/doc/config:/home/ubuntu/doc/config -w $(pwd) $@ main
 }
 alias D="docker"
 alias DB="docker build"

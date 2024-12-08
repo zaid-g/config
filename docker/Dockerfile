@@ -59,13 +59,13 @@ WORKDIR /home/ubuntu
 RUN mkdir doc
 WORKDIR /home/ubuntu/doc
 RUN mkdir apps
-WORKDIR /home/ubuntu/doc/apps
+WORKDIR /home/ubuntu/doc
 RUN git clone https://github.com/zaid-g/config.git
-WORKDIR /home/ubuntu/doc/apps/config
+WORKDIR /home/ubuntu/doc/config
 RUN . ./update.sh
-WORKDIR /home/ubuntu/doc/apps/config
+WORKDIR /home/ubuntu/doc/config
 RUN . ./vim-nvim-plugins-install-update.sh
-WORKDIR /home/ubuntu/doc/apps/config
+WORKDIR /home/ubuntu/doc/config
 RUN bash ./nvim-intall-update.sh
 WORKDIR /home/ubuntu
 RUN echo 'PS1="%B%{$fg[green]%}[%{$fg[green]%}%n%{$fg[green]%}@%{$fg[green]%}%M %{$fg[green]%}%~%{$fg[green]%}]%{$reset_color%}$%b "' >> .zshrc

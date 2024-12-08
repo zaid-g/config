@@ -10,9 +10,9 @@ sudo echo "Running ..."
 sudo apt update -y
 sudo apt upgrade -y
 sudo apt install git python3 python3-venv python3-pip zsh wget curl unzip golang tmux htop xournal ccls meshlab freecad imagemagick -y
-bash ~/doc/apps/config/vim/nvim-install-update.sh
-bash ~/doc/apps/config/vim/nvim-plugins-install-update.sh
-bash ~/doc/apps/config/apply_config.sh
+bash ~/doc/config/vim/nvim-install-update.sh
+bash ~/doc/config/vim/nvim-plugins-install-update.sh
+bash ~/doc/config/apply_config.sh
 
 ## zsh
 # default shell
