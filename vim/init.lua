@@ -5,10 +5,7 @@ vim.o.undofile = true
 vim.o.updatetime = 250
 vim.wo.signcolumn = "yes"
 
--- Set completeopt to have a better completion experience
-vim.o.completeopt = "menuone"
-
--- Enable Comment.nvim
+-- Comment.nvim
 require("Comment").setup{
     ---LHS of operator-pending mappings in NORMAL and VISUAL mode
     opleader = {
@@ -19,11 +16,9 @@ require("Comment").setup{
     }
 }
 
--- Enable `lukas-reineke/indent-blankline.nvim`
--- See `:help indent_blankline.txt`
-require("indent_blankline").setup {
-    char = "┊",
-    show_trailing_blankline_indent = false
+-- Indent blankline
+require("ibl").setup {
+    indent = { char = "┊" },
 }
 
 -- [[ Configure Telescope ]]
@@ -125,54 +120,35 @@ require("nvim-treesitter.configs").setup {
     }
 }
 
--- nvim-cmp setup
+
+-- nvim-cmp and snippets (autocomplete)
+-- Set completeopt to have a better completion experience
+vim.o.completeopt = "menuone"
+
 local cmp = require "cmp"
 local luasnip = require "luasnip"
 
-cmp.setup {
+cmp.setup({
     snippet = {
         expand = function(args)
-            luasnip.lsp_expand(args.body)
-        end
+        luasnip.lsp_expand(args.body)
+        end,
     },
-    mapping = cmp.mapping.preset.insert {
-        ["<C-d>"] = cmp.mapping.scroll_docs(-4),
-        ["<C-f>"] = cmp.mapping.scroll_docs(4),
-        ["<C-Space>"] = cmp.mapping.complete(),
-        ["<CR>"] = cmp.mapping.confirm {
-            behavior = cmp.ConfirmBehavior.Replace,
-            select = true
-        },
-        ["<Tab>"] = cmp.mapping(
-            function(fallback)
-                if cmp.visible() then
-                    cmp.select_next_item()
-                elseif luasnip.expand_or_jumpable() then
-                    luasnip.expand_or_jump()
-                else
-                    fallback()
-                end
-            end,
-            {"i", "s"}
-        ),
-        ["<S-Tab>"] = cmp.mapping(
-            function(fallback)
-                if cmp.visible() then
-                    cmp.select_prev_item()
-                elseif luasnip.jumpable(-1) then
-                    luasnip.jump(-1)
-                else
-                    fallback()
-                end
-            end,
-            {"i", "s"}
-        )
-    },
-    sources = {
-        {name = "nvim_lsp"},
-        {name = "luasnip"}
+    mapping = cmp.mapping.preset.insert({
+        ['\\<TAB>'] = cmp.mapping.complete(),
+        ['<CR>'] = cmp.mapping.confirm({ select = true }),
+    }),
+    sources = cmp.config.sources(
+        {
+            { name = "nvim_lsp" },
+            { name = "amazonq" },
+            { name = "luasnip"}
+        }
+    ),
+    experimental = {
+        ghost_text = true,
     }
-}
+})
 
 -- Mappings.
 -- See `:help vim.diagnostic.*` for documentation on any of the below functions
@@ -318,4 +294,11 @@ require('copilot').setup({
   },
   copilot_node_command = 'node', -- Node.js version must be > 16.x
   server_opts_overrides = {},
+})
+
+
+-- amazon q codewhisperer
+require('AmazonQNVim').setup({
+    ssoStartUrl = "https://amzn.awsapps.com/start",
+    lsp_server_cmd = { 'node', '/home/zghar/.local/share/nvim/site/pack/downloaded/start/AmazonQNVim/language-server/build/aws-lsp-codewhisperer-token-binary.js', '--stdio' },
 })
