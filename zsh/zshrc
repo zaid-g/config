@@ -54,9 +54,9 @@ alias VZ='$NEOVIM_EDITOR ~/.zshrc'
 export GNU_GREP=$(which grep)
 function GREP(){
     if [ "$#" -eq 1 ]; then
-        $GNU_GREP -rni --exclude-dir='.*' -e $1
+        "$GNU_GREP" -rni --exclude-dir='.*' -e $1
     else
-        $GNU_GREP -rni --exclude-dir='.*' --include="*.$1" -e $2
+        "$GNU_GREP" -rni --exclude-dir='.*' --include="*.$1" -e $2
     fi
 }
 
