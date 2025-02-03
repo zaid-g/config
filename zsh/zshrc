@@ -198,6 +198,7 @@ tmux attach-session -t $SESSION:0
 
 alias G="git"
 alias GS="git status"
+alias GR="git restore"
 alias GD="git diff"
 alias GA="git add"
 alias GC="git commit"
