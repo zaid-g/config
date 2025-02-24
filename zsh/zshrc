@@ -250,6 +250,11 @@ function GRIM(){
     fi
 }
 
+
+# %% -------- [cd ~/doc] ----------:
+
+cd ~/doc
+
 # %% ---------- [syntax highlighting] ----------:
 
 # should be last.
