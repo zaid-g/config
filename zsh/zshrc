@@ -1,3 +1,5 @@
+#
+
 # %% ---------- [vi mode] ----------:
 
 bindkey -v
@@ -35,14 +37,23 @@ zstyle ':completion:*' matcher-list '' \
 export NEOVIM_EDITOR=~/app/neovim/squashfs-root/AppRun
 # vim, VM taken
 alias V='$NEOVIM_EDITOR'
-function VP(){
-    patterns=()
+VP() {
+    local patterns=()
+    local allowed_files=($(get_allowed_files))  # Get files outside forbidden folders
+    # Collect only the files that match the given extensions
     for i in "$@"; do
-        patterns+=(**/*.$i)
+        for file in "${allowed_files[@]}"; do
+            [[ "$file" == *.$i ]] && patterns+=("$file")
+        done
     done
-    $NEOVIM_EDITOR ${patterns[@]}
+    # Open Neovim only if there are matching files
+    if (( ${#patterns[@]} )); then
+        $NEOVIM_EDITOR "${patterns[@]}"
+    else
+        echo "No matching files found outside forbidden folders."
+    fi
 }
-function VS(){
+VS(){
     git_branch=$(git branch --show-current)
     $NEOVIM_EDITOR -S .vim/$git_branch.vim
 }
@@ -52,24 +63,51 @@ alias VZ='$NEOVIM_EDITOR ~/.zshrc'
 # %% -------- [grep] ----------:
 
 export GNU_GREP=$(which grep)
-function GREP(){
+GREP(){
+    files=$(get_allowed_files)
     if [ "$#" -eq 1 ]; then
-        "$GNU_GREP" -rni --exclude-dir='.*' -e $1
+        echo "$files" | xargs "$GNU_GREP" -ni -e "$1"
     else
-        "$GNU_GREP" -rni --exclude-dir='.*' --include="*.$1" -e $2
+        echo "$files" | xargs "$GNU_GREP" -ni --include="*.$1" -e "$2"
     fi
 }
 
 # %% -------- [find] ----------:
 
 export GNU_FIND=$(which find)
-function FIND(){
-    "$GNU_FIND" . -not -path '*/.*' -iregex ".*${@}.*"
+FORBIDDEN_FOLDER_PATTERNS=("node_modules" "build" ".*")
+# Function to find files excluding forbidden folders
+get_allowed_files() {
+  # Start with the find command
+  FIND_CMD="$GNU_FIND . -type f"
+  # Add exclusion patterns to the find command
+  for pattern in "${FORBIDDEN_FOLDER_PATTERNS[@]}"; do
+    FIND_CMD="$FIND_CMD ! -path \"*/$pattern/*\""
+  done
+  # Execute the find command
+  eval $FIND_CMD | sort
 }
+FIND() {
+    local patterns=()
+    local allowed_files=($(get_allowed_files))  # Get files outside forbidden folders
+    # Collect only the files that match the given extensions
+    for i in "$@"; do
+        for file in "${allowed_files[@]}"; do
+            [[ "$file" == *.$i ]] && patterns+=("$file")
+        done
+    done
+    # Open Neovim only if there are matching files
+    if (( ${#patterns[@]} )); then
+        printf "%s\n" "${patterns[@]}" | sort
+    else
+        echo "No matching files found outside forbidden folders."
+    fi
+}
+
 
 # %% -------- [cd] ----------:
 
-function cd() {
+cd() {
     builtin cd $1
     current_working_directory_leaf="$(basename $(pwd))"
     if [[ -d ~/.virtualenvs/.$current_working_directory_leaf ]] ; then
@@ -91,7 +129,7 @@ alias CDM="cd ~/misc"
 
 alias mv="mv -v"
 
-function MV(){
+MV(){
     latest_download=~/Downloads/$(ls -Art ~/Downloads | tail -n 1)
     current_working_directory=$(pwd)
     if [ "$#" -eq 0 ]; then
@@ -127,7 +165,7 @@ alias PTDB="pytest -sxvv --pdb"
 alias BLACK="python3 -m black **/*.py"
 alias PC="pre-commit run -a"
 
-function PIP3(){
+PIP3(){
     pip3 install wheel
     pip3 install ipdb==0.13.11
     pip3 install ipython==7.31.1
@@ -136,7 +174,7 @@ function PIP3(){
     pip3 install black
 }
 
-function PVENV(){
+PVENV(){
     current_working_directory=$(pwd)
     project_name="$(basename $(pwd))"
     deactivate
@@ -174,7 +212,7 @@ alias TAS="tmux attach-session -t"
 alias TKS="tmux kill-session -t"
 alias TKAS="tmux kill-server"
 
-function TS(){
+TS(){
 # Set Session Name
 SESSION="0"
 SESSIONEXISTS=$(tmux list-sessions | grep $SESSION)
@@ -215,10 +253,10 @@ alias GPULL='git pull origin $(git rev-parse --abbrev-ref HEAD)'
 
 # %% -------- [docker] ----------:
 
-function DOCK(){
+DOCK(){
     sudo docker run -it -v $HOME/doc/config:/home/ubuntu/doc/config $@ main
 }
-function DOCKCWD(){
+DOCKCWD(){
     sudo docker run -it -v $(pwd):$(pwd) -v $HOME/doc/config:/home/ubuntu/doc/config -w $(pwd) $@ main
 }
 alias D="docker"
@@ -242,18 +280,13 @@ alias DISCORD="snap run discord"
 alias FF="firefox"
 alias CHROME="google-chrome-stable --ozone-platform=wayland"
 alias PMU="sudo pacman -Syu"
-function GRIM(){
+GRIM(){
     if [ "$#" -eq 1 ]; then
         grim -g "$(slurp)" ~/Downloads/screenshot-"$1"-"$(date +'%Y-%m-%dT%H:%M:%S').png"
     else
         grim -g "$(slurp)" ~/Downloads/screenshot"$(date +'%Y-%m-%dT%H:%M:%S').png"
     fi
 }
-
-
-# %% -------- [cd ~/doc] ----------:
-
-cd ~/doc
 
 # %% ---------- [syntax highlighting] ----------:
 
