@@ -14,9 +14,9 @@ mkdir -p ~/.ipython/profile_default
 ## source config files
 echo "***         Sourcing Files         ***"
 # nvim
-touch -a ~/.config/nvim/init.vim
-grep -qF 'luafile ~/doc/config/vim/init.lua' ~/.config/nvim/init.vim || echo "$(cat ~/.config/nvim/init.vim;printf 'luafile ~/doc/config/vim/init.lua\n')" > ~/.config/nvim/init.vim
-grep -qF 'source ~/doc/config/vim/vimrc' ~/.config/nvim/init.vim || echo "$(printf 'source ~/doc/config/vim/vimrc\n'; cat ~/.config/nvim/init.vim)" > ~/.config/nvim/init.vim
+touch -a ~/.config/nvim/init.lua
+grep -qF 'dofile(vim.fn.expand("~/doc/config/vim/basic.lua"))' ~/.config/nvim/init.lua || echo "$(cat ~/.config/nvim/init.lua; printf '%s\n' 'dofile(vim.fn.expand("~/doc/config/vim/basic.lua"))')" > ~/.config/nvim/init.lua
+grep -qF 'dofile(vim.fn.expand("~/doc/config/vim/advanced.lua"))' ~/.config/nvim/init.lua || echo "$(cat ~/.config/nvim/init.lua; printf '%s\n' '--dofile(vim.fn.expand("~/doc/config/vim/advanced.lua"))')" > ~/.config/nvim/init.lua
 # vim
 touch -a ~/.vimrc
 grep -qF 'source ~/doc/config/vim/vimrc' ~/.vimrc || echo "$(printf 'source ~/doc/config/vim/vimrc\n'; cat ~/.vimrc)" > ~/.vimrc
