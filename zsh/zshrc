@@ -78,14 +78,13 @@ export GNU_FIND=$(which find)
 FORBIDDEN_FOLDER_PATTERNS=("node_modules" "build" ".*")
 # Function to find files excluding forbidden folders
 get_allowed_files() {
-  # Start with the find command
-  FIND_CMD="$GNU_FIND . -type f"
-  # Add exclusion patterns to the find command
-  for pattern in "${FORBIDDEN_FOLDER_PATTERNS[@]}"; do
-    FIND_CMD="$FIND_CMD ! -path \"*/$pattern/*\""
+  local forbidden=("${FORBIDDEN_FOLDER_PATTERNS[@]}")
+  local find_cmd=(find .)
+  for pattern in "${forbidden[@]}"; do
+    find_cmd+=(-path "./$pattern" -prune -o)
   done
-  # Execute the find command
-  eval $FIND_CMD | sort
+  find_cmd+=(-type f -print)
+  "${find_cmd[@]}" | sort
 }
 FIND() {
     local patterns=()
