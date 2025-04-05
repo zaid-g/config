@@ -90,19 +90,25 @@ get_allowed_files() {
 FIND() {
     local patterns=()
     local allowed_files=($(get_allowed_files))  # Get files outside forbidden folders
-    # Collect only the files that match the given extensions
+    if [ "$#" -eq 0 ]; then
+        # No extensions provided: return all allowed files
+        printf "%s\n" "${allowed_files[@]}" | sort
+        return
+    fi
+    # Filter files by extension
     for i in "$@"; do
         for file in "${allowed_files[@]}"; do
             [[ "$file" == *.$i ]] && patterns+=("$file")
         done
     done
-    # Open Neovim only if there are matching files
+    # Output results
     if (( ${#patterns[@]} )); then
         printf "%s\n" "${patterns[@]}" | sort
     else
         echo "No matching files found outside forbidden folders."
     fi
 }
+
 
 
 # %% -------- [cd] ----------:
@@ -236,6 +242,7 @@ tmux attach-session -t $SESSION:0
 
 alias G="git"
 alias GS="git status"
+alias GI="git init"
 alias GR="git restore"
 alias GD="git diff"
 alias GA="git add"

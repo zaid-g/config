@@ -20,32 +20,8 @@ vim.keymap.set({ "n", "x" }, "<leader>j", "J$")
 vim.keymap.set({ "n", "x" }, "<leader>k", "K")
 vim.keymap.set({ "n", "x" }, "<leader>J", "<c-j>")
 vim.keymap.set({ "n", "x" }, "<leader>K", "<c-k>")
-vim.keymap.set({ "n", "x" }, "<c-j>", function()
-    BlockJumpDown(vim.v.count1)
-end, { silent = true })
-vim.keymap.set({ "n", "x" }, "<c-k>", function()
-    BlockJumpUp(vim.v.count1)
-end, { silent = true })
 
--- robust jump/search pattern function
-function JumpToPattern(count, pattern, flags, center)
-    for _ = 1, count do
-        vim.fn.search(pattern, flags)
-    end
-    if center then
-        vim.cmd("normal! zz")
-    end
-end
-
-function BlockJumpUp(count)
-    JumpToPattern(count, [[\(\%^\)\|\(.*\] ----------:\n\)]], "b", true)
-end
-
-function BlockJumpDown(count)
-    JumpToPattern(count, [[\(\%$\)\|\(.*\] ----------:\n\)]], "", true)
-end
-
--- %% -------- [copy paste clipboard] ----------:
+-- %% -------- [simple copy paste clipboard] ----------:
 
 -- copy to system clipboard
 vim.keymap.set({ "n", "x" }, "Y", '"+y', { silent = true })
@@ -71,7 +47,7 @@ vim.keymap.set("i", "\\C", "<c-v>u274c")
 vim.keymap.set("v", "g<c-n>", "g<C-g>2gs")
 vim.keymap.set("n", "g<c-n>", "g<C-g>")
 
--- %% -------- [highlight, color, search, find, and replace] ----------:
+-- %% -------- [highlight, color, search, jump, find, and replace] ----------:
 
 -- visual settings
 vim.cmd("silent! colo koehler")
@@ -83,37 +59,97 @@ vim.opt.number = true
 vim.cmd("syntax on")
 vim.opt.laststatus = 2
 
+function JumpToPattern(count, pattern, flags, center)
+	for _ = 1, count do
+		vim.fn.search(pattern, flags)
+	end
+	if center then
+		vim.cmd("normal! zz")
+	end
+end
+
+-- search and highlight without jump
+function SearchNoJump(pattern)
+	vim.fn.setreg("/", pattern)
+	vim.opt.hlsearch = true
+	vim.cmd("redraw")
+end
+
+vim.keymap.set(
+	"n",
+	"<leader>/",
+	"<cmd>lua vim.ui.input({prompt = 'Search: '}, function(input) if input then SearchNoJump(input) end end)<CR>"
+)
+
+-- copy matches to system clipboard
+local function copy_matches_to_register(reg)
+	local pattern = vim.fn.getreg("/") -- Get current search pattern
+	if pattern == "" then
+		print("No search pattern found.")
+		return
+	end
+	local matches = {}
+	for lnum = 1, vim.fn.line("$") do
+		local line = vim.fn.getline(lnum)
+		local start = 0
+		while true do
+			local result = vim.fn.matchstrpos(line, pattern, start)
+			local match_text = result[1]
+			local match_start = result[2]
+			local match_end = result[3]
+			if match_start == -1 then
+				break
+			end
+			table.insert(matches, match_text)
+			start = match_end
+		end
+	end
+	if #matches == 0 then
+		print("No matches found.")
+		return
+	end
+	local joined = table.concat(matches, "\n")
+	vim.fn.setreg(reg, joined)
+	print("Copied " .. #matches .. " matches to register " .. reg)
+end
+vim.keymap.set("n", "<leader>y", function()
+	copy_matches_to_register('"') -- Default register
+end, { silent = true, desc = "Copy matches to default register" })
+vim.keymap.set("n", "<leader>Y", function()
+	copy_matches_to_register("+") -- System clipboard
+end, { silent = true, desc = "Copy matches to clipboard" })
+
 -- clear highlight
 vim.keymap.set("n", "<Space>", ":noh<CR>")
 
 -- cursor/visual highlight and search
 vim.keymap.set("n", "<leader>l", function()
-    local word = vim.fn.expand("<cword>")
-    vim.fn.setreg("/", "\\<" .. word .. "\\>")
-    vim.opt.hlsearch = true
-    vim.cmd("normal! wb")
+	local word = vim.fn.expand("<cword>")
+	vim.fn.setreg("/", "\\<" .. word .. "\\>")
+	vim.opt.hlsearch = true
+	vim.cmd("normal! wb")
 end, { silent = true })
 
 function SetSearchVisualSelection()
-    -- Store original clipboard content
-    local clipboard_original_content = vim.fn.getreg('"')
-    -- Yank the visual selection
-    vim.cmd("normal! y")
-    -- Get the yanked text
-    local raw_search = vim.fn.getreg('"')
-    -- Escape special characters and replace newlines
-    local escaped_search = vim.fn.escape(raw_search, "\\/.*$^~[]")
-    -- Replace newlines with '\n'
-    local search_pattern = escaped_search:gsub("\n", "\\n")
-    -- Set the search register
-    vim.fn.setreg("/", search_pattern)
-    -- Restore original clipboard content
-    vim.fn.setreg('"', clipboard_original_content)
+	-- Store original clipboard content
+	local clipboard_original_content = vim.fn.getreg('"')
+	-- Yank the visual selection
+	vim.cmd("normal! y")
+	-- Get the yanked text
+	local raw_search = vim.fn.getreg('"')
+	-- Escape special characters and replace newlines
+	local escaped_search = vim.fn.escape(raw_search, "\\/.*$^~[]")
+	-- Replace newlines with '\n'
+	local search_pattern = escaped_search:gsub("\n", "\\n")
+	-- Set the search register
+	vim.fn.setreg("/", search_pattern)
+	-- Restore original clipboard content
+	vim.fn.setreg('"', clipboard_original_content)
 end
 
 vim.keymap.set("v", "<leader>l", function()
-    SetSearchVisualSelection()
-    vim.opt.hlsearch = true
+	SetSearchVisualSelection()
+	vim.opt.hlsearch = true
 end, { silent = true })
 
 -- find and replace mappings
@@ -122,15 +158,16 @@ vim.keymap.set("v", "<leader>cs", ":s/<C-R>=@/<CR>//g<Left><Left>")
 vim.keymap.set("n", "<leader>ct", ":%s//g<Left><Left>")
 vim.keymap.set("v", "<leader>ct", ":s//g<Left><Left>")
 vim.keymap.set(
-    "n",
-    "<leader>bdcs",
-    ":bufdo %s/<C-R>=@/<CR>//g | update<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>"
+	"n",
+	"<leader>bdcs",
+	":bufdo %s/<C-R>=@/<CR>//g | update<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>"
 )
 vim.keymap.set(
-    "n",
-    "<leader>bdct",
-    ":bufdo %s///g | update<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>"
+	"n",
+	"<leader>bdct",
+	":bufdo %s///g | update<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>"
 )
+-- replace each match append index of match i
 vim.keymap.set("n", "<leader>ci", ":let @a=1 | %s/search/\\='replace'.(@a+setreg('a',@a+1))/g")
 
 -- %% -------- [buffers windows and loading files] ----------:
@@ -146,19 +183,19 @@ vim.keymap.set("n", "<leader>sb", ":botr vs<CR>:b ")
 
 -- scratch window
 vim.keymap.set(
-    "n",
-    "<leader>sw",
-    "<c-w>n:setlocal buftype=nofile<CR>:setlocal bufhidden=hide<CR>:setlocal noswapfile<CR>"
+	"n",
+	"<leader>sw",
+	"<c-w>n:setlocal buftype=nofile<CR>:setlocal bufhidden=hide<CR>:setlocal noswapfile<CR>"
 )
 
 -- %% -------- [git] ----------:
 
 -- git branch sessions
 function MakeSessionGit()
-    local git_branch = vim.fn.system("git branch --show-current"):gsub("\n", "")
-    vim.cmd("silent! !mkdir -p .vim/" .. git_branch .. ".vim")
-    vim.cmd("silent! !rm -rf .vim/" .. git_branch .. ".vim")
-    vim.cmd("silent! mksession! .vim/" .. git_branch .. ".vim")
+	local git_branch = vim.fn.system("git branch --show-current"):gsub("\n", "")
+	vim.fn.mkdir(".vim", "p")
+	vim.cmd("mksession! .vim/" .. git_branch .. ".vim")
+	print("Session saved for branch: " .. git_branch)
 end
 
 vim.keymap.set("n", "<leader>ks", MakeSessionGit)
@@ -166,11 +203,34 @@ vim.keymap.set("n", "<leader>ks", MakeSessionGit)
 -- %% -------- [block abstraction] ----------:
 
 -- block abstraction and execution
-vim.keymap.set("n", "<leader>bl", "o<CR><CR><CR><ESC>2ki%% -------- [] ----------:<ESC>gccWWWa")
-vim.keymap.set("n", "<leader>y", "w<c-k>V<c-j>ygv<Esc>")
-vim.keymap.set("n", "<leader>Y", 'w<c-k>V<c-j>"+ygv<Esc>')
-vim.keymap.set("n", "<leader>/", "/%% -----.*.*<left><left>\\c")
-vim.keymap.set("n", "<leader>?", "?%% -----.*.*<left><left>\\c")
+vim.keymap.set("n", "<leader>bl", function()
+	local commentstr = vim.bo.commentstring:gsub("%%s", "") -- Remove %s placeholder
+	if vim.bo.filetype == "markdown" then
+		commentstr = "#"
+	end
+	local line = commentstr .. " %% -------- [] ----------:"
+	vim.api.nvim_put({ "", "", line, "" }, "l", true, true)
+	vim.cmd("normal! kk$BBe")
+	vim.cmd("startinsert")
+end, { desc = "Insert block comment" })
+vim.keymap.set("n", "<leader>b/", "/%% -----.*.*<left><left>\\c")
+vim.keymap.set("n", "<leader>b?", "?%% -----.*.*<left><left>\\c")
+
+-- jump
+vim.keymap.set({ "n", "x" }, "<c-j>", function()
+	BlockJumpDown(vim.v.count1)
+end, { silent = true })
+vim.keymap.set({ "n", "x" }, "<c-k>", function()
+	BlockJumpUp(vim.v.count1)
+end, { silent = true })
+
+function BlockJumpUp(count)
+	JumpToPattern(count, [[\(\%^\)\|\(.*\] ----------:\n\)]], "b", true)
+end
+
+function BlockJumpDown(count)
+	JumpToPattern(count, [[\(\%$\)\|\(.*\] ----------:\n\)]], "", true)
+end
 
 -- %% -------- [python] ----------:
 
@@ -179,9 +239,9 @@ vim.keymap.set("n", "<leader>p", "Oimport ipdb; ipdb.set_trace()<ESC>:w<CR>")
 
 -- timeit
 vim.keymap.set(
-    "x",
-    "<leader>vt",
-    '<ESC>`<Oimport time; my_start_time = time.time()<ESC>`>oprint("my_end_time - my_start_time = ", time.time() - my_start_time)<ESC>'
+	"x",
+	"<leader>vt",
+	'<ESC>`<Oimport time; my_start_time = time.time()<ESC>`>oprint("my_end_time - my_start_time = ", time.time() - my_start_time)<ESC>'
 )
 
 -- %% -------- [plantuml] ----------:
@@ -209,20 +269,3 @@ vim.o.undofile = true
 -- Decrease update time
 vim.o.updatetime = 250
 vim.wo.signcolumn = "yes"
-
--- %% -------- [lsp keymaps completion autocomplete cmp auto comp] ----------:
-
--- easier reach expand/complete mode
-vim.keymap.set("i", "<c-c>", "<c-x>")
-
--- word completion using tab and shift tab (instead of c-n c-p)
-vim.keymap.set("i", "<TAB>", "<c-n>")
-vim.keymap.set("i", "<S-TAB>", "<c-p>")
-
-
-vim.keymap.set("n", "<leader>f", function()
-    vim.lsp.buf.format({ async = true })
-end, { desc = "Format file with LSP" })
-
-vim.keymap.set("n", "<leader>d", vim.diagnostic.open_float, { noremap = true })
-
