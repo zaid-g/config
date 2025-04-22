@@ -81,6 +81,50 @@ vim.keymap.set(
 	"<cmd>lua vim.ui.input({prompt = 'Search: '}, function(input) if input then SearchNoJump(input) end end)<CR>"
 )
 
+function CopyAllSearchMatchesToRegister()
+	local matches = {}
+	local pattern = vim.fn.getreg("/") -- current search pattern
+
+	if pattern == "" then
+		print("No active search pattern.")
+		return
+	end
+
+	-- Save current position to restore later
+	local cur_pos = vim.api.nvim_win_get_cursor(0)
+
+	-- Start from top of the buffer
+	vim.api.nvim_win_set_cursor(0, { 1, 0 })
+
+	while true do
+		-- search() returns 0 if no match is found
+		local found = vim.fn.search(pattern, "W") -- 'W' means don't wrap
+		if found == 0 then
+			break
+		end
+
+		-- Get the full matched text using matchstr + line()
+		local line = vim.fn.getline(".")
+		local col = vim.fn.col(".")
+		local match = vim.fn.matchstr(line:sub(col), pattern)
+
+		if match ~= "" then
+			table.insert(matches, match)
+		end
+
+		-- Move one char forward to avoid infinite loop on repeated matches
+		local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+		vim.api.nvim_win_set_cursor(0, { row, col + 1 })
+	end
+
+	-- Restore original position
+	vim.api.nvim_win_set_cursor(0, cur_pos)
+
+	-- Set to unnamed register
+	vim.fn.setreg('"', table.concat(matches, "\n"))
+	print("Copied " .. #matches .. ' matches to register "')
+end
+
 -- copy matches to system clipboard
 local function copy_matches_to_register(reg)
 	local pattern = vim.fn.getreg("/") -- Get current search pattern
@@ -253,6 +297,8 @@ vim.keymap.set("n", "<leader>P", ":w<CR>:!plantuml %&<CR><CR>", { silent = true 
 
 vim.opt.timeoutlen = 1000
 vim.opt.ttimeoutlen = 0
+-- Enable mouse mode, can be useful for resizing splits for example!
+vim.opt.mouse = "a"
 
 -- other settings
 vim.opt.autoread = true

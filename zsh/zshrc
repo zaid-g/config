@@ -40,9 +40,9 @@ alias V='$NEOVIM_EDITOR'
 VP() {
     local files
     if [ "$#" -eq 0 ]; then
-        files=($(get_allowed_files))  # All allowed files
+        files=($(get_allowed_files_matching_types))  # All allowed files
     else
-        files=($(get_allowed_files "$@"))  # Filtered by extensions
+        files=($(get_allowed_files_matching_types "$@"))  # Filtered by extensions
     fi
     if (( ${#files[@]} )); then
         $NEOVIM_EDITOR "${files[@]}"
@@ -62,12 +62,12 @@ alias VZ='$NEOVIM_EDITOR ~/.zshrc'
 export GNU_GREP=$(which grep)
 GREP() {
     if [ "$#" -eq 1 ]; then
-        get_allowed_files | xargs "$GNU_GREP" -ni -e "$1"
+        get_allowed_files_matching_types | xargs "$GNU_GREP" -ni -e "$1"
     else
         # All but last argument are extensions
         local pattern="${@: -1}"                      # last argument
         local exts=("${@:1:$#-1}")                    # all except last
-        get_allowed_files "${exts[@]}" | xargs "$GNU_GREP" -ni -e "$pattern"
+        get_allowed_files_matching_types "${exts[@]}" | xargs "$GNU_GREP" -ni -e "$pattern"
     fi
 }
 
@@ -76,18 +76,21 @@ GREP() {
 
 export GNU_FIND=$(which find)
 FORBIDDEN_FOLDER_PATTERNS=("node_modules" "build" ".*")
-# Function to find files excluding forbidden folders
-get_allowed_files() {
-  local forbidden=("${FORBIDDEN_FOLDER_PATTERNS[@]}")
+
+get_all_allowed_files() {
+    local forbidden=("${FORBIDDEN_FOLDER_PATTERNS[@]}")
+    local find_cmd=(find .)
+    for pattern in "${forbidden[@]}"; do
+        find_cmd+=(-path "*/$pattern" -prune -o)
+    done
+    find_cmd+=(-type f -print)
+    "${find_cmd[@]}"
+}
+# Function to find files matching given extensions
+get_allowed_files_matching_types() {
   local extensions=("$@")
-  local find_cmd=(find .)
-  # Prune forbidden folders
-  for pattern in "${forbidden[@]}"; do
-    find_cmd+=(-path "./$pattern" -prune -o)
-  done
-  find_cmd+=(-type f -print)
   local files
-  files=$("${find_cmd[@]}")
+  files=$(get_all_allowed_files)
   # If extensions are given, filter by them (case-insensitive)
   if [ "${#extensions[@]}" -gt 0 ]; then
     local pattern
@@ -97,8 +100,24 @@ get_allowed_files() {
     echo "$files" | sort
   fi
 }
-FIND() {
-    get_allowed_files "$@"
+# Function to find files matching a general pattern
+get_files_matching_pattern() {
+  local pattern="$1"
+  local files
+  files=$(get_all_allowed_files)
+  # If a pattern is given, filter by it (case-insensitive)
+  if [ -n "$pattern" ]; then
+    echo "$files" | grep -Eiq "$pattern" && echo "$files" | grep -Ei "$pattern" | sort || return
+  else
+    echo "$files" | sort
+  fi
+}
+# Shorthand functions
+FT() {
+    get_allowed_files_matching_types "$@"
+}
+F() {
+    get_files_matching_pattern "$@"
 }
 
 
@@ -269,7 +288,6 @@ alias DI="docker image"
 # %% -------- [others] ----------:
 
 alias S="sudo"
-alias C="clear"
 alias RS="source ~/.zshrc && cd ."
 alias VM="virt-manager"
 alias PO="systemctl poweroff"
