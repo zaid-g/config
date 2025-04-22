@@ -113,10 +113,10 @@ get_files_matching_pattern() {
   fi
 }
 # Shorthand functions
-FT() {
+FINDT() {
     get_allowed_files_matching_types "$@"
 }
-F() {
+FIND() {
     get_files_matching_pattern "$@"
 }
 
