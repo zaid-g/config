@@ -1,0 +1,44 @@
+{
+  "__ConfigsMigration__userValeusSameToDefaultAreCleared": true,
+  "autoCollapseExpandSubtreeOnSelect": false,
+  "chunkedUserStyleRules0": "dGFiLWl0ZW1bZGF0YS1sZXZlbF1bZGF0YS1sZXZlbD0iMCJdIHRhYi1pdGVtLXN1YnN0YW5jZSB7CiAgbWFyZ2luLWxlZnQ6IDVweCAhaW1wb3J0YW50Owp9CnRhYi1pdGVtW2RhdGEtbGV2ZWxdW2RhdGEtbGV2ZWw9IjEiXSB0YWItaXRlbS1zdWJzdGFuY2UgewogIG1hcmdpbi1sZWZ0OiA1MHB4ICFpbXBvcnRhbnQ7Cn0KdGFiLWl0ZW1bZGF0YS1sZXZlbF1bZGF0YS1sZXZlbD0iMiJdIHRhYi1pdGVtLXN1YnN0YW5jZSB7CiAgbWFyZ2luLWxlZnQ6IDkwcHggIWltcG9ydGFudDsKfQp0YWItaXRlbVtkYXRhLWxldmVsXVtkYXRhLWxldmVsPSIzIl0gdGFiLWl0ZW0tc3Vic3RhbmNlIHsKICBtYXJnaW4tbGVmdDogMTMwcHggIWltcG9ydGFudDsKfQp0YWItaXRlbVtkYXRhLWxldmVsXVtkYXRhLWxldmVsPSI0Il0gdGFiLWl0ZW0tc3Vic3RhbmNlIHsKICBtYXJnaW4tbGVmdDogMTcwcHggIWltcG9ydGFudDsKfQp0YWItaXRlbVtkYXRhLWxldmVsXVtkYXRhLWxldmVsPSI1Il0gdGFiLWl0ZW0tc3Vic3RhbmNlIHsKICBtYXJnaW4tbGVmdDogMjEwcHggIWltcG9ydGFudDsKfQp0YWItaXRlbVtkYXRhLWxldmVsXVtkYXRhLWxldmVsPSI2Il0gdGFiLWl0ZW0tc3Vic3RhbmNlIHsKICBtYXJnaW4tbGVmdDogMjUwcHggIWltcG9ydGFudDsKfQp0YWItaXRlbVtkYXRhLWxldmVsXVtkYXRhLWxldmVsPSI3Il0gdGFiLWl0ZW0tc3Vic3RhbmNlIHsKICBtYXJnaW4tbGVmdDogMjkwcHggIWltcG9ydGFudDsKfQp0YWItaXRlbVtkYXRhLWxldmVsXVtkYXRhLWxldmVsPSI4Il0gdGFiLWl0ZW0tc3Vic3RhbmNlIHsKICBtYXJnaW4tbGVmdDogMzMwcHggIWltcG9ydGFudDsKfQp0YWItaXRlbVtkYXRhLWxldmVsXVtkYXRhLWxldmVsPSI5Il0gdGFiLWl0ZW0tc3Vic3RhbmNlIHsKICBtYXJnaW4tbGVmdDogMzcwcHggIWltcG9ydGFudDsKfQp0YWItaXRlbVtkYXRhLWxldmVsXVtkYXRhLWxldmVsPSIxMCJdIHRhYi1pdGVtLXN1YnN0YW5jZSB7CiAgbWFyZ2luLWxlZnQ6IDQxMHB4ICFpbXBvcnRhbnQ7Cn0KdGFiLWl0ZW1bZGF0YS1sZXZlbF1bZGF0YS1sZXZlbD0iMTEiXSB0YWItaXRlbS1zdWJzdGFuY2UgewogIG1hcmdpbi1sZWZ0OiA0NTBweCAhaW1wb3J0YW50Owp9CnRhYi1pdGVtW2RhdGEtbGV2ZWxdW2RhdGEtbGV2ZWw9IjEyIl0gdGFiLWl0ZW0tc3Vic3RhbmNlIHsKICBtYXJnaW4tbGVmdDogNDkwcHggIWltcG9ydGFudDsKfQp0YWItaXRlbVtkYXRhLWxldmVsXVtkYXRhLWxldmVsPSIxMyJdIHRhYi1pdGVtLXN1YnN0YW5jZSB7CiAgbWFyZ2luLWxlZnQ6IDUzMHB4ICFpbXBvcnRhbnQ7Cn0KdGFiLWl0ZW1bZGF0YS1sZXZlbF1bZGF0YS1sZXZlbD0iMTQiXSB0YWItaXRlbS1zdWJzdGFuY2UgewogIG1hcmdpbi1sZWZ0OiA1NzBweCAhaW1wb3J0YW50Owp9Cg==",
+  "colorScheme": "system-color",
+  "configsVersion": 32,
+  "notifiedFeaturesVersion": 9,
+  "optionsExpandedSections": [
+    "section-appearance",
+    "section-addons",
+    "section-advanced",
+    "section-drag",
+    "section-treeBehavior",
+    "section-newTab",
+    "section-newTabWithOwner",
+    "section-contextMenu",
+    "section-debug"
+  ],
+  "showExpertOptions": true,
+  "sidebarWidthInWindow": {
+    "3": 467
+  },
+  "style": "photon",
+  "syncDevices": {
+    "device-1738888521467-21152": {
+      "id": "device-1738888521467-21152",
+      "name": "Firefox on macOS",
+      "icon": "device-desktop",
+      "timestamp": 1746052175588
+    }
+  },
+  "tabDragBehavior": 0,
+  "userStyleRules": "",
+  "userStyleRules0": "",
+  "userStyleRules1": "",
+  "userStyleRules2": "",
+  "userStyleRules3": "",
+  "userStyleRules4": "",
+  "userStyleRules5": "",
+  "userStyleRules6": "",
+  "userStyleRules7": "",
+  "userStyleRulesFieldHeight": "130px",
+  "workaroundForBug1548949DroppedTabs": "1745206608283-30045/1095"
+}

@@ -5,6 +5,12 @@
 bindkey -v
 export KEYTIMEOUT=1
 
+
+#  %% -------- [bindings] ----------:
+
+# Bind Ctrl-space to clear-screen
+bindkey '^@' clear-screen
+
 # %% ---------- [colors and prompt] ----------:
 
 autoload -U colors && colors
