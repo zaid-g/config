@@ -30,10 +30,10 @@ vim.keymap.set({ "n", "x" }, "Y", '"+y', { silent = true })
 vim.keymap.set("x", "p", "pgvy")
 
 -- do not overwrite register with s
-vim.keymap.set("n", "s", '"_s')
+vim.keymap.set({ "n", "x" }, "s", '"_s')
 
 -- delete to black hole register
-vim.keymap.set("", "<leader>x", '"_x')
+vim.keymap.set({ "n", "x" }, "x", '"_x')
 
 -- %% -------- [emojis] ----------:
 
@@ -78,7 +78,7 @@ end
 vim.keymap.set(
 	"n",
 	"<leader>/",
-	"<cmd>lua vim.ui.input({prompt = 'Search: '}, function(input) if input then SearchNoJump(input) end end)<CR>"
+	[[<cmd>lua vim.ui.input({prompt = 'Search case insensitive: '}, function(input) if input then SearchNoJump('\\c' .. input) end end)<CR>]]
 )
 
 function CopyAllSearchMatchesToRegister()
