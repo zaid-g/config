@@ -1,0 +1,59 @@
+:root {
+  --indent-size: 40px !important;
+}
+tab-item[data-level][data-level="0"] {
+  --tab-indent: 5px !important;
+}
+tab-item[data-level][data-level="1"] {
+  --tab-indent: 45px !important;
+}
+tab-item[data-level][data-level="2"] {
+  --tab-indent: 85px !important;
+}
+tab-item[data-level][data-level="3"] {
+  --tab-indent: 125px !important;
+}
+tab-item[data-level][data-level="4"] {
+  --tab-indent: 165px !important;
+}
+tab-item[data-level][data-level="5"] {
+  --tab-indent: 205px !important;
+}
+tab-item[data-level][data-level="6"] {
+  --tab-indent: 245px !important;
+}
+tab-item[data-level][data-level="7"] {
+  --tab-indent: 285px !important;
+}
+tab-item[data-level][data-level="8"] {
+  --tab-indent: 325px !important;
+}
+tab-item[data-level][data-level="9"] {
+  --tab-indent: 365px !important;
+}
+tab-item[data-level][data-level="10"] {
+  --tab-indent: 405px !important;
+}
+tab-item[data-level][data-level="11"] {
+  --tab-indent: 445px !important;
+}
+tab-item[data-level][data-level="12"] {
+  --tab-indent: 485px !important;
+}
+tab-item[data-level][data-level="13"] {
+  --tab-indent: 525px !important;
+}
+tab-item[data-level][data-level="14"] {
+  --tab-indent: 565px !important;
+}
+
+tab-item {
+  --indent-line-color: gray;
+  --indent-line-color-active: blue;
+  --indent-line-width: 2.5px;
+  --indent-line-width-active: 5px;
+}
+
+tab-item:not(.pinned) ::part(extra-contents-by-tst-indent-line_piro_sakura_ne_jp indent-line) {
+  inset-inline-start: 11px;
+}

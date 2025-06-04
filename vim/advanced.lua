@@ -633,7 +633,7 @@ local lsp_packages = {
 			-- Note: It's normally not necessary to change default `lsp_server_cmd`.
 			lsp_server_cmd = {
 				"node",
-				"/Users/zghar/doc/AmazonQNVim/language-server/build/aws-lsp-codewhisperer-token-binary.js",
+				vim.fn.expand("~/doc/AmazonQNVim/language-server/build/aws-lsp-codewhisperer-token-binary.js"),
 				"--stdio",
 			},
 		},

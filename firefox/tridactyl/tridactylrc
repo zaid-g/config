@@ -1,0 +1,9 @@
+set hintchars qwertasdfgzxcvb
+bind v hint
+bind e scrollline -10
+bind d scrollline 10
+bind s scrollpx -50
+bind f scrollpx 50
+bind S back
+bind F forward
+
