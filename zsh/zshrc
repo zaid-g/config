@@ -173,10 +173,10 @@ alias FAAC="bash ~/doc/config/fetch_and_apply_config.sh"
 # %% -------- [ls] ----------:
 
 alias ls="ls --color=auto"
-alias LL="ls -lt --color=auto"
-alias LLR="ls -ltr --color=auto"
+alias LL="ls -l --color=auto"
+alias LLT="ls -lt --color=auto"
+alias LLTR="ls -ltr --color=auto"
 alias LLALL="ls -lA --color=auto"
-alias LLA="ls -l --color=auto"
 
 
 # %% -------- [python] ----------:
