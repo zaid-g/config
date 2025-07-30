@@ -173,10 +173,10 @@ alias FAAC="bash ~/doc/config/fetch_and_apply_config.sh"
 # %% -------- [ls] ----------:
 
 alias ls="ls --color=auto"
-alias LL="ls -l --color=auto"
-alias LLT="ls -lt --color=auto"
-alias LLTR="ls -ltr --color=auto"
+alias LL="ls -lt --color=auto"
+alias LLR="ls -ltr --color=auto"
 alias LLALL="ls -lA --color=auto"
+alias LLA="ls -l --color=auto"
 
 
 # %% -------- [python] ----------:
@@ -235,30 +235,35 @@ alias TAS="tmux attach-session -t"
 alias TKS="tmux kill-session -t"
 alias TKAS="tmux kill-server"
 
-TS(){
-# Set Session Name
-SESSION="0"
-SESSIONEXISTS=$(tmux list-sessions | grep $SESSION)
-# Only create tmux session if it doesn't already exist
-if [ "$SESSIONEXISTS" = "" ]
-then
-    # Start New Session with our name
-    tmux new-session -d -s $SESSION
-    # misc
-    tmux rename-window -t 0 'misc'
-    tmux send-keys -t 'misc' 'VC' C-m
-    #
-    tmux new-window -t $SESSION:1 -n 'doc'
-    tmux send-keys -t 'doc' 'cd ~/doc' C-m
-fi
-# Attach Session, on the Main window
-tmux attach-session -t $SESSION:0
+TS() {
+    # Set Session Name
+    SESSION="0"
+    SESSIONEXISTS=$(tmux list-sessions | grep "^$SESSION:")
+    if [ -z "$SESSIONEXISTS" ]; then
+        # Start new session and name first window 'home'
+        tmux new-session -d -s $SESSION -n 'home'
+        # Split 'home' horizontally into 2 panes, run VC in right pane (pane 1)
+        tmux split-window -h -t $SESSION:0
+        tmux send-keys -t $SESSION:0.1 'VC' C-m
+        # Create second window (will be window 1)
+        tmux new-window -t $SESSION:1
+        # Run CD in the initial pane (pane 0)
+        tmux send-keys -t $SESSION:1.0 'CD' C-m
+        # Split pane 0 horizontally → creates pane 1
+        tmux split-window -h -t $SESSION:1.0
+        tmux send-keys -t $SESSION:1.1 'CDM' C-m
+        # Split pane 1 vertically → creates pane 2
+        tmux split-window -v -t $SESSION:1.1
+        tmux send-keys -t $SESSION:1.2 'CDC && VS' C-m
+    fi
+    # Attach to the session, starting at window 0
+    tmux attach-session -t $SESSION:0
 }
 
 # %% -------- [git] ----------:
 
 alias G="git"
-alias GS="git status"
+alias GS="git status --untracked-files=all"
 alias GI="git init"
 alias GR="git restore"
 alias GD="git diff"
@@ -273,6 +278,13 @@ alias GFO="git fetch origin"
 alias GB="git branch --sort=-committerdate"
 alias GPUSH="git push -u origin HEAD"
 alias GPULL='git pull origin $(git rev-parse --abbrev-ref HEAD)'
+function GDIFF() {
+    if [ -z "$1" ]; then
+        git diff --unified=150 | diff2html --input stdin -s side
+    else
+        git diff --unified=150 "$1" | diff2html --input stdin -s side
+    fi
+}
 
 
 # %% -------- [docker] ----------:
@@ -294,6 +306,7 @@ alias DI="docker image"
 # %% -------- [others] ----------:
 
 alias S="sudo"
+alias FP='readlink -f'
 alias RS="source ~/.zshrc && cd ."
 alias VM="virt-manager"
 alias PO="systemctl poweroff"
@@ -310,6 +323,7 @@ GRIM(){
         grim -g "$(slurp)" ~/Downloads/screenshot"$(date +'%Y-%m-%dT%H:%M:%S').png"
     fi
 }
+alias H="history 0"
 
 # %% ---------- [syntax highlighting] ----------:
 

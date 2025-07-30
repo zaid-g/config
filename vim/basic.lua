@@ -232,6 +232,9 @@ vim.keymap.set(
 	"<c-w>n:setlocal buftype=nofile<CR>:setlocal bufhidden=hide<CR>:setlocal noswapfile<CR>"
 )
 
+-- switch to last window
+vim.keymap.set('n', '<ESC><ESC>', 'g<TAB>')
+
 -- %% -------- [git] ----------:
 
 -- git branch sessions
@@ -253,6 +256,8 @@ vim.keymap.set("n", "<leader>bl", function()
 		commentstr = "#"
 	end
 	local line = commentstr .. " %% -------- [] ----------:"
+    vim.cmd("normal! o")
+    vim.cmd("normal! k")
 	vim.api.nvim_put({ "", "", line, "" }, "l", true, true)
 	vim.cmd("normal! kk$BBe")
 	vim.cmd("startinsert")
