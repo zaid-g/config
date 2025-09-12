@@ -60,7 +60,7 @@ VS(){
     git_branch=$(git branch --show-current)
     $NEOVIM_EDITOR -S .vim/$git_branch.vim
 }
-alias VC='$NEOVIM_EDITOR -S ~/doc/config/vim/VC_session.vim'
+alias VC='$NEOVIM_EDITOR ~/doc/cheatsheet.md ~/doc/scratch.md'
 alias VZ='$NEOVIM_EDITOR ~/.zshrc'
 
 # %% -------- [grep] ----------:
