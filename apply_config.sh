@@ -1,7 +1,4 @@
-
-
 # %% -------- [make dirs] ----------:
-
 
 echo "***      Creating Dirs         ***"
 mkdir -p ~/doc
@@ -17,24 +14,31 @@ mkdir -p ~/.ipython/profile_default
 
 # %% -------- [nvim] ----------:
 
-touch -a ~/.config/nvim/init.lua
-grep -qF 'dofile(vim.fn.expand("~/doc/config/vim/basic.lua"))' ~/.config/nvim/init.lua || echo "$(cat ~/.config/nvim/init.lua; printf '%s\n' 'dofile(vim.fn.expand("~/doc/config/vim/basic.lua"))')" > ~/.config/nvim/init.lua
-grep -qF 'dofile(vim.fn.expand("~/doc/config/vim/advanced.lua"))' ~/.config/nvim/init.lua || echo "$(cat ~/.config/nvim/init.lua; printf '%s\n' '--dofile(vim.fn.expand("~/doc/config/vim/advanced.lua"))')" > ~/.config/nvim/init.lua
-
-# %% -------- [vim] ----------:
-
-touch -a ~/.vimrc
-grep -qF 'source ~/doc/config/vim/vimrc' ~/.vimrc || echo "$(printf 'source ~/doc/config/vim/vimrc\n'; cat ~/.vimrc)" > ~/.vimrc
+# touch -a ~/.config/nvim/init.lua
+# grep -qF 'dofile(vim.fn.expand("~/doc/config/vi/nvim/basic.lua"))' ~/.config/nvim/init.lua || echo "$(
+#     cat ~/.config/nvim/init.lua
+#     printf '%s\n' 'dofile(vim.fn.expand("~/doc/config/vi/nvim/basic.lua"))'
+# )" >~/.config/nvim/init.lua
+# grep -qF 'dofile(vim.fn.expand("~/doc/config/vi/nvim/advanced.lua"))' ~/.config/nvim/init.lua || echo "$(
+#     cat ~/.config/nvim/init.lua
+#     printf '%s\n' '--dofile(vim.fn.expand("~/doc/config/vi/nvim/advanced.lua"))'
+# )" >~/.config/nvim/init.lua
 
 # %% -------- [zsh] ----------:
 
 touch -a ~/.zshrc
-grep -qF '. ~/doc/config/zsh/zshrc' ~/.zshrc || echo "$(printf '. ~/doc/config/zsh/zshrc\n'; cat ~/.zshrc)" > ~/.zshrc
+grep -qF '. ~/doc/config/zsh/zshrc' ~/.zshrc || echo "$(
+    printf '. ~/doc/config/zsh/zshrc\n'
+    cat ~/.zshrc
+)" >~/.zshrc
 
 # %% -------- [tmux] ----------:
 
 touch -a ~/.tmux.conf
-grep -qF 'source-file ~/doc/config/tmux/tmux.conf' ~/.tmux.conf || echo "$(printf 'source-file ~/doc/config/tmux/tmux.conf\n'; cat ~/.tmux.conf)" > ~/.tmux.conf
+grep -qF 'source-file ~/doc/config/tmux/tmux.conf' ~/.tmux.conf || echo "$(
+    printf 'source-file ~/doc/config/tmux/tmux.conf\n'
+    cat ~/.tmux.conf
+)" >~/.tmux.conf
 
 # %% -------- [python] ----------:
 
@@ -52,8 +56,14 @@ chmod +x ~/.config/sway/status.sh
 # %% -------- [alacritty] ----------:
 
 touch -a ~/.config/alacritty/alacritty.toml
-grep -qF '[general]' ~/.config/alacritty/alacritty.toml || echo "$(cat ~/.config/alacritty/alacritty.toml; printf '%s\n' '[general]')" > ~/.config/alacritty/alacritty.toml
-grep -qF 'import = ["~/doc/config/alacritty/alacritty.toml"]' ~/.config/alacritty/alacritty.toml || echo "$(cat ~/.config/alacritty/alacritty.toml; printf '%s\n' 'import = ["~/doc/config/alacritty/alacritty.toml"]')" > ~/.config/alacritty/alacritty.toml
+grep -qF '[general]' ~/.config/alacritty/alacritty.toml || echo "$(
+    cat ~/.config/alacritty/alacritty.toml
+    printf '%s\n' '[general]'
+)" >~/.config/alacritty/alacritty.toml
+grep -qF 'import = ["~/doc/config/alacritty/alacritty.toml"]' ~/.config/alacritty/alacritty.toml || echo "$(
+    cat ~/.config/alacritty/alacritty.toml
+    printf '%s\n' 'import = ["~/doc/config/alacritty/alacritty.toml"]'
+)" >~/.config/alacritty/alacritty.toml
 
 # %% -------- [done] ----------:
 

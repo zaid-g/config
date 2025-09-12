@@ -285,7 +285,19 @@ function GDIFF() {
         git diff --unified=150 "$1" | diff2html --input stdin -s side
     fi
 }
-
+function GSQUASH() {
+    if [[ $# -ne 2 ]]; then
+        echo "Usage: GSQUASH <commit_hash> <commit_message>"
+        return 1
+    fi
+    local commit_hash="$1"
+    local commit_message="$2"
+    if ! git rev-parse --verify "$commit_hash" >/dev/null 2>&1; then
+        echo "Error: Invalid commit hash"
+        return 1
+    fi
+    git reset --soft "$commit_hash" && git commit -m "$commit_message"
+}
 
 # %% -------- [docker] ----------:
 

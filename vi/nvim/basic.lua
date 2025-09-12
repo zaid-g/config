@@ -5,9 +5,6 @@
 -- frees up m to use for my own mappings
 vim.keymap.set("n", "mm", "m")
 
--- mapleader
-vim.g.mapleader = "m"
-
 -- frees up \ to use for my own mappings in insert mode
 vim.keymap.set("i", "\\\\", "\\")
 
@@ -16,10 +13,10 @@ vim.keymap.set("i", "\\\\", "\\")
 -- additional scroll movements, moving text
 vim.keymap.set({ "n", "x" }, "J", '@="j\\<lt>C-E>"<CR>', { silent = true })
 vim.keymap.set({ "n", "x" }, "K", '@="k\\<lt>C-Y>"<CR>', { silent = true })
-vim.keymap.set({ "n", "x" }, "<leader>j", "J$")
-vim.keymap.set({ "n", "x" }, "<leader>k", "K")
-vim.keymap.set({ "n", "x" }, "<leader>J", "<c-j>")
-vim.keymap.set({ "n", "x" }, "<leader>K", "<c-k>")
+vim.keymap.set({ "n", "x" }, "mj", "J$")
+vim.keymap.set({ "n", "x" }, "mk", "K")
+vim.keymap.set({ "n", "x" }, "mJ", "<c-j>")
+vim.keymap.set({ "n", "x" }, "mK", "<c-k>")
 
 -- %% -------- [simple copy paste clipboard] ----------:
 
@@ -77,7 +74,7 @@ end
 
 vim.keymap.set(
 	"n",
-	"<leader>/",
+	"m/",
 	[[<cmd>lua vim.ui.input({prompt = 'Search case insensitive: '}, function(input) if input then SearchNoJump('\\c' .. input) end end)<CR>]]
 )
 
@@ -156,10 +153,10 @@ local function copy_matches_to_register(reg)
 	vim.fn.setreg(reg, joined)
 	print("Copied " .. #matches .. " matches to register " .. reg)
 end
-vim.keymap.set("n", "<leader>y", function()
+vim.keymap.set("n", "my", function()
 	copy_matches_to_register('"') -- Default register
 end, { silent = true, desc = "Copy matches to default register" })
-vim.keymap.set("n", "<leader>Y", function()
+vim.keymap.set("n", "mY", function()
 	copy_matches_to_register("+") -- System clipboard
 end, { silent = true, desc = "Copy matches to clipboard" })
 
@@ -167,7 +164,7 @@ end, { silent = true, desc = "Copy matches to clipboard" })
 vim.keymap.set("n", "<Space>", ":noh<CR>")
 
 -- cursor/visual highlight and search
-vim.keymap.set("n", "<leader>l", function()
+vim.keymap.set("n", "ml", function()
 	local word = vim.fn.expand("<cword>")
 	vim.fn.setreg("/", "\\<" .. word .. "\\>")
 	vim.opt.hlsearch = true
@@ -191,44 +188,44 @@ function SetSearchVisualSelection()
 	vim.fn.setreg('"', clipboard_original_content)
 end
 
-vim.keymap.set("v", "<leader>l", function()
+vim.keymap.set("v", "ml", function()
 	SetSearchVisualSelection()
 	vim.opt.hlsearch = true
 end, { silent = true })
 
 -- find and replace mappings
-vim.keymap.set("n", "<leader>cs", ":%s/<C-R>=@/<CR>//g<Left><Left>")
-vim.keymap.set("v", "<leader>cs", ":s/<C-R>=@/<CR>//g<Left><Left>")
-vim.keymap.set("n", "<leader>ct", ":%s//g<Left><Left>")
-vim.keymap.set("v", "<leader>ct", ":s//g<Left><Left>")
+vim.keymap.set("n", "mcs", ":%s/<C-R>=@/<CR>//g<Left><Left>")
+vim.keymap.set("v", "mcs", ":s/<C-R>=@/<CR>//g<Left><Left>")
+vim.keymap.set("n", "mct", ":%s//g<Left><Left>")
+vim.keymap.set("v", "mct", ":s//g<Left><Left>")
 vim.keymap.set(
 	"n",
-	"<leader>bdcs",
+	"mbdcs",
 	":bufdo %s/<C-R>=@/<CR>//g | update<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>"
 )
 vim.keymap.set(
 	"n",
-	"<leader>bdct",
+	"mbdct",
 	":bufdo %s///g | update<Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left><Left>"
 )
 -- replace each match append index of match i
-vim.keymap.set("n", "<leader>ci", ":let @a=1 | %s/search/\\='replace'.(@a+setreg('a',@a+1))/g")
+vim.keymap.set("n", "mci", ":let @a=1 | %s/search/\\='replace'.(@a+setreg('a',@a+1))/g")
 
 -- %% -------- [buffers windows and loading files] ----------:
 
 -- recursively load files of type
-vim.keymap.set("n", "<leader>ar", ":args **/*.")
+vim.keymap.set("n", "mar", ":args **/*.")
 
 -- bufdo e without loss of syntax highlighting and switching buffers
-vim.keymap.set("n", "<leader>e", ":tabdo windo e<CR>")
+vim.keymap.set("n", "me", ":tabdo windo e<CR>")
 
 -- split window vertically on new column
-vim.keymap.set("n", "<leader>sb", ":botr vs<CR>:b ")
+vim.keymap.set("n", "msb", ":botr vs<CR>:b ")
 
 -- scratch window
 vim.keymap.set(
 	"n",
-	"<leader>sw",
+	"msw",
 	"<c-w>n:setlocal buftype=nofile<CR>:setlocal bufhidden=hide<CR>:setlocal noswapfile<CR>"
 )
 
@@ -245,12 +242,12 @@ function MakeSessionGit()
 	print("Session saved for branch: " .. git_branch)
 end
 
-vim.keymap.set("n", "<leader>ks", MakeSessionGit)
+vim.keymap.set("n", "mks", MakeSessionGit)
 
 -- %% -------- [block abstraction] ----------:
 
 -- block abstraction and execution
-vim.keymap.set("n", "<leader>bl", function()
+vim.keymap.set("n", "mbl", function()
 	local commentstr = vim.bo.commentstring:gsub("%%s", "") -- Remove %s placeholder
 	if vim.bo.filetype == "markdown" then
 		commentstr = "#"
@@ -262,8 +259,8 @@ vim.keymap.set("n", "<leader>bl", function()
 	vim.cmd("normal! kk$BBe")
 	vim.cmd("startinsert")
 end, { desc = "Insert block comment" })
-vim.keymap.set("n", "<leader>b/", "/%% -----.*.*<left><left>\\c")
-vim.keymap.set("n", "<leader>b?", "?%% -----.*.*<left><left>\\c")
+vim.keymap.set("n", "mb/", "/%% -----.*.*<left><left>\\c")
+vim.keymap.set("n", "mb?", "?%% -----.*.*<left><left>\\c")
 
 -- jump
 vim.keymap.set({ "n", "x" }, "<c-j>", function()
@@ -284,19 +281,19 @@ end
 -- %% -------- [python] ----------:
 
 -- ipdb trace above current line
-vim.keymap.set("n", "<leader>p", "Oimport ipdb; ipdb.set_trace()<ESC>:w<CR>")
+vim.keymap.set("n", "mp", "Oimport ipdb; ipdb.set_trace()<ESC>:w<CR>")
 
 -- timeit
 vim.keymap.set(
 	"x",
-	"<leader>vt",
+	"mvt",
 	'<ESC>`<Oimport time; my_start_time = time.time()<ESC>`>oprint("my_end_time - my_start_time = ", time.time() - my_start_time)<ESC>'
 )
 
 -- %% -------- [plantuml] ----------:
 
 -- plantuml on current buffer
-vim.keymap.set("n", "<leader>P", ":w<CR>:!plantuml %&<CR><CR>", { silent = true })
+vim.keymap.set("n", "mP", ":w<CR>:!plantuml %&<CR><CR>", { silent = true })
 
 -- %% -------- [settings] ----------:
 
