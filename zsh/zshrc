@@ -242,23 +242,29 @@ TS() {
     if [ -z "$SESSIONEXISTS" ]; then
         # Start new session and name first window 'home'
         tmux new-session -d -s $SESSION -n 'home'
-        # Split 'home' horizontally into 2 panes, run VC in right pane (pane 1)
+
+        # Split vertically (left/right)
         tmux split-window -h -t $SESSION:0
+
+        # Run CD on left (pane 0), VC on right (pane 1)
+        tmux send-keys -t $SESSION:0.0 'CD' C-m
         tmux send-keys -t $SESSION:0.1 'VC' C-m
-        # Create second window (will be window 1)
-        tmux new-window -t $SESSION:1
-        # Run CD in the initial pane (pane 0)
-        tmux send-keys -t $SESSION:1.0 'CD' C-m
-        # Split pane 0 horizontally → creates pane 1
-        tmux split-window -h -t $SESSION:1.0
-        tmux send-keys -t $SESSION:1.1 'CDM' C-m
-        # Split pane 1 vertically → creates pane 2
-        tmux split-window -v -t $SESSION:1.1
-        tmux send-keys -t $SESSION:1.2 'CDC && VS' C-m
+
+        # Create second window (index 1)
+        tmux new-window -t $SESSION:1 -n 'second'
+
+        # Vertical split (left/right)
+        tmux split-window -h -t $SESSION:1
+
+        # Run CDC on both panes
+        tmux send-keys -t $SESSION:1.0 'CDC' C-m
+        tmux send-keys -t $SESSION:1.1 'CDC' C-m
     fi
+
     # Attach to the session, starting at window 0
     tmux attach-session -t $SESSION:0
 }
+
 
 # %% -------- [git] ----------:
 
