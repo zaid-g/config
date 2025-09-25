@@ -1,168 +1,66 @@
--- JAVA (and other LSP) Setup
-
--- helper function for checking if a table contains a value
-local function contains(table, value)
-  for _, table_value in ipairs(table) do
-    if table_value == value then
-      return true
-    end
-  end
-
-  return false
-end
-
--- Bemol populates LSP
-local function bemol()
-  local bemol_dir = vim.fs.find({ ".bemol" }, { upward = true, type = "directory" })[1]
-  local ws_folders_lsp = {}
-  if bemol_dir then
-    local file = io.open(bemol_dir .. "/ws_root_folders", "r")
-    if file then
-      for line in file:lines() do
-        table.insert(ws_folders_lsp, line)
-      end
-      file:close()
-    end
-
-    for _, line in ipairs(ws_folders_lsp) do
-      if not contains(vim.lsp.buf.list_workspace_folders(), line) then
-        vim.lsp.buf.add_workspace_folder(line)
-      end
-    end
-  end
-end
-
+-- requires nvim 0.11
+-- based on https://github.com/LazyVim/LazyVim/blob/25abbf546d564dc484cf903804661ba12de45507/lua/lazyvim/plugins/extras/lang/java.lua#L4
 return {
-  {
-    "neovim/nvim-lspconfig",
-    dependencies = {
-      {
-        url = "ssh://git.amazon.com/pkg/VimBrazilConfig",
-        branch = "mainline",
-        ft = "brazil-config",
-      },
-    },
-    opts = {
-      setup = {
-        -- Barium - Amazon internal LSP for detecting Config files
-        barium = function(_, _)
-          local lspconfig = require("lspconfig")
-          local configs = require("lspconfig.configs")
-          vim.filetype.add({
-            ["Config"] = function()
-              vim.b.brazil_package_Config = 1
-              return "brazil-config"
-            end,
-          })
-          configs.barium = {
-            default_config = {
-              cmd = { "barium" },
-              filetypes = { "brazil-config" },
-              root_dir = function(fname)
-                vim.fs.dirname(vim.fs.find(".git", { path = fname, upward = true })[1])
-              end,
-              settings = {},
-            },
-          }
-          lspconfig.barium.setup({})
-          return true
-        end,
-      },
-    },
-  },
+	{
+		"mason-org/mason-lspconfig.nvim",
+		dependencies = {
+			{ "mason-org/mason.nvim", opts = {} },
+			"neovim/nvim-lspconfig",
+		},
+		opts = {
+			ensure_installed = {
+				"jdtls",
+				-- add other LSP servers here, they will automatically get installed by mason-lspconfig
+				-- "lua_ls",
+				-- "pyright",
+			},
+			automatic_enable = {
+				-- We will enable jdtls ourselves in attach_jdtls()
+				exclude = { "jdtls" },
+			},
+		},
+	},
+	{
+		"mfussenegger/nvim-jdtls",
+		ft = "java",
+		config = function()
+			local attach_jdtls = function()
+				local default_config = require("lspconfig.configs.jdtls").default_config
+				local cmd = default_config.cmd
 
-  {
-    "mfussenegger/nvim-jdtls",
-    dependencies = { "folke/which-key.nvim" },
-    opts = function()
-      local cmd = { vim.fn.exepath("jdtls") }
-      if LazyVim.has("mason.nvim") then
-        local mason_registry = require("mason-registry")
-        local lombok_jar = mason_registry.get_package("jdtls"):get_install_path() .. "/lombok.jar"
-        table.insert(cmd, string.format("--jvm-arg=-javaagent:%s", lombok_jar))
-      end
-      return {
-        -- How to find the root dir for a given filename. The default comes from
-        -- lspconfig which provides a function specifically for java projects.
-        root_dir = function(_)
-          require("jdtls.setup").find_root({ ".bemol", "packageInfo" })
-        end,
+				-- lombok support
+				local lombok_jar = vim.fn.expand("$MASON/share/jdtls/lombok.jar")
+				if vim.uv.fs_stat(lombok_jar) then
+					table.insert(cmd, string.format("--jvm-arg=-javaagent:%s", lombok_jar))
+				end
 
-        -- How to find the project name for a given root dir.
-        project_name = function(root_dir)
-          return root_dir and vim.fs.basename(root_dir)
-        end,
+				-- setup bemol workspaces
+				local root_dir = require("jdtls.setup").find_root({ "packageInfo" }, "Config")
+				if root_dir then
+					local ws_file = io.open(root_dir .. "/.bemol/ws_root_folders")
+					if ws_file then
+						for line in ws_file:lines() do
+							vim.lsp.buf.add_workspace_folder(line)
+						end
+						ws_file:close()
+					end
+				end
 
-        -- Where are the config and workspace dirs for a project?
-        jdtls_config_dir = function(project_name)
-          return os.getenv("HOME") .. ".local/share/jdtls/" .. project_name .. "/config"
-        end,
-        jdtls_workspace_dir = function(project_name)
-          return vim.fn.stdpath("cache") .. ".local/share/jdtls/" .. project_name .. "/workspace"
-        end,
+				-- keymaps
+				vim.keymap.set("n", "<leader>co", require("jdtls").organize_imports, { desc = "Organize Imports" })
 
-        -- How to run jdtls. This can be overridden to a full java command-line
-        -- if the Python wrapper script doesn't suffice.
-        cmd = cmd,
-        full_cmd = function(opts)
-          local fname = vim.api.nvim_buf_get_name(0)
-          local root_dir = opts.root_dir(fname)
-          local project_name = opts.project_name(root_dir)
-          local cmd = vim.deepcopy(opts.cmd)
-          if project_name then
-            vim.list_extend(cmd, {
-              "-configuration",
-              opts.jdtls_config_dir(project_name),
-              "-data",
-              opts.jdtls_workspace_dir(project_name),
-            })
-          end
-          return cmd
-        end,
+				require("jdtls").start_or_attach({
+					cmd = cmd,
+					root_dir = root_dir,
+				})
+			end
 
-        -- These depend on nvim-dap, but can additionally be disabled by setting false here.
-        dap = { hotcodereplace = "auto", config_overrides = {} },
-        -- Can set this to false to disable main class scan, which is a performance killer for large project
-        dap_main = {},
-        test = true,
-        settings = {
-          java = {
-            completion = {
-              enabled = true,
-              importOrder = { "java", "javax", "org", "amazon", "com", "" },
-            },
-            eclipse = {
-              downloadSources = true,
-            },
-            format = {
-              settings = {
-                url = "~/.config/nvim/format/java-codestyle-intellij.xml",
-              },
-            },
-            maven = {
-              downloadSources = true,
-            },
-            sources = {
-              organizeImports = {
-                starThreshold = 9999,
-                staticStarThreshold = 9999,
-              },
-            },
-            inlayHints = {
-              parameterNames = {
-                enabled = "all",
-              },
-            },
-            references = {
-              includeDecompiledSources = true,
-            },
-            telemetry = {
-              enabled = false,
-            },
-          },
-        },
-        on_attach = bemol,
-      }
-    end,
-  },
+			vim.api.nvim_create_autocmd("Filetype", {
+				pattern = "java",
+				callback = attach_jdtls,
+			})
+
+			attach_jdtls()
+		end,
+	},
 }

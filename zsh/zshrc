@@ -236,32 +236,17 @@ alias TKS="tmux kill-session -t"
 alias TKAS="tmux kill-server"
 
 TS() {
-    # Set Session Name
-    SESSION="0"
-    SESSIONEXISTS=$(tmux list-sessions | grep "^$SESSION:")
-    if [ -z "$SESSIONEXISTS" ]; then
-        # Start new session and name first window 'home'
-        tmux new-session -d -s $SESSION -n 'home'
-
-        # Split vertically (left/right)
-        tmux split-window -h -t $SESSION:0
-
-        # Run CD on left (pane 0), VC on right (pane 1)
-        tmux send-keys -t $SESSION:0.0 'CD' C-m
-        tmux send-keys -t $SESSION:0.1 'VC' C-m
-
-        # Create second window (index 1)
-        tmux new-window -t $SESSION:1 -n 'second'
-
-        # Vertical split (left/right)
-        tmux split-window -h -t $SESSION:1
-
-        # Run CDC on both panes
-        tmux send-keys -t $SESSION:1.0 'CDC' C-m
-        tmux send-keys -t $SESSION:1.1 'CDC' C-m
-    fi
-
-    # Attach to the session, starting at window 0
+    tmux new-session -d
+    SESSION=$(tmux display-message -p '#S')
+    tmux split-window -h -t $SESSION
+    tmux send-keys -t $SESSION:0.0 'CD' C-m
+    tmux send-keys -t $SESSION:0.1 'VC' C-m
+    tmux new-window -t $SESSION: -n 'scratch'
+    tmux send-keys -t $SESSION:1 'CDM' C-m
+    tmux new-window -t $SESSION: -n 'config'
+    tmux split-window -h -t $SESSION:2
+    tmux send-keys -t $SESSION:2.0 'CDC' C-m
+    tmux send-keys -t $SESSION:2.1 'CDC' C-m
     tmux attach-session -t $SESSION:0
 }
 
