@@ -67,14 +67,23 @@ alias VZ='$NEOVIM_EDITOR ~/.zshrc'
 
 export GNU_GREP=$(which grep)
 GREP() {
+    local pattern
+    local files
+
     if [ "$#" -eq 1 ]; then
-        get_allowed_files_matching_types | xargs "$GNU_GREP" -ni -e "$1"
+        pattern="$1"
+        files=$(get_allowed_files_matching_types)
     else
-        # All but last argument are extensions
-        local pattern="${@: -1}"                      # last argument
-        local exts=("${@:1:$#-1}")                    # all except last
-        get_allowed_files_matching_types "${exts[@]}" | xargs "$GNU_GREP" -ni -e "$pattern"
+        pattern="${@: -1}"
+        local exts=("${@:1:$#-1}")
+        files=$(get_allowed_files_matching_types "${exts[@]}")
     fi
+
+    [ -z "$files" ] && return
+
+    while IFS= read -r file; do
+        "$GNU_GREP" -Hni -e "$pattern" "$file"
+    done <<< "$files"
 }
 
 
@@ -288,6 +297,10 @@ function GSQUASH() {
         return 1
     fi
     git reset --soft "$commit_hash" && git commit -m "$commit_message"
+}
+GSTASH() {
+    local msg="${*:-"WIP stash"}"
+    git stash push -u -m "$msg"
 }
 
 # %% -------- [docker] ----------:

@@ -25,6 +25,12 @@ vim.keymap.set({'n', 'x'}, 'k', 'k', { desc = "Up" })
 -- copy to system clipboard
 vim.keymap.set({ "n", "x" }, "Y", '"+y', { silent = true })
 
+-- multiple paste
+vim.keymap.set("x", "p", [["_dP]], { noremap = true, silent = true })
+-- dont override clipboard using c
+vim.keymap.set({ "n", "x" }, "c", [["_c]], { noremap = true, silent = true })
+
+
 -- %% -------- [emojis] ----------:
 
 -- special characters
