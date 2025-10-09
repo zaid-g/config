@@ -333,12 +333,25 @@ alias DI="docker image"
 # %% -------- [others] ----------:
 
 MKT() {
-    local dir=~/trash/$(LC_ALL=C tr -dc a-z < /dev/urandom | head -c 8)
-    mkdir "$dir" && cd "$dir"
+    local base_dir=~/trash
+    local name=${1:-$(LC_ALL=C tr -dc a-z < /dev/urandom | head -c 8)}
+    local dir
+    if [[ -n "$1" ]]; then
+        dir="$base_dir/${name}_$(date +%F)"
+    else
+        dir="$base_dir/$name"
+    fi
+    mkdir -p "$dir" && cd "$dir"
 }
 MK() {
-    local dir=$(LC_ALL=C tr -dc a-z < /dev/urandom | head -c 8)
-    mkdir "$dir" && cd "$dir"
+    local name=${1:-$(LC_ALL=C tr -dc a-z < /dev/urandom | head -c 8)}
+    local dir
+    if [[ -n "$1" ]]; then
+        dir="${name}_$(date +%F)"
+    else
+        dir="$name"
+    fi
+    mkdir -p "$dir" && cd "$dir"
 }
 alias S="sudo"
 alias FP='readlink -f'
