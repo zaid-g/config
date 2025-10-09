@@ -60,7 +60,8 @@ VS(){
     git_branch=$(git branch --show-current)
     $NEOVIM_EDITOR -S .vim/$git_branch.vim
 }
-alias VC='$NEOVIM_EDITOR ~/doc/cheatsheet.md ~/doc/scratch.md'
+alias VCHEAT='$NEOVIM_EDITOR ~/doc/cheatsheet.md'
+alias VSCRATCH='$NEOVIM_EDITOR ~/doc/scratch.md'
 alias VZ='$NEOVIM_EDITOR ~/.zshrc'
 
 # %% -------- [grep] ----------:
@@ -155,7 +156,7 @@ alias CDC="cd ~/doc/config"
 alias CDA="cd ~/doc"
 alias CDD="cd ~/Downloads"
 alias CD="cd ~/doc"
-alias CDM="cd ~/misc"
+alias CDT="cd ~/trash"
 
 # %% -------- [mv] ----------:
 
@@ -245,17 +246,27 @@ alias TKS="tmux kill-session -t"
 alias TKAS="tmux kill-server"
 
 TS() {
-    tmux new-session -d
+    tmux new-session -d -s temp
     SESSION=$(tmux display-message -p '#S')
-    tmux split-window -h -t $SESSION
+
+    # "doc" (horizontal split)
+    tmux rename-window -t $SESSION:0 'doc'
+    tmux split-window -h -t $SESSION:0
     tmux send-keys -t $SESSION:0.0 'CD' C-m
-    tmux send-keys -t $SESSION:0.1 'VC' C-m
+    tmux send-keys -t $SESSION:0.1 'VCHEAT' C-m
+
+    # "config" (horizontal split)
     tmux new-window -t $SESSION: -n 'scratch'
-    tmux send-keys -t $SESSION:1 'CDM' C-m
+    tmux split-window -h -t $SESSION:1
+    tmux send-keys -t $SESSION:1.0 'CDT' C-m
+    tmux send-keys -t $SESSION:1.1 'VSCRATCH' C-m
+
+    # "config" (horizontal split)
     tmux new-window -t $SESSION: -n 'config'
     tmux split-window -h -t $SESSION:2
     tmux send-keys -t $SESSION:2.0 'CDC' C-m
     tmux send-keys -t $SESSION:2.1 'CDC' C-m
+
     tmux attach-session -t $SESSION:0
 }
 
@@ -321,6 +332,14 @@ alias DI="docker image"
 
 # %% -------- [others] ----------:
 
+MKT() {
+    local dir=~/trash/$(LC_ALL=C tr -dc a-z < /dev/urandom | head -c 8)
+    mkdir "$dir" && cd "$dir"
+}
+MK() {
+    local dir=$(LC_ALL=C tr -dc a-z < /dev/urandom | head -c 8)
+    mkdir "$dir" && cd "$dir"
+}
 alias S="sudo"
 alias FP='readlink -f'
 alias RS="source ~/.zshrc && cd ."
