@@ -60,8 +60,8 @@ VS(){
     git_branch=$(git branch --show-current)
     $NEOVIM_EDITOR -S .vim/$git_branch.vim
 }
-alias VCHEAT='$NEOVIM_EDITOR ~/doc/cheatsheet.md'
-alias VSCRATCH='$NEOVIM_EDITOR ~/doc/scratch.md'
+alias VCHEAT='$NEOVIM_EDITOR ~/doc/cheatsheet.txt'
+alias VSCRATCH='$NEOVIM_EDITOR ~/doc/scratch.txt'
 alias VZ='$NEOVIM_EDITOR ~/.zshrc'
 
 # %% -------- [grep] ----------:
@@ -332,26 +332,21 @@ alias DI="docker image"
 
 # %% -------- [others] ----------:
 
+alias CAFF='caffeinate -dimsu &'
+alias DECAFF='pkill caffeinate && echo "Killed caffeinate process" || echo "No caffeinate process found"'
 MKT() {
     local base_dir=~/trash
     local name=${1:-$(LC_ALL=C tr -dc a-z < /dev/urandom | head -c 8)}
-    local dir
-    if [[ -n "$1" ]]; then
-        dir="$base_dir/${name}_$(date +%F)"
-    else
-        dir="$base_dir/$name"
-    fi
+    local dir="$base_dir/${name}_$(date +%F_%H)"
     mkdir -p "$dir" && cd "$dir"
 }
 MK() {
     local name=${1:-$(LC_ALL=C tr -dc a-z < /dev/urandom | head -c 8)}
-    local dir
-    if [[ -n "$1" ]]; then
-        dir="${name}_$(date +%F)"
-    else
-        dir="$name"
-    fi
+    local dir="${name}_$(date +%F_%H)"
     mkdir -p "$dir" && cd "$dir"
+}
+MKD() {
+    mkdir -p ~/doc/"$1" && cd ~/doc/"$1"
 }
 alias S="sudo"
 alias FP='readlink -f'
