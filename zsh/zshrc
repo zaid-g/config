@@ -37,7 +37,7 @@ zstyle ':completion:*' matcher-list '' \
   'r:|?=** m:{a-z\-}={A-Z\_}'
 
 
-# %% -------- [vim] ----------:
+# %% -------- [vi vim lazyvim neovim nvim] ----------:
 
 
 export NEOVIM_EDITOR=~/app/neovim/squashfs-root/AppRun
@@ -55,6 +55,12 @@ VP() {
     else
         echo "No matching files found outside forbidden folders."
     fi
+}
+VB() {
+    bemol --verbose --watch > /tmp/bemol.log 2>&1 &
+    local bemol_pid=$!
+    $NEOVIM_EDITOR "$@"
+    kill $bemol_pid 2>/dev/null
 }
 VS(){
     git_branch=$(git branch --show-current)
@@ -246,7 +252,7 @@ alias TKS="tmux kill-session -t"
 alias TKAS="tmux kill-server"
 
 TS() {
-    tmux new-session -d -s temp
+    tmux new-session -d
     SESSION=$(tmux display-message -p '#S')
 
     # "doc" (horizontal split)
@@ -290,11 +296,15 @@ alias GB="git branch --sort=-committerdate"
 alias GPUSH="git push -u origin HEAD"
 alias GPULL='git pull origin $(git rev-parse --abbrev-ref HEAD)'
 function GDIFF() {
-    if [ -z "$1" ]; then
-        git diff --unified=150 | diff2html --input stdin -s side
-    else
-        git diff --unified=150 "$1" | diff2html --input stdin -s side
-    fi
+    git rev-parse --git-dir >/dev/null 2>&1 || { echo "Not a git repo"; return 1; }
+    local tmpfile
+    tmpfile=$(mktemp)
+    git diff >> "$tmpfile"
+    git ls-files --others --exclude-standard | while read -r file; do
+    git diff --no-index /dev/null "$file" >> "$tmpfile"
+    done
+    cat "$tmpfile" | delta --side-by-side --line-numbers
+    rm "$tmpfile"
 }
 function GSQUASH() {
     if [[ $# -ne 2 ]]; then
@@ -329,6 +339,29 @@ alias DC="docker container"
 alias DCE="docker container exec"
 alias DI="docker image"
 
+
+
+#  %% -------- [brazil] ----------:
+
+alias BB=brazil-build
+alias BRC='brazil-recursive-cmd'
+alias BRCAP="brazil ws clean && brazil-recursive-cmd --allPackages brazil-build"
+alias BWS="brazil ws --sync --md"
+alias BW='brazil ws'
+alias BWU='brazil ws use -p'
+alias BWR='brazil ws remove -p'
+alias BWC='brazil ws create --root'
+alias BBCR='brazil ws clean && brazil-build clean && brazil-build release'
+alias BBC='brazil-build clean'
+alias BWC='brazil ws clean'
+alias BBR='brazil-build release'
+alias BBDEPLOY="brazil-build cdk deploy --require-approval never"
+
+
+#  %% -------- [AI] ----------:
+
+alias QQ="q chat --trust-all-tools --agent amazon"
+alias QQE="cd ~/empty && q chat --trust-all-tools --agent amazon"
 
 # %% -------- [others] ----------:
 
@@ -367,6 +400,28 @@ GRIM(){
     fi
 }
 alias H="history 0"
+alias MW="mwinit -o && q whoami"
+alias KI="kinit -f"
+alias CL="card local --runtimePort 8082"
+function ADA() {
+    local account_number=$1
+    if [ -z "$account_number" ]; then
+        echo "Error: Please provide an account number"
+        echo "Usage: ada_creds <account_number>"
+        return 1
+    fi
+    ada credentials update --account="$account_number" --provider=conduit --role=IibsAdminAccess-DO-NOT-DELETE --once
+}
+function ADAL() {
+    local account_number=$1
+    if [ -z "$account_number" ]; then
+        echo "Error: Please provide an account number"
+        echo "Usage: ada_creds <account_number>"
+        return 1
+    fi
+    ada credentials update --account="$account_number" --provider=conduit --role=IibsAdminAccess-DO-NOT-DELETE
+}
+
 
 # %% ---------- [syntax highlighting] ----------:
 

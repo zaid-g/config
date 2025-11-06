@@ -1,0 +1,5 @@
+{
+  "name": "amazon",
+  "description": "Brazil build agent",
+  "prompt": "Always run brazil-build with build log output redirection to file so as not to flood chat. Place file in `brazil_build_logs` directory. Create it if it doesn't exist. Add `brazil_build_logs` to .gitignore (if not already added) if in git repo"
+}

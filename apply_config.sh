@@ -65,6 +65,11 @@ grep -qF 'import = ["~/doc/config/alacritty/alacritty.toml"]' ~/.config/alacritt
     printf '%s\n' 'import = ["~/doc/config/alacritty/alacritty.toml"]'
 )" >~/.config/alacritty/alacritty.toml
 
+# %% -------- [amazonq] ----------:
+
+mkdir -p ~/.aws/amazonq/cli-agents
+cp ~/doc/config/aws/amazonq/cli-agents/* ~/.aws/amazonq/cli-agents/
+
 # %% -------- [done] ----------:
 
 echo "***      Done       ***"
