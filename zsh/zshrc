@@ -144,7 +144,7 @@ FIND() {
 
 
 
-# %% -------- [cd] ----------:
+# %% -------- [cd and directories] ----------:
 
 cd() {
     builtin cd $1
@@ -163,6 +163,20 @@ alias CDA="cd ~/doc"
 alias CDD="cd ~/Downloads"
 alias CD="cd ~/doc"
 alias CDT="cd ~/trash"
+MKT() {
+    local base_dir=~/trash
+    local name=${1:-$(LC_ALL=C tr -dc a-z < /dev/urandom | head -c 8)}
+    local dir="$base_dir/${name}_$(date +%F_%H)"
+    mkdir -p "$dir" && cd "$dir"
+}
+MK() {
+    local name=${1:-$(LC_ALL=C tr -dc a-z < /dev/urandom | head -c 8)}
+    local dir="${name}_$(date +%F_%H)"
+    mkdir -p "$dir" && cd "$dir"
+}
+MKD() {
+    mkdir -p ~/doc/"$1" && cd ~/doc/"$1"
+}
 
 # %% -------- [mv] ----------:
 
@@ -363,24 +377,21 @@ alias BBDEPLOY="brazil-build cdk deploy --require-approval never"
 alias QQ="q chat --trust-all-tools --agent amazon"
 alias QQE="cd ~/empty && q chat --trust-all-tools --agent amazon"
 
-# %% -------- [others] ----------:
+
+#  %% -------- [browsers chrome firefox] ----------:
+
+alias FF="firefox"
+alias CHROME="google-chrome-stable --ozone-platform=wayland"
+
+
+
+#  %% -------- [sleep caff decaff] ----------:
 
 alias CAFF='caffeinate -dimsu &'
 alias DECAFF='pkill caffeinate && echo "Killed caffeinate process" || echo "No caffeinate process found"'
-MKT() {
-    local base_dir=~/trash
-    local name=${1:-$(LC_ALL=C tr -dc a-z < /dev/urandom | head -c 8)}
-    local dir="$base_dir/${name}_$(date +%F_%H)"
-    mkdir -p "$dir" && cd "$dir"
-}
-MK() {
-    local name=${1:-$(LC_ALL=C tr -dc a-z < /dev/urandom | head -c 8)}
-    local dir="${name}_$(date +%F_%H)"
-    mkdir -p "$dir" && cd "$dir"
-}
-MKD() {
-    mkdir -p ~/doc/"$1" && cd ~/doc/"$1"
-}
+
+# %% -------- [others] ----------:
+
 alias S="sudo"
 alias FP='readlink -f'
 alias RS="source ~/.zshrc && cd ."
@@ -389,8 +400,6 @@ alias PO="systemctl poweroff"
 # xdg open (open file from terminal with default app)
 alias X="xdg-open"
 alias DISCORD="snap run discord"
-alias FF="firefox"
-alias CHROME="google-chrome-stable --ozone-platform=wayland"
 alias PMU="sudo pacman -Syu"
 GRIM(){
     if [ "$#" -eq 1 ]; then
