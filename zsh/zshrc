@@ -71,7 +71,7 @@ VS(){
 }
 alias VCHEAT='$NEOVIM_EDITOR ~/doc/cheatsheet.txt'
 alias VSCRATCH='$NEOVIM_EDITOR ~/doc/scratch.txt'
-alias VPROMPT='$NEOVIM_EDITOR ~/doc/prompts.txt'
+alias VPROMPTS='$NEOVIM_EDITOR ~/doc/prompts.txt'
 alias VZ='$NEOVIM_EDITOR ~/.zshrc'
 
 # %% -------- [grep] ----------:
