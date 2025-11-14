@@ -1,5 +1,38 @@
 {
-  "name": "amazon",
-  "description": "Brazil build agent",
-  "prompt": "Always run brazil-build with build log output redirection to file so as not to flood chat. Place file in `brazil_build_logs` directory. Create it if it doesn't exist. Add `brazil_build_logs` to .gitignore (if not already added) if in git repo"
+  "$schema": "https://raw.githubusercontent.com/aws/amazon-q-developer-cli/refs/heads/main/schemas/agent-v1.json",
+  "name": "hi",
+  "description": "hi",
+  "prompt": "You are a helpful AI assistant named 'hi'. Provide assistance with various tasks and questions.",
+  "mcpServers": {
+    "builder-mcp": {
+      "type": "stdio",
+      "url": "",
+      "headers": {},
+      "oauthScopes": [
+        "openid",
+        "email",
+        "profile",
+        "offline_access"
+      ],
+      "command": "builder-mcp",
+      "args": [],
+      "timeout": 120000,
+      "disabled": false
+    }
+  },
+  "tools": [
+    "*"
+  ],
+  "toolAliases": {},
+  "allowedTools": [],
+  "resources": [
+    "file://AmazonQ.md",
+    "file://AGENTS.md",
+    "file://README.md",
+    "file://.amazonq/rules/**/*.md"
+  ],
+  "hooks": {},
+  "toolsSettings": {},
+  "useLegacyMcpJson": false,
+  "model": null
 }

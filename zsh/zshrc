@@ -1,5 +1,7 @@
 #
 
+
+
 # %% ---------- [vi mode] ----------:
 
 bindkey -v
@@ -41,6 +43,7 @@ zstyle ':completion:*' matcher-list '' \
 
 
 export NEOVIM_EDITOR=~/app/neovim/squashfs-root/AppRun
+export EDITOR=~/app/neovim/squashfs-root/AppRun
 # vim, VM taken
 alias V='$NEOVIM_EDITOR'
 VP() {
@@ -68,6 +71,7 @@ VS(){
 }
 alias VCHEAT='$NEOVIM_EDITOR ~/doc/cheatsheet.txt'
 alias VSCRATCH='$NEOVIM_EDITOR ~/doc/scratch.txt'
+alias VPROMPT='$NEOVIM_EDITOR ~/doc/prompts.txt'
 alias VZ='$NEOVIM_EDITOR ~/.zshrc'
 
 # %% -------- [grep] ----------:
@@ -178,18 +182,62 @@ MKD() {
     mkdir -p ~/doc/"$1" && cd ~/doc/"$1"
 }
 
-# %% -------- [mv] ----------:
-
 alias mv="mv -v"
 
-MV(){
-    latest_download=~/Downloads/$(ls -Art ~/Downloads | tail -n 1)
-    current_working_directory=$(pwd)
-    if [ "$#" -eq 0 ]; then
-        mv $latest_download .
+_GET_FROM_DOWNLOADS(){
+    if [[ "$1" =~ ^[0-9]+$ ]]; then
+        # If argument is a number, get that many recent files
+        ls -Art ~/Downloads | tail -n $1 | while read file; do echo ~/Downloads/"$file"; done
     else
-        latest_download_file_name=$(basename ${latest_download})
-        mv $latest_download ${1}_$latest_download_file_name
+        # No arguments or invalid, get latest file
+        echo ~/Downloads/$(ls -Art ~/Downloads | tail -n 1)
+    fi
+}
+
+MV(){
+    if [[ "$1" =~ ^[0-9]+$ ]] && [ "$#" -eq 2 ]; then
+        # Number and prefix - move N files with prefix
+        _GET_FROM_DOWNLOADS "$1" | while read file; do
+            filename=$(basename "$file")
+            mv "$file" "${2}_$filename"
+        done
+    elif [[ "$1" =~ ^[0-9]+$ ]] || [ "$#" -eq 0 ]; then
+        # Number or no args - move files
+        _GET_FROM_DOWNLOADS "$1" | while read file; do
+            mv "$file" .
+        done
+    else
+        # Non-numeric arg - use as prefix for latest file
+        latest_download=~/Downloads/$(ls -Art ~/Downloads | tail -n 1)
+        latest_download_file_name=$(basename "$latest_download")
+        mv "$latest_download" "${1}_$latest_download_file_name"
+    fi
+}
+
+RM(){
+    _GET_FROM_DOWNLOADS "$1" | while read file; do
+        [ -f "$file" ] && rm "$file"
+    done
+}
+
+CPR(){
+    ssh $REMOTE "mkdir -p ~/Downloads"
+    if [[ "$1" =~ ^[0-9]+$ ]] && [ "$#" -eq 2 ]; then
+        # Number and prefix - copy N files with prefix
+        _GET_FROM_DOWNLOADS "$1" | while read file; do
+            filename=$(basename "$file")
+            [ -f "$file" ] && scp "$file" $REMOTE:~/Downloads/"${2}_$filename"
+        done
+    elif [[ "$1" =~ ^[0-9]+$ ]] || [ "$#" -eq 0 ]; then
+        # Number or no args - copy files
+        _GET_FROM_DOWNLOADS "$1" | while read file; do
+            [ -f "$file" ] && scp "$file" $REMOTE:~/Downloads/
+        done
+    else
+        # Non-numeric arg - use as prefix for latest file
+        latest_download=~/Downloads/$(ls -Art ~/Downloads | tail -n 1)
+        latest_download_file_name=$(basename "$latest_download")
+        scp "$latest_download" $REMOTE:~/Downloads/"${1}_$latest_download_file_name"
     fi
 }
 
@@ -275,17 +323,23 @@ TS() {
     tmux send-keys -t $SESSION:0.0 'CD' C-m
     tmux send-keys -t $SESSION:0.1 'VCHEAT' C-m
 
-    # "config" (horizontal split)
+    # "scratch" (horizontal split)
     tmux new-window -t $SESSION: -n 'scratch'
     tmux split-window -h -t $SESSION:1
     tmux send-keys -t $SESSION:1.0 'CDT' C-m
     tmux send-keys -t $SESSION:1.1 'VSCRATCH' C-m
 
+    # "ai" (horizontal split)
+    tmux new-window -t $SESSION: -n 'AI'
+    tmux split-window -h -t $SESSION:2
+    tmux send-keys -t $SESSION:2.0 'QQ' C-m
+    tmux send-keys -t $SESSION:2.1 'VPROMPTS' C-m
+
     # "config" (horizontal split)
     tmux new-window -t $SESSION: -n 'config'
-    tmux split-window -h -t $SESSION:2
-    tmux send-keys -t $SESSION:2.0 'CDC' C-m
-    tmux send-keys -t $SESSION:2.1 'CDC' C-m
+    tmux split-window -h -t $SESSION:3
+    tmux send-keys -t $SESSION:3.0 'CDC' C-m
+    tmux send-keys -t $SESSION:3.1 'CDC' C-m
 
     tmux attach-session -t $SESSION:0
 }
@@ -313,10 +367,12 @@ function GDIFF() {
     git rev-parse --git-dir >/dev/null 2>&1 || { echo "Not a git repo"; return 1; }
     local tmpfile
     tmpfile=$(mktemp)
-    git diff >> "$tmpfile"
-    git ls-files --others --exclude-standard | while read -r file; do
-    git diff --no-index /dev/null "$file" >> "$tmpfile"
-    done
+    git diff "$@" >> "$tmpfile"
+    if [[ $# -eq 0 ]]; then
+        git ls-files --others --exclude-standard | while read -r file; do
+            git diff --no-index /dev/null "$file" >> "$tmpfile"
+        done
+    fi
     cat "$tmpfile" | delta --side-by-side --line-numbers
     rm "$tmpfile"
 }
@@ -374,16 +430,14 @@ alias BBDEPLOY="brazil-build cdk deploy --require-approval never"
 
 #  %% -------- [AI] ----------:
 
-alias QQ="q chat --trust-all-tools --agent amazon"
-alias QQE="cd ~/empty && q chat --trust-all-tools --agent amazon"
+alias QQ="q chat --trust-all-tools"
+alias QQE="cd ~/empty && q chat --trust-all-tools"
 
 
 #  %% -------- [browsers chrome firefox] ----------:
 
 alias FF="firefox"
 alias CHROME="google-chrome-stable --ozone-platform=wayland"
-
-
 
 #  %% -------- [sleep caff decaff] ----------:
 
