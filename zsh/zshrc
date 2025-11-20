@@ -34,9 +34,9 @@ bindkey -M menuselect '^[[Z' reverse-menu-complete
 # 2 -- word flex completion (abc => A-big-Car)
 # 3 -- full flex completion (abc => ABraCadabra)
 zstyle ':completion:*' matcher-list '' \
-  'm:{a-z\-}={A-Z\_}' \
-  'r:[^[:alpha:]]||[[:alpha:]]=** r:|=* m:{a-z\-}={A-Z\_}' \
-  'r:|?=** m:{a-z\-}={A-Z\_}'
+    'm:{a-z\-}={A-Z\_}' \
+    'r:[^[:alpha:]]||[[:alpha:]]=** r:|=* m:{a-z\-}={A-Z\_}' \
+    'r:|?=** m:{a-z\-}={A-Z\_}'
 
 
 # %% -------- [vi vim lazyvim neovim nvim] ----------:
@@ -101,7 +101,7 @@ GREP() {
 # %% -------- [find] ----------:
 
 export GNU_FIND=$(which find)
-FORBIDDEN_FOLDER_PATTERNS=("node_modules" "build" ".*")
+FORBIDDEN_FOLDER_PATTERNS=("node_modules" "build" ".*" "bin" "dist")
 
 get_all_allowed_files() {
     local forbidden=("${FORBIDDEN_FOLDER_PATTERNS[@]}")
@@ -114,29 +114,29 @@ get_all_allowed_files() {
 }
 # Function to find files matching given extensions
 get_allowed_files_matching_types() {
-  local extensions=("$@")
-  local files
-  files=$(get_all_allowed_files)
-  # If extensions are given, filter by them (case-insensitive)
-  if [ "${#extensions[@]}" -gt 0 ]; then
-    local pattern
-    pattern=$(IFS=\|; echo "${extensions[*]}" | sed 's/ /|/gI')
-    echo "$files" | grep -Eiq "\.(${pattern})$" && echo "$files" | grep -Ei "\.(${pattern})$" | sort || return
-  else
-    echo "$files" | sort
-  fi
+    local extensions=("$@")
+    local files
+    files=$(get_all_allowed_files)
+    # If extensions are given, filter by them (case-insensitive)
+    if [ "${#extensions[@]}" -gt 0 ]; then
+        local pattern
+        pattern=$(IFS=\|; echo "${extensions[*]}" | sed 's/ /|/gI')
+        echo "$files" | grep -Eiq "\.(${pattern})$" && echo "$files" | grep -Ei "\.(${pattern})$" | sort || return
+    else
+        echo "$files" | sort
+    fi
 }
 # Function to find files matching a general pattern
 get_files_matching_pattern() {
-  local pattern="$1"
-  local files
-  files=$(get_all_allowed_files)
-  # If a pattern is given, filter by it (case-insensitive)
-  if [ -n "$pattern" ]; then
-    echo "$files" | grep -Eiq "$pattern" && echo "$files" | grep -Ei "$pattern" | sort || return
-  else
-    echo "$files" | sort
-  fi
+    local pattern="$1"
+    local files
+    files=$(get_all_allowed_files)
+    # If a pattern is given, filter by it (case-insensitive)
+    if [ -n "$pattern" ]; then
+        echo "$files" | grep -Eiq "$pattern" && echo "$files" | grep -Ei "$pattern" | sort || return
+    else
+        echo "$files" | sort
+    fi
 }
 # Shorthand functions
 FINDT() {
@@ -157,8 +157,8 @@ cd() {
         if [[ -z "$VIRTUAL_ENV" ]] ; then
             . ~/.virtualenvs/.$current_working_directory_leaf/bin/activate
         fi
-            deactivate
-            . ~/.virtualenvs/.$current_working_directory_leaf/bin/activate
+        deactivate
+        . ~/.virtualenvs/.$current_working_directory_leaf/bin/activate
     fi
 }
 
@@ -214,6 +214,26 @@ MV(){
     fi
 }
 
+CP(){
+    if [[ "$1" =~ ^[0-9]+$ ]] && [ "$#" -eq 2 ]; then
+        # Number and prefix - copy N files with prefix
+        _GET_FROM_DOWNLOADS "$1" | while read file; do
+            filename=$(basename "$file")
+            cp "$file" "${2}_$filename"
+        done
+    elif [[ "$1" =~ ^[0-9]+$ ]] || [ "$#" -eq 0 ]; then
+        # Number or no args - copy files
+        _GET_FROM_DOWNLOADS "$1" | while read file; do
+            cp "$file" .
+        done
+    else
+        # Non-numeric arg - use as prefix for latest file
+        latest_download=~/Downloads/$(ls -Art ~/Downloads | tail -n 1)
+        latest_download_file_name=$(basename "$latest_download")
+        cp "$latest_download" "${1}_$latest_download_file_name"
+    fi
+}
+
 RM(){
     _GET_FROM_DOWNLOADS "$1" | while read file; do
         [ -f "$file" ] && rm "$file"
@@ -240,6 +260,28 @@ CPR(){
         scp "$latest_download" $REMOTE:~/Downloads/"${1}_$latest_download_file_name"
     fi
 }
+
+SCPPULL() {
+    local USER_HOST=$1
+    local REMOTE_PATH=$2
+    local LOCAL_DIR=$3
+    if [ -z "$USER_HOST" ] || [ -z "$REMOTE_PATH" ] || [ -z "$LOCAL_DIR" ]; then
+        echo "Usage: SCP <user@host> <remote_path> <local_dir>"
+        return 1
+    fi
+    mkdir -p "$LOCAL_DIR"
+    # Strip leading and trailing slashes, then replace remaining slashes with underscores
+    local CLEAN_PATH=$(echo "$REMOTE_PATH" | sed 's|^/||; s|/$||; s|/|_|g')
+    local LOCAL_NAME="${USER_HOST}_${CLEAN_PATH}"
+    if scp -r $USER_HOST:$REMOTE_PATH "$LOCAL_DIR/$LOCAL_NAME"; then
+        chmod -R u+w "$LOCAL_DIR/"
+        echo "✅ Copied to: $LOCAL_DIR/$LOCAL_NAME"
+    else
+        echo "❌ SCP failed for $USER_HOST:$REMOTE_PATH"
+        return 1
+    fi
+}
+
 
 
 # %% -------- [config] ----------:
@@ -362,7 +404,7 @@ alias GL="git log --graph --decorate --oneline"
 alias GFO="git fetch origin"
 alias GB="git branch --sort=-committerdate"
 alias GPUSH="git push -u origin HEAD"
-alias GPULL='git pull origin $(git rev-parse --abbrev-ref HEAD)'
+alias GPULL='git pull --rebase origin $(git rev-parse --abbrev-ref HEAD)'
 function GDIFF() {
     git rev-parse --git-dir >/dev/null 2>&1 || { echo "Not a git repo"; return 1; }
     local tmpfile
@@ -410,7 +452,6 @@ alias DCE="docker container exec"
 alias DI="docker image"
 
 
-
 #  %% -------- [brazil] ----------:
 
 alias BB=brazil-build
@@ -443,6 +484,8 @@ alias CHROME="google-chrome-stable --ozone-platform=wayland"
 
 alias CAFF='caffeinate -dimsu &'
 alias DECAFF='pkill caffeinate && echo "Killed caffeinate process" || echo "No caffeinate process found"'
+alias LIDCAFF='sudo pmset -a disablesleep 1'
+alias LIDDECAFF='sudo pmset -a disablesleep 0'
 
 # %% -------- [others] ----------:
 
