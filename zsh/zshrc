@@ -170,12 +170,12 @@ alias CDT="cd ~/trash"
 MKT() {
     local base_dir=~/trash
     local name=${1:-$(LC_ALL=C tr -dc a-z < /dev/urandom | head -c 8)}
-    local dir="$base_dir/${name}_$(date +%F_%H)"
+    local dir="$base_dir/${name}_$(date +%F_%H-%M-%S)"
     mkdir -p "$dir" && cd "$dir"
 }
 MK() {
     local name=${1:-$(LC_ALL=C tr -dc a-z < /dev/urandom | head -c 8)}
-    local dir="${name}_$(date +%F_%H)"
+    local dir="${name}_$(date +%F_%H-%M-%S)"
     mkdir -p "$dir" && cd "$dir"
 }
 MKD() {
@@ -473,7 +473,7 @@ alias BBDEPLOY="brazil-build cdk deploy --require-approval never"
 
 alias QQ="q chat --trust-all-tools"
 alias QQE="cd ~/empty && q chat --trust-all-tools"
-
+alias WW="cd /Users/zghar/doc/whisper-dictation && P src/main.py"
 
 #  %% -------- [browsers chrome firefox] ----------:
 
