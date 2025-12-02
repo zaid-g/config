@@ -1,12 +1,88 @@
 #
 
 
+# %% -------- [utils and general constants] ----------:
+
+FORBIDDEN_FOLDER_PATTERNS=("node_modules" "build" ".*" "bin" "dist")
+
+function GENERATE_8_PRONOUNCEABLE_CHARS() {
+    local length=${1:-8}
+    local consonants="bcdfghjklmnpqrstvwxyz"
+    local vowels="aeiou"
+    local result=""
+    local i
+    # Seed RANDOM with current time to ensure uniqueness
+    RANDOM=$(date +%s%N | cut -b10-19)
+    for ((i=0; i<length; i++)); do
+        if ((i % 2 == 0)); then
+            result+=${consonants:$((RANDOM % ${#consonants})):1}
+        else
+            result+=${vowels:$((RANDOM % ${#vowels})):1}
+        fi
+    done
+    echo "$result"
+}
+
+function GET_FROM_DOWNLOADS(){
+    if [[ "$1" =~ ^[0-9]+$ ]]; then
+        # If argument is a number, get that many recent files
+        ls -Art ~/Downloads | tail -n $1 | while read file; do echo ~/Downloads/"$file"; done
+    else
+        # No arguments or invalid, get latest file
+        echo ~/Downloads/$(ls -Art ~/Downloads | tail -n 1)
+    fi
+}
+
+function GET_ALL_ALLOWED_FILES() {
+    local forbidden=("${FORBIDDEN_FOLDER_PATTERNS[@]}")
+    local find_cmd=(find .)
+    for pattern in "${forbidden[@]}"; do
+        find_cmd+=(-path "*/$pattern" -prune -o)
+    done
+    find_cmd+=(-type f -print)
+    "${find_cmd[@]}"
+}
+
+# Function to find files matching given extensions
+function GET_ALLOWED_FILES_MATCHING_TYPES() {
+    local extensions=("$@")
+    local files=$(GET_ALL_ALLOWED_FILES)
+    # If extensions are given, filter by them (case-insensitive)
+    if [ "${#extensions[@]}" -gt 0 ]; then
+        local pattern=$(IFS=\|; echo "${extensions[*]}" | sed 's/ /|/gI')
+        echo "$files" | grep -Eiq "\.(${pattern})$" && echo "$files" | grep -Ei "\.(${pattern})$" | sort || return
+    else
+        echo "$files" | sort
+    fi
+}
+
+# Function to find files matching a general pattern
+function GET_FILES_MATCHING_PATTERN() {
+    local pattern="$1"
+    local files=$(GET_ALL_ALLOWED_FILES)
+    # If a pattern is given, filter by it (case-insensitive)
+    if [ -n "$pattern" ]; then
+        echo "$files" | grep -Eiq "$pattern" && echo "$files" | grep -Ei "$pattern" | sort || return
+    else
+        echo "$files" | sort
+    fi
+}
+
+#  %% -------- [pre-exec preexec pre exec command history] ----------:
+
+alias TH='mkdir -p .local && touch .local/command_history.log'
+
+preexec() {
+    if [[ -n "$1" && -f ".local/command_history.log" ]]; then
+        echo "$1" >> .local/command_history.log
+        sort -u .local/command_history.log > .local/command_history.log.tmp && mv .local/command_history.log.tmp .local/command_history.log
+    fi
+}
 
 # %% ---------- [vi mode] ----------:
 
 bindkey -v
 export KEYTIMEOUT=1
-
 
 #  %% -------- [bindings] ----------:
 
@@ -46,12 +122,12 @@ export NEOVIM_EDITOR=~/app/neovim/squashfs-root/AppRun
 export EDITOR=~/app/neovim/squashfs-root/AppRun
 # vim, VM taken
 alias V='$NEOVIM_EDITOR'
-VP() {
+function VP() {
     local files
     if [ "$#" -eq 0 ]; then
-        files=($(get_allowed_files_matching_types))  # All allowed files
+        files=($(GET_ALLOWED_FILES_MATCHING_TYPES))  # All allowed files
     else
-        files=($(get_allowed_files_matching_types "$@"))  # Filtered by extensions
+        files=($(GET_ALLOWED_FILES_MATCHING_TYPES "$@"))  # Filtered by extensions
     fi
     if (( ${#files[@]} )); then
         $NEOVIM_EDITOR "${files[@]}"
@@ -59,14 +135,14 @@ VP() {
         echo "No matching files found outside forbidden folders."
     fi
 }
-VB() {
+function VB() {
     bemol --verbose --watch > /tmp/bemol.log 2>&1 &
     local bemol_pid=$!
     $NEOVIM_EDITOR "$@"
     kill $bemol_pid 2>/dev/null
 }
-VS(){
-    git_branch=$(git branch --show-current)
+function VS(){
+    local git_branch=$(git branch --show-current)
     $NEOVIM_EDITOR -S .vim/$git_branch.vim
 }
 alias VCHEAT='$NEOVIM_EDITOR ~/doc/cheatsheet.txt'
@@ -77,17 +153,16 @@ alias VZ='$NEOVIM_EDITOR ~/.zshrc'
 # %% -------- [grep] ----------:
 
 export GNU_GREP=$(which grep)
-GREP() {
-    local pattern
-    local files
+function GREP() {
+    local file
 
     if [ "$#" -eq 1 ]; then
-        pattern="$1"
-        files=$(get_allowed_files_matching_types)
+        local pattern="$1"
+        local files=$(GET_ALLOWED_FILES_MATCHING_TYPES)
     else
-        pattern="${@: -1}"
+        local pattern="${@: -1}"
         local exts=("${@:1:$#-1}")
-        files=$(get_allowed_files_matching_types "${exts[@]}")
+        local files=$(GET_ALLOWED_FILES_MATCHING_TYPES "${exts[@]}")
     fi
 
     [ -z "$files" ] && return
@@ -97,62 +172,22 @@ GREP() {
     done <<< "$files"
 }
 
-
 # %% -------- [find] ----------:
 
 export GNU_FIND=$(which find)
-FORBIDDEN_FOLDER_PATTERNS=("node_modules" "build" ".*" "bin" "dist")
-
-get_all_allowed_files() {
-    local forbidden=("${FORBIDDEN_FOLDER_PATTERNS[@]}")
-    local find_cmd=(find .)
-    for pattern in "${forbidden[@]}"; do
-        find_cmd+=(-path "*/$pattern" -prune -o)
-    done
-    find_cmd+=(-type f -print)
-    "${find_cmd[@]}"
-}
-# Function to find files matching given extensions
-get_allowed_files_matching_types() {
-    local extensions=("$@")
-    local files
-    files=$(get_all_allowed_files)
-    # If extensions are given, filter by them (case-insensitive)
-    if [ "${#extensions[@]}" -gt 0 ]; then
-        local pattern
-        pattern=$(IFS=\|; echo "${extensions[*]}" | sed 's/ /|/gI')
-        echo "$files" | grep -Eiq "\.(${pattern})$" && echo "$files" | grep -Ei "\.(${pattern})$" | sort || return
-    else
-        echo "$files" | sort
-    fi
-}
-# Function to find files matching a general pattern
-get_files_matching_pattern() {
-    local pattern="$1"
-    local files
-    files=$(get_all_allowed_files)
-    # If a pattern is given, filter by it (case-insensitive)
-    if [ -n "$pattern" ]; then
-        echo "$files" | grep -Eiq "$pattern" && echo "$files" | grep -Ei "$pattern" | sort || return
-    else
-        echo "$files" | sort
-    fi
-}
 # Shorthand functions
-FINDT() {
-    get_allowed_files_matching_types "$@"
+function FINDT() {
+    GET_ALLOWED_FILES_MATCHING_TYPES "$@"
 }
-FIND() {
-    get_files_matching_pattern "$@"
+function FIND() {
+    GET_FILES_MATCHING_PATTERN "$@"
 }
-
-
 
 # %% -------- [cd and directories] ----------:
 
-cd() {
+function cd() {
     builtin cd $1
-    current_working_directory_leaf="$(basename $(pwd))"
+    local current_working_directory_leaf="$(basename $(pwd))"
     if [[ -d ~/.virtualenvs/.$current_working_directory_leaf ]] ; then
         if [[ -z "$VIRTUAL_ENV" ]] ; then
             . ~/.virtualenvs/.$current_working_directory_leaf/bin/activate
@@ -167,43 +202,34 @@ alias CDA="cd ~/doc"
 alias CDD="cd ~/Downloads"
 alias CD="cd ~/doc"
 alias CDT="cd ~/trash"
-MKT() {
+function MKT() {
     local base_dir=~/trash
-    local name=${1:-$(LC_ALL=C tr -dc a-z < /dev/urandom | head -c 8)}
+    local name=${1:-$(GENERATE_8_PRONOUNCEABLE_CHARS 8)}
     local dir="$base_dir/${name}_$(date +%F_%H-%M-%S)"
     mkdir -p "$dir" && cd "$dir"
 }
-MK() {
-    local name=${1:-$(LC_ALL=C tr -dc a-z < /dev/urandom | head -c 8)}
+function MK() {
+    local name=${1:-$(GENERATE_8_PRONOUNCEABLE_CHARS 8)}
     local dir="${name}_$(date +%F_%H-%M-%S)"
     mkdir -p "$dir" && cd "$dir"
 }
-MKD() {
+function MKD() {
     mkdir -p ~/doc/"$1" && cd ~/doc/"$1"
 }
 
 alias mv="mv -v"
 
-_GET_FROM_DOWNLOADS(){
-    if [[ "$1" =~ ^[0-9]+$ ]]; then
-        # If argument is a number, get that many recent files
-        ls -Art ~/Downloads | tail -n $1 | while read file; do echo ~/Downloads/"$file"; done
-    else
-        # No arguments or invalid, get latest file
-        echo ~/Downloads/$(ls -Art ~/Downloads | tail -n 1)
-    fi
-}
-
-MV(){
+function MV(){
+    local file filename latest_download latest_download_file_name
     if [[ "$1" =~ ^[0-9]+$ ]] && [ "$#" -eq 2 ]; then
         # Number and prefix - move N files with prefix
-        _GET_FROM_DOWNLOADS "$1" | while read file; do
+        GET_FROM_DOWNLOADS "$1" | while read file; do
             filename=$(basename "$file")
             mv "$file" "${2}_$filename"
         done
     elif [[ "$1" =~ ^[0-9]+$ ]] || [ "$#" -eq 0 ]; then
         # Number or no args - move files
-        _GET_FROM_DOWNLOADS "$1" | while read file; do
+        GET_FROM_DOWNLOADS "$1" | while read file; do
             mv "$file" .
         done
     else
@@ -214,16 +240,17 @@ MV(){
     fi
 }
 
-CP(){
+function CP(){
+    local file filename latest_download latest_download_file_name
     if [[ "$1" =~ ^[0-9]+$ ]] && [ "$#" -eq 2 ]; then
         # Number and prefix - copy N files with prefix
-        _GET_FROM_DOWNLOADS "$1" | while read file; do
+        GET_FROM_DOWNLOADS "$1" | while read file; do
             filename=$(basename "$file")
             cp "$file" "${2}_$filename"
         done
     elif [[ "$1" =~ ^[0-9]+$ ]] || [ "$#" -eq 0 ]; then
         # Number or no args - copy files
-        _GET_FROM_DOWNLOADS "$1" | while read file; do
+        GET_FROM_DOWNLOADS "$1" | while read file; do
             cp "$file" .
         done
     else
@@ -234,23 +261,25 @@ CP(){
     fi
 }
 
-RM(){
-    _GET_FROM_DOWNLOADS "$1" | while read file; do
+function RM(){
+    local file
+    GET_FROM_DOWNLOADS "$1" | while read file; do
         [ -f "$file" ] && rm "$file"
     done
 }
 
-CPR(){
+function CPR(){
+    local file filename latest_download latest_download_file_name
     ssh $REMOTE "mkdir -p ~/Downloads"
     if [[ "$1" =~ ^[0-9]+$ ]] && [ "$#" -eq 2 ]; then
         # Number and prefix - copy N files with prefix
-        _GET_FROM_DOWNLOADS "$1" | while read file; do
+        GET_FROM_DOWNLOADS "$1" | while read file; do
             filename=$(basename "$file")
             [ -f "$file" ] && scp "$file" $REMOTE:~/Downloads/"${2}_$filename"
         done
     elif [[ "$1" =~ ^[0-9]+$ ]] || [ "$#" -eq 0 ]; then
         # Number or no args - copy files
-        _GET_FROM_DOWNLOADS "$1" | while read file; do
+        GET_FROM_DOWNLOADS "$1" | while read file; do
             [ -f "$file" ] && scp "$file" $REMOTE:~/Downloads/
         done
     else
@@ -261,7 +290,7 @@ CPR(){
     fi
 }
 
-SCPPULL() {
+function SCPPULL() {
     local USER_HOST=$1
     local REMOTE_PATH=$2
     local LOCAL_DIR=$3
@@ -281,8 +310,6 @@ SCPPULL() {
         return 1
     fi
 }
-
-
 
 # %% -------- [config] ----------:
 
@@ -308,7 +335,7 @@ alias PTDB="pytest -sxvv --pdb"
 alias BLACK="python3 -m black **/*.py"
 alias PC="pre-commit run -a"
 
-PIP3(){
+function PIP3(){
     pip3 install wheel
     pip3 install ipdb==0.13.11
     pip3 install ipython==7.31.1
@@ -317,9 +344,9 @@ PIP3(){
     pip3 install black
 }
 
-PVENV(){
-    current_working_directory=$(pwd)
-    project_name="$(basename $(pwd))"
+function PVENV(){
+    local current_working_directory=$(pwd)
+    local project_name="$(basename $(pwd))"
     deactivate
     if [ -d ~/.virtualenvs/.$project_name ]; then
         rm -rf ~/.virtualenvs/.$project_name
@@ -355,9 +382,9 @@ alias TAS="tmux attach-session -t"
 alias TKS="tmux kill-session -t"
 alias TKAS="tmux kill-server"
 
-TS() {
+function TS() {
     tmux new-session -d
-    SESSION=$(tmux display-message -p '#S')
+    local SESSION=$(tmux display-message -p '#S')
 
     # "doc" (horizontal split)
     tmux rename-window -t $SESSION:0 'doc'
@@ -407,8 +434,7 @@ alias GPUSH="git push -u origin HEAD"
 alias GPULL='git pull --rebase origin $(git rev-parse --abbrev-ref HEAD)'
 function GDIFF() {
     git rev-parse --git-dir >/dev/null 2>&1 || { echo "Not a git repo"; return 1; }
-    local tmpfile
-    tmpfile=$(mktemp)
+    local tmpfile=$(mktemp) file
     git diff "$@" >> "$tmpfile"
     if [[ $# -eq 0 ]]; then
         git ls-files --others --exclude-standard | while read -r file; do
@@ -431,17 +457,17 @@ function GSQUASH() {
     fi
     git reset --soft "$commit_hash" && git commit -m "$commit_message"
 }
-GSTASH() {
+function GSTASH() {
     local msg="${*:-"WIP stash"}"
     git stash push -u -m "$msg"
 }
 
 # %% -------- [docker] ----------:
 
-DOCK(){
+function DOCK(){
     sudo docker run -it -v $HOME/doc/config:/home/ubuntu/doc/config $@ main
 }
-DOCKCWD(){
+function DOCKCWD(){
     sudo docker run -it -v $(pwd):$(pwd) -v $HOME/doc/config:/home/ubuntu/doc/config -w $(pwd) $@ main
 }
 alias D="docker"
@@ -468,12 +494,14 @@ alias BWC='brazil ws clean'
 alias BBR='brazil-build release'
 alias BBDEPLOY="brazil-build cdk deploy --require-approval never"
 
-
 #  %% -------- [AI] ----------:
 
 alias QQ="q chat --trust-all-tools"
 alias QQE="cd ~/empty && q chat --trust-all-tools"
-alias WW="cd /Users/zghar/doc/whisper-dictation && P src/main.py"
+function WW() {
+    pkill -f "WW_INSTANCE=true"
+    WW_INSTANCE=true cd /Users/zghar/doc/whisper-dictation && python3 src/main.py
+}
 
 #  %% -------- [browsers chrome firefox] ----------:
 
@@ -498,7 +526,7 @@ alias PO="systemctl poweroff"
 alias X="xdg-open"
 alias DISCORD="snap run discord"
 alias PMU="sudo pacman -Syu"
-GRIM(){
+function GRIM(){
     if [ "$#" -eq 1 ]; then
         grim -g "$(slurp)" ~/Downloads/screenshot-"$1"-"$(date +'%Y-%m-%dT%H:%M:%S').png"
     else
