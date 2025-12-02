@@ -24,12 +24,12 @@ vim.keymap.set({'n', 'x'}, 'k', 'k', { desc = "Up" })
 
 -- copy to system clipboard
 vim.keymap.set({ "n", "x" }, "Y", '"+y', { silent = true })
-
 -- multiple paste
 vim.keymap.set("x", "p", [["_dP]], { noremap = true, silent = true })
--- dont override clipboard using c
+-- dont override clipboard using c (black hole register)
 vim.keymap.set({ "n", "x" }, "c", [["_c]], { noremap = true, silent = true })
-
+-- don't override clipboard using x (black hole register)
+vim.keymap.set({ "n", "x" }, "x", [["_x]], { noremap = true, silent = true })
 
 -- %% -------- [emojis] ----------:
 

@@ -68,14 +68,19 @@ function GET_FILES_MATCHING_PATTERN() {
     fi
 }
 
-#  %% -------- [pre-exec preexec pre exec command history] ----------:
+#  %% -------- [pre-exec preexec pre exec command history .local notes] ----------:
 
-alias TH='mkdir -p .local && touch .local/command_history.log'
+COMMAND_HISTORY_FILE_NAME="command_history.log"
+
+alias TH="mkdir -p .local && touch .local/$COMMAND_HISTORY_FILE_NAME"
+alias TN='mkdir -p .local && touch .local/notes.md'
+alias CH="cat .local/$COMMAND_HISTORY_FILE_NAME"
+alias CN="cat .local/notes.md"
 
 preexec() {
-    if [[ -n "$1" && -f ".local/command_history.log" ]]; then
-        echo "$1" >> .local/command_history.log
-        sort -u .local/command_history.log > .local/command_history.log.tmp && mv .local/command_history.log.tmp .local/command_history.log
+    if [[ -n "$1" && -f ".local/$COMMAND_HISTORY_FILE_NAME" ]]; then
+        echo "$1" >> ".local/$COMMAND_HISTORY_FILE_NAME"
+        sort -u ".local/$COMMAND_HISTORY_FILE_NAME" > ".local/$COMMAND_HISTORY_FILE_NAME.tmp" && mv ".local/$COMMAND_HISTORY_FILE_NAME.tmp" ".local/$COMMAND_HISTORY_FILE_NAME"
     fi
 }
 
