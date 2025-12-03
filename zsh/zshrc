@@ -79,8 +79,12 @@ alias CN="cat .local/notes.md"
 
 preexec() {
     if [[ -n "$1" && -f ".local/$COMMAND_HISTORY_FILE_NAME" ]]; then
-        echo "$1" >> ".local/$COMMAND_HISTORY_FILE_NAME"
-        sort -u ".local/$COMMAND_HISTORY_FILE_NAME" > ".local/$COMMAND_HISTORY_FILE_NAME.tmp" && mv ".local/$COMMAND_HISTORY_FILE_NAME.tmp" ".local/$COMMAND_HISTORY_FILE_NAME"
+        local lines=()
+        while IFS= read -r line; do
+            [[ "$line" != "$1"$'\t'* ]] && lines+=("$line")
+        done < ".local/$COMMAND_HISTORY_FILE_NAME"
+        lines+=("$1"$'\t\t\t'"$(date '+%Y-%m-%d %H:%M:%S')")
+        printf '%s\n' "${lines[@]}" | awk '{ts=substr($0,length($0)-18); print ts "|" $0}' | sort -r | cut -d'|' -f2 > ".local/$COMMAND_HISTORY_FILE_NAME"
     fi
 }
 
