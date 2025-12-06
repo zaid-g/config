@@ -243,7 +243,7 @@ function VS(){
     $NEOVIM_EDITOR -S .vim/$git_branch.vim
 }
 
-alias VNOTES='$NEOVIM_EDITOR ~/doc/brain/cheatsheet.txt'
+alias VNOTES='$NEOVIM_EDITOR ~/doc/brain/notes.txt'
 alias VJUNK='$NEOVIM_EDITOR ~/doc/brain/junk.txt'
 alias VAI='$NEOVIM_EDITOR ~/doc/brain/ai.txt'
 alias VB='$NEOVIM_EDITOR brain/notes.txt brain/junk.txt brain/ai.txt brain/*'
