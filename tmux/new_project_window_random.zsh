@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 source ~/.zshrc
-MKT
+MKJ
 tmux split-window -h
 bash ~/doc/config/tmux/rename_window.sh
-TN
+TB
 QQ

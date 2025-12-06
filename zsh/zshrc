@@ -1,18 +1,16 @@
 #
 
 
-# %% -------- [utils and general constants] ----------:
+# %% -------- [project creation and management] ----------:
 
-FORBIDDEN_FOLDER_PATTERNS=("node_modules" "build" ".*" "bin" "dist")
-
-function GENERATE_8_PRONOUNCEABLE_CHARS() {
+function GENERATE_8_PRONOUNCEABLE_RANDOM_CHARS() {
     local length=${1:-8}
     local consonants="bcdfghjklmnpqrstvwxyz"
     local vowels="aeiou"
     local result=""
     local i
     # Seed RANDOM with current time to ensure uniqueness
-    RANDOM=$(date +%s%N | cut -b10-19)
+    local RANDOM=$(date +%s%N | cut -b10-19)
     for ((i=0; i<length; i++)); do
         if ((i % 2 == 0)); then
             result+=${consonants:$((RANDOM % ${#consonants})):1}
@@ -23,6 +21,44 @@ function GENERATE_8_PRONOUNCEABLE_CHARS() {
     echo "$result"
 }
 
+function MKJ() {
+    local base_dir=~/junk
+    local name=${1:-$(GENERATE_8_PRONOUNCEABLE_RANDOM_CHARS 8)}
+    local dir="$base_dir/${name}_$(date +%F_%H-%M-%S)"
+    mkdir -p "$dir" && cd "$dir"
+}
+
+function MK() {
+    local name=${1:-$(GENERATE_8_PRONOUNCEABLE_RANDOM_CHARS 8)}
+    local dir="${name}_$(date +%F_%H-%M-%S)"
+    mkdir -p "$dir" && cd "$dir"
+}
+
+function MKD() {
+    mkdir -p ~/doc/"$1" && cd ~/doc/"$1"
+}
+
+
+alias TH="mkdir -p brain && touch brain/command_history.txt"
+alias TB='mkdir -p brain && cd brain && touch notes.txt junk.txt ai.txt && git init && cd .. && if git rev-parse --git-dir > /dev/null 2>&1; then echo "brain/" >> .gitignore; fi'
+alias CH="cat brain/command_history.txt"
+alias CN="cat brain/notes.txt"
+alias CJ="cat brain/junk.txt"
+alias CAI="cat brain/ai.txt"
+
+preexec() {
+    if [[ -n "$1" && -f "brain/command_history.txt" ]]; then
+        local lines=()
+        while IFS= read -r line; do
+            [[ "$line" != "$1"$'\t'* ]] && lines+=("$line")
+        done < "brain/command_history.txt"
+        lines+=("$1"$'\t\t\t'"$(date '+%Y-%m-%d %H:%M:%S')")
+        printf '%s\n' "${lines[@]}" | awk '{ts=substr($0,length($0)-18); print ts "|" $0}' | sort -r | cut -d'|' -f2 > "brain/command_history.txt"
+    fi
+}
+
+#  %% -------- [Downloads management] ----------:
+
 function GET_FROM_DOWNLOADS(){
     if [[ "$1" =~ ^[0-9]+$ ]]; then
         # If argument is a number, get that many recent files
@@ -32,201 +68,6 @@ function GET_FROM_DOWNLOADS(){
         echo ~/Downloads/$(ls -Art ~/Downloads | tail -n 1)
     fi
 }
-
-function GET_ALL_ALLOWED_FILES() {
-    local forbidden=("${FORBIDDEN_FOLDER_PATTERNS[@]}")
-    local find_cmd=(find .)
-    for pattern in "${forbidden[@]}"; do
-        find_cmd+=(-path "*/$pattern" -prune -o)
-    done
-    find_cmd+=(-type f -print)
-    "${find_cmd[@]}"
-}
-
-# Function to find files matching given extensions
-function GET_ALLOWED_FILES_MATCHING_TYPES() {
-    local extensions=("$@")
-    local files=$(GET_ALL_ALLOWED_FILES)
-    # If extensions are given, filter by them (case-insensitive)
-    if [ "${#extensions[@]}" -gt 0 ]; then
-        local pattern=$(IFS=\|; echo "${extensions[*]}" | sed 's/ /|/gI')
-        echo "$files" | grep -Eiq "\.(${pattern})$" && echo "$files" | grep -Ei "\.(${pattern})$" | sort || return
-    else
-        echo "$files" | sort
-    fi
-}
-
-# Function to find files matching a general pattern
-function GET_FILES_MATCHING_PATTERN() {
-    local pattern="$1"
-    local files=$(GET_ALL_ALLOWED_FILES)
-    # If a pattern is given, filter by it (case-insensitive)
-    if [ -n "$pattern" ]; then
-        echo "$files" | grep -Eiq "$pattern" && echo "$files" | grep -Ei "$pattern" | sort || return
-    else
-        echo "$files" | sort
-    fi
-}
-
-#  %% -------- [pre-exec preexec pre exec command history .local notes] ----------:
-
-COMMAND_HISTORY_FILE_NAME="command_history.log"
-
-alias TH="mkdir -p .local && touch .local/$COMMAND_HISTORY_FILE_NAME"
-alias TN='mkdir -p .local && touch .local/notes.md'
-alias CH="cat .local/$COMMAND_HISTORY_FILE_NAME"
-alias CN="cat .local/notes.md"
-
-preexec() {
-    if [[ -n "$1" && -f ".local/$COMMAND_HISTORY_FILE_NAME" ]]; then
-        local lines=()
-        while IFS= read -r line; do
-            [[ "$line" != "$1"$'\t'* ]] && lines+=("$line")
-        done < ".local/$COMMAND_HISTORY_FILE_NAME"
-        lines+=("$1"$'\t\t\t'"$(date '+%Y-%m-%d %H:%M:%S')")
-        printf '%s\n' "${lines[@]}" | awk '{ts=substr($0,length($0)-18); print ts "|" $0}' | sort -r | cut -d'|' -f2 > ".local/$COMMAND_HISTORY_FILE_NAME"
-    fi
-}
-
-# %% ---------- [vi mode] ----------:
-
-bindkey -v
-export KEYTIMEOUT=1
-
-#  %% -------- [bindings] ----------:
-
-# Bind Ctrl-space to clear-screen
-bindkey '^@' clear-screen
-
-# %% ---------- [colors and prompt] ----------:
-
-autoload -U colors && colors
-PS1=" %{$fg[green]%}%~%{$fg[green]%} %{$reset_color%}$%b "
-zle_highlight=('region:bg=168,fg=251')
-zle_highlight=('paste:bg=168,fg=251', 'region:bg=168,fg=251')
-
-# %% ---------- [auto-completion] ----------:
-
-autoload -U compinit
-zmodload zsh/complist
-compinit
-_comp_options+=(globdots)              # Include hidden files.
-zstyle ':completion:*' menu select
-bindkey -M menuselect '^[[Z' reverse-menu-complete
-
-# 0 -- vanilla completion (abc => abc)
-# 1 -- smart case completion (abc => Abc)
-# 2 -- word flex completion (abc => A-big-Car)
-# 3 -- full flex completion (abc => ABraCadabra)
-zstyle ':completion:*' matcher-list '' \
-    'm:{a-z\-}={A-Z\_}' \
-    'r:[^[:alpha:]]||[[:alpha:]]=** r:|=* m:{a-z\-}={A-Z\_}' \
-    'r:|?=** m:{a-z\-}={A-Z\_}'
-
-
-# %% -------- [vi vim lazyvim neovim nvim] ----------:
-
-
-export NEOVIM_EDITOR=~/app/neovim/squashfs-root/AppRun
-export EDITOR=~/app/neovim/squashfs-root/AppRun
-# vim, VM taken
-alias V='$NEOVIM_EDITOR'
-function VP() {
-    local files
-    if [ "$#" -eq 0 ]; then
-        files=($(GET_ALLOWED_FILES_MATCHING_TYPES))  # All allowed files
-    else
-        files=($(GET_ALLOWED_FILES_MATCHING_TYPES "$@"))  # Filtered by extensions
-    fi
-    if (( ${#files[@]} )); then
-        $NEOVIM_EDITOR "${files[@]}"
-    else
-        echo "No matching files found outside forbidden folders."
-    fi
-}
-function VB() {
-    bemol --verbose --watch > /tmp/bemol.log 2>&1 &
-    local bemol_pid=$!
-    $NEOVIM_EDITOR "$@"
-    kill $bemol_pid 2>/dev/null
-}
-function VS(){
-    local git_branch=$(git branch --show-current)
-    $NEOVIM_EDITOR -S .vim/$git_branch.vim
-}
-alias VCHEAT='$NEOVIM_EDITOR ~/doc/cheatsheet.txt'
-alias VSCRATCH='$NEOVIM_EDITOR ~/doc/scratch.txt'
-alias VPROMPTS='$NEOVIM_EDITOR ~/doc/prompts.txt'
-alias VZ='$NEOVIM_EDITOR ~/.zshrc'
-
-# %% -------- [grep] ----------:
-
-export GNU_GREP=$(which grep)
-function GREP() {
-    local file
-
-    if [ "$#" -eq 1 ]; then
-        local pattern="$1"
-        local files=$(GET_ALLOWED_FILES_MATCHING_TYPES)
-    else
-        local pattern="${@: -1}"
-        local exts=("${@:1:$#-1}")
-        local files=$(GET_ALLOWED_FILES_MATCHING_TYPES "${exts[@]}")
-    fi
-
-    [ -z "$files" ] && return
-
-    while IFS= read -r file; do
-        "$GNU_GREP" -Hni -e "$pattern" "$file"
-    done <<< "$files"
-}
-
-# %% -------- [find] ----------:
-
-export GNU_FIND=$(which find)
-# Shorthand functions
-function FINDT() {
-    GET_ALLOWED_FILES_MATCHING_TYPES "$@"
-}
-function FIND() {
-    GET_FILES_MATCHING_PATTERN "$@"
-}
-
-# %% -------- [cd and directories] ----------:
-
-function cd() {
-    builtin cd $1
-    local current_working_directory_leaf="$(basename $(pwd))"
-    if [[ -d ~/.virtualenvs/.$current_working_directory_leaf ]] ; then
-        if [[ -z "$VIRTUAL_ENV" ]] ; then
-            . ~/.virtualenvs/.$current_working_directory_leaf/bin/activate
-        fi
-        deactivate
-        . ~/.virtualenvs/.$current_working_directory_leaf/bin/activate
-    fi
-}
-
-alias CDC="cd ~/doc/config"
-alias CDA="cd ~/doc"
-alias CDD="cd ~/Downloads"
-alias CD="cd ~/doc"
-alias CDT="cd ~/trash"
-function MKT() {
-    local base_dir=~/trash
-    local name=${1:-$(GENERATE_8_PRONOUNCEABLE_CHARS 8)}
-    local dir="$base_dir/${name}_$(date +%F_%H-%M-%S)"
-    mkdir -p "$dir" && cd "$dir"
-}
-function MK() {
-    local name=${1:-$(GENERATE_8_PRONOUNCEABLE_CHARS 8)}
-    local dir="${name}_$(date +%F_%H-%M-%S)"
-    mkdir -p "$dir" && cd "$dir"
-}
-function MKD() {
-    mkdir -p ~/doc/"$1" && cd ~/doc/"$1"
-}
-
-alias mv="mv -v"
 
 function MV(){
     local file filename latest_download latest_download_file_name
@@ -299,41 +140,166 @@ function CPR(){
     fi
 }
 
-function SCPPULL() {
-    local USER_HOST=$1
-    local REMOTE_PATH=$2
-    local LOCAL_DIR=$3
-    if [ -z "$USER_HOST" ] || [ -z "$REMOTE_PATH" ] || [ -z "$LOCAL_DIR" ]; then
-        echo "Usage: SCP <user@host> <remote_path> <local_dir>"
-        return 1
-    fi
-    mkdir -p "$LOCAL_DIR"
-    # Strip leading and trailing slashes, then replace remaining slashes with underscores
-    local CLEAN_PATH=$(echo "$REMOTE_PATH" | sed 's|^/||; s|/$||; s|/|_|g')
-    local LOCAL_NAME="${USER_HOST}_${CLEAN_PATH}"
-    if scp -r $USER_HOST:$REMOTE_PATH "$LOCAL_DIR/$LOCAL_NAME"; then
-        chmod -R u+w "$LOCAL_DIR/"
-        echo "✅ Copied to: $LOCAL_DIR/$LOCAL_NAME"
+#  %% -------- [find search grep] ----------:
+
+IGNORED_FOLDERS_PATTERNS=("node_modules" "build" ".*" "bin" "dist")
+export GNU_FIND=$(which find)
+export GNU_GREP=$(which grep)
+
+function FIND_ALL_NON_IGNORED_FILES() {
+    local ignored_folder_patterns=("${IGNORED_FOLDERS_PATTERNS[@]}")
+    local find_cmd=(find .)
+    for pattern in "${ignored_folder_patterns[@]}"; do
+        find_cmd+=(-path "*/$pattern" -prune -o)
+    done
+    find_cmd+=(-type f -print)
+    "${find_cmd[@]}"
+}
+
+# Function to find files matching given extensions
+function FIND_NON_IGNORED_FILES_MATCHING_TYPES() {
+    local extensions=("$@")
+    local files=$(FIND_ALL_NON_IGNORED_FILES)
+    # If extensions are given, filter by them (case-insensitive)
+    if [ "${#extensions[@]}" -gt 0 ]; then
+        local pattern=$(IFS=\|; echo "${extensions[*]}" | sed 's/ /|/gI')
+        echo "$files" | grep -Eiq "\.(${pattern})$" && echo "$files" | grep -Ei "\.(${pattern})$" | sort || return
     else
-        echo "❌ SCP failed for $USER_HOST:$REMOTE_PATH"
-        return 1
+        echo "$files" | sort
     fi
 }
 
-# %% -------- [config] ----------:
+# Function to find files matching a general pattern
+function FIND_FILES_MATCHING_PATTERN() {
+    local pattern="$1"
+    local files=$(FIND_ALL_NON_IGNORED_FILES)
+    # If a pattern is given, filter by it (case-insensitive)
+    if [ -n "$pattern" ]; then
+        echo "$files" | grep -Eiq "$pattern" && echo "$files" | grep -Ei "$pattern" | sort || return
+    else
+        echo "$files" | sort
+    fi
+}
 
-alias AC="bash ~/doc/config/apply_config.sh"
-alias FAAC="bash ~/doc/config/fetch_and_apply_config.sh"
+function FINDT() {
+    FIND_NON_IGNORED_FILES_MATCHING_TYPES "$@"
+}
 
+function FIND() {
+    FIND_FILES_MATCHING_PATTERN "$@"
+}
 
-# %% -------- [ls] ----------:
+function GREP() {
+    local file
+    if [ "$#" -eq 1 ]; then
+        local pattern="$1"
+        local files=$(FIND_NON_IGNORED_FILES_MATCHING_TYPES)
+    else
+        local pattern="${@: -1}"
+        local exts=("${@:1:$#-1}")
+        local files=$(FIND_NON_IGNORED_FILES_MATCHING_TYPES "${exts[@]}")
+    fi
+    [ -z "$files" ] && return
+    while IFS= read -r file; do
+        "$GNU_GREP" -Hni -e "$pattern" "$file"
+    done <<< "$files"
+}
 
-alias ls="ls --color=auto"
-alias LL="ls -lt --color=auto"
-alias LLR="ls -ltr --color=auto"
-alias LLALL="ls -lA --color=auto"
-alias LLA="ls -l --color=auto"
+# %% -------- [vi vim lazyvim neovim nvim vi mode vi-mode] ----------:
 
+# vi mode
+bindkey -v
+export KEYTIMEOUT=1
+
+export NEOVIM_EDITOR=~/app/neovim/squashfs-root/AppRun
+export EDITOR=~/app/neovim/squashfs-root/AppRun
+
+# vim, VM taken
+alias V='$NEOVIM_EDITOR'
+
+function VP() {
+    local files
+    if [ "$#" -eq 0 ]; then
+        files=($(FIND_NON_IGNORED_FILES_MATCHING_TYPES))  # All allowed files
+    else
+        files=($(FIND_NON_IGNORED_FILES_MATCHING_TYPES "$@"))  # Filtered by extensions
+    fi
+    if (( ${#files[@]} )); then
+        $NEOVIM_EDITOR "${files[@]}"
+    else
+        echo "No matching files found outside forbidden folders."
+    fi
+}
+
+function VBEMOL() {
+    bemol --verbose --watch > /tmp/bemol.log 2>&1 &
+    local bemol_pid=$!
+    $NEOVIM_EDITOR "$@"
+    kill $bemol_pid 2>/dev/null
+}
+
+function VS(){
+    local git_branch=$(git branch --show-current)
+    $NEOVIM_EDITOR -S .vim/$git_branch.vim
+}
+
+alias VNOTES='$NEOVIM_EDITOR ~/doc/brain/cheatsheet.txt'
+alias VJUNK='$NEOVIM_EDITOR ~/doc/brain/junk.txt'
+alias VAI='$NEOVIM_EDITOR ~/doc/brain/ai.txt'
+alias VB='$NEOVIM_EDITOR brain/notes.txt brain/junk.txt brain/ai.txt brain/*'
+alias VZ='$NEOVIM_EDITOR ~/.zshrc'
+
+# %% -------- [git] ----------:
+
+alias G="git"
+alias GS="git status --untracked-files=all"
+alias GI="git init"
+alias GR="git restore"
+alias GD="git diff"
+alias GDB="cd brain && git diff && cd .."
+alias GA="git add"
+alias GC="git commit -m"
+alias GCB="cd brain && git add . && git commit -m 'F' && cd .."
+alias GCH="git checkout"
+alias GM="git merge"
+alias GF="git fetch"
+alias GL="git log --graph --decorate --oneline"
+alias GFO="git fetch origin"
+alias GB="git branch --sort=-committerdate"
+alias GPUSH="git push -u origin HEAD"
+alias GPULL='git pull --rebase origin $(git rev-parse --abbrev-ref HEAD)'
+
+function GDIFF() {
+    git rev-parse --git-dir >/dev/null 2>&1 || { echo "Not a git repo"; return 1; }
+    local tmpfile=$(mktemp) file
+    git diff "$@" >> "$tmpfile"
+    if [[ $# -eq 0 ]]; then
+        git ls-files --others --exclude-standard | while read -r file; do
+            git diff --no-index /dev/null "$file" >> "$tmpfile"
+        done
+    fi
+    cat "$tmpfile" | delta --side-by-side --line-numbers
+    rm "$tmpfile"
+}
+
+function GSQUASH() {
+    if [[ $# -ne 2 ]]; then
+        echo "Usage: GSQUASH <commit_hash> <commit_message>"
+        return 1
+    fi
+    local commit_hash="$1"
+    local commit_message="$2"
+    if ! git rev-parse --verify "$commit_hash" >/dev/null 2>&1; then
+        echo "Error: Invalid commit hash"
+        return 1
+    fi
+    git reset --soft "$commit_hash" && git commit -m "$commit_message"
+}
+
+function GSTASH() {
+    local msg="${*:-"WIP stash"}"
+    git stash push -u -m "$msg"
+}
 
 # %% -------- [python] ----------:
 
@@ -382,6 +348,17 @@ function PVENV(){
     PIP3 # keep at end
 }
 
+function cd() {
+    builtin cd $1
+    local current_working_directory_leaf="$(basename $(pwd))"
+    if [[ -d ~/.virtualenvs/.$current_working_directory_leaf ]] ; then
+        if [[ -z "$VIRTUAL_ENV" ]] ; then
+            . ~/.virtualenvs/.$current_working_directory_leaf/bin/activate
+        fi
+        deactivate
+        . ~/.virtualenvs/.$current_working_directory_leaf/bin/activate
+    fi
+}
 
 # %% -------- [tmux] ----------:
 
@@ -396,22 +373,22 @@ function TS() {
     local SESSION=$(tmux display-message -p '#S')
 
     # "doc" (horizontal split)
-    tmux rename-window -t $SESSION:0 'doc'
+    tmux rename-window -t $SESSION:0 'notes'
     tmux split-window -h -t $SESSION:0
     tmux send-keys -t $SESSION:0.0 'CD' C-m
-    tmux send-keys -t $SESSION:0.1 'VCHEAT' C-m
+    tmux send-keys -t $SESSION:0.1 'VNOTES' C-m
 
-    # "scratch" (horizontal split)
-    tmux new-window -t $SESSION: -n 'scratch'
+    # "junk" (horizontal split)
+    tmux new-window -t $SESSION: -n 'junk'
     tmux split-window -h -t $SESSION:1
-    tmux send-keys -t $SESSION:1.0 'CDT' C-m
-    tmux send-keys -t $SESSION:1.1 'VSCRATCH' C-m
+    tmux send-keys -t $SESSION:1.0 'CDJ' C-m
+    tmux send-keys -t $SESSION:1.1 'VJUNK' C-m
 
     # "ai" (horizontal split)
-    tmux new-window -t $SESSION: -n 'AI'
+    tmux new-window -t $SESSION: -n 'ai'
     tmux split-window -h -t $SESSION:2
     tmux send-keys -t $SESSION:2.0 'QQ' C-m
-    tmux send-keys -t $SESSION:2.1 'VPROMPTS' C-m
+    tmux send-keys -t $SESSION:2.1 'VAI' C-m
 
     # "config" (horizontal split)
     tmux new-window -t $SESSION: -n 'config'
@@ -422,54 +399,44 @@ function TS() {
     tmux attach-session -t $SESSION:0
 }
 
+#  %% -------- [AI] ----------:
 
-# %% -------- [git] ----------:
-
-alias G="git"
-alias GS="git status --untracked-files=all"
-alias GI="git init"
-alias GR="git restore"
-alias GD="git diff"
-alias GA="git add"
-alias GC="git commit"
-alias GCM="git commit -m"
-alias GCH="git checkout"
-alias GM="git merge"
-alias GF="git fetch"
-alias GL="git log --graph --decorate --oneline"
-alias GFO="git fetch origin"
-alias GB="git branch --sort=-committerdate"
-alias GPUSH="git push -u origin HEAD"
-alias GPULL='git pull --rebase origin $(git rev-parse --abbrev-ref HEAD)'
-function GDIFF() {
-    git rev-parse --git-dir >/dev/null 2>&1 || { echo "Not a git repo"; return 1; }
-    local tmpfile=$(mktemp) file
-    git diff "$@" >> "$tmpfile"
-    if [[ $# -eq 0 ]]; then
-        git ls-files --others --exclude-standard | while read -r file; do
-            git diff --no-index /dev/null "$file" >> "$tmpfile"
-        done
-    fi
-    cat "$tmpfile" | delta --side-by-side --line-numbers
-    rm "$tmpfile"
+alias QQ="q chat --trust-all-tools"
+alias QQE="cd ~/empty && q chat --trust-all-tools"
+function WW() {
+    pkill -f "WW_INSTANCE=true"
+    WW_INSTANCE=true cd /Users/zghar/doc/whisper-dictation && python3 src/main.py
 }
-function GSQUASH() {
-    if [[ $# -ne 2 ]]; then
-        echo "Usage: GSQUASH <commit_hash> <commit_message>"
+
+#  %% -------- [remote management] ----------:
+
+function SCPPULL() {
+    local USER_HOST=$1
+    local REMOTE_PATH=$2
+    local LOCAL_DIR=$3
+    if [ -z "$USER_HOST" ] || [ -z "$REMOTE_PATH" ] || [ -z "$LOCAL_DIR" ]; then
+        echo "Usage: SCP <user@host> <remote_path> <local_dir>"
         return 1
     fi
-    local commit_hash="$1"
-    local commit_message="$2"
-    if ! git rev-parse --verify "$commit_hash" >/dev/null 2>&1; then
-        echo "Error: Invalid commit hash"
+    mkdir -p "$LOCAL_DIR"
+    # Strip leading and trailing slashes, then replace remaining slashes with underscores
+    local CLEAN_PATH=$(echo "$REMOTE_PATH" | sed 's|^/||; s|/$||; s|/|_|g')
+    local LOCAL_NAME="${USER_HOST}_${CLEAN_PATH}"
+    if scp -r $USER_HOST:$REMOTE_PATH "$LOCAL_DIR/$LOCAL_NAME"; then
+        chmod -R u+w "$LOCAL_DIR/"
+        echo "✅ Copied to: $LOCAL_DIR/$LOCAL_NAME"
+    else
+        echo "❌ SCP failed for $USER_HOST:$REMOTE_PATH"
         return 1
     fi
-    git reset --soft "$commit_hash" && git commit -m "$commit_message"
 }
-function GSTASH() {
-    local msg="${*:-"WIP stash"}"
-    git stash push -u -m "$msg"
-}
+
+#  %% -------- [sleep management caff decaff] ----------:
+
+alias CAFF='caffeinate -dimsu &'
+alias DECAFF='pkill caffeinate && echo "Killed caffeinate process" || echo "No caffeinate process found"'
+alias LIDCAFF='sudo pmset -a disablesleep 1'
+alias LIDDECAFF='sudo pmset -a disablesleep 0'
 
 # %% -------- [docker] ----------:
 
@@ -486,9 +453,9 @@ alias DC="docker container"
 alias DCE="docker container exec"
 alias DI="docker image"
 
+#  %% -------- [amazon brazil ADA] ----------:
 
-#  %% -------- [brazil] ----------:
-
+# brazil
 alias BB=brazil-build
 alias BRC='brazil-recursive-cmd'
 alias BRCAP="brazil ws clean && brazil-recursive-cmd --allPackages brazil-build"
@@ -503,49 +470,10 @@ alias BWC='brazil ws clean'
 alias BBR='brazil-build release'
 alias BBDEPLOY="brazil-build cdk deploy --require-approval never"
 
-#  %% -------- [AI] ----------:
-
-alias QQ="q chat --trust-all-tools"
-alias QQE="cd ~/empty && q chat --trust-all-tools"
-function WW() {
-    pkill -f "WW_INSTANCE=true"
-    WW_INSTANCE=true cd /Users/zghar/doc/whisper-dictation && python3 src/main.py
-}
-
-#  %% -------- [browsers chrome firefox] ----------:
-
-alias FF="firefox"
-alias CHROME="google-chrome-stable --ozone-platform=wayland"
-
-#  %% -------- [sleep caff decaff] ----------:
-
-alias CAFF='caffeinate -dimsu &'
-alias DECAFF='pkill caffeinate && echo "Killed caffeinate process" || echo "No caffeinate process found"'
-alias LIDCAFF='sudo pmset -a disablesleep 1'
-alias LIDDECAFF='sudo pmset -a disablesleep 0'
-
-# %% -------- [others] ----------:
-
-alias S="sudo"
-alias FP='readlink -f'
-alias RS="source ~/.zshrc && cd ."
-alias VM="virt-manager"
-alias PO="systemctl poweroff"
-# xdg open (open file from terminal with default app)
-alias X="xdg-open"
-alias DISCORD="snap run discord"
-alias PMU="sudo pacman -Syu"
-function GRIM(){
-    if [ "$#" -eq 1 ]; then
-        grim -g "$(slurp)" ~/Downloads/screenshot-"$1"-"$(date +'%Y-%m-%dT%H:%M:%S').png"
-    else
-        grim -g "$(slurp)" ~/Downloads/screenshot"$(date +'%Y-%m-%dT%H:%M:%S').png"
-    fi
-}
-alias H="history 0"
 alias MW="mwinit -o && q whoami"
 alias KI="kinit -f"
 alias CL="card local --runtimePort 8082"
+
 function ADA() {
     local account_number=$1
     if [ -z "$account_number" ]; then
@@ -565,6 +493,84 @@ function ADAL() {
     ada credentials update --account="$account_number" --provider=conduit --role=IibsAdminAccess-DO-NOT-DELETE
 }
 
+# %% -------- [path management cd directories movement] ----------:
+
+alias CDC="cd ~/doc/config"
+alias CDA="cd ~/doc"
+alias CDD="cd ~/Downloads"
+alias CD="cd ~/doc"
+alias CDJ="cd ~/junk"
+alias CDB="cd brain"
+# get full path
+alias FP='readlink -f'
+
+# ls colors
+alias ls="ls --color=auto"
+alias LL="ls -lt --color=auto"
+alias LLR="ls -ltr --color=auto"
+alias LLALL="ls -lA --color=auto"
+alias LLA="ls -l --color=auto"
+
+# verbose mv
+alias mv="mv -v"
+
+# %% -------- [config management] ----------:
+
+alias AC="bash ~/doc/config/apply_config.sh"
+alias FAAC="bash ~/doc/config/fetch_and_apply_config.sh"
+alias RS="source ~/.zshrc && cd ."
+
+#  %% -------- [unix archlinux linux] ----------:
+
+alias S="sudo"
+alias PO="systemctl poweroff"
+alias PMU="sudo pacman -Syu"
+alias X="xdg-open"
+alias VM="virt-manager"
+alias DISCORD="snap run discord"
+alias FF="firefox"
+alias CHROME="google-chrome-stable --ozone-platform=wayland"
+
+function GRIM(){
+    if [ "$#" -eq 1 ]; then
+        grim -g "$(slurp)" ~/Downloads/screenshot-"$1"-"$(date +'%Y-%m-%dT%H:%M:%S').png"
+    else
+        grim -g "$(slurp)" ~/Downloads/screenshot"$(date +'%Y-%m-%dT%H:%M:%S').png"
+    fi
+}
+
+# %% ---------- [auto-completion] ----------:
+
+autoload -U compinit
+zmodload zsh/complist
+compinit
+# Include hidden files
+_comp_options+=(globdots)
+zstyle ':completion:*' menu select
+bindkey -M menuselect '^[[Z' reverse-menu-complete
+
+# 0 -- vanilla completion (abc => abc)
+# 1 -- smart case completion (abc => Abc)
+# 2 -- word flex completion (abc => A-big-Car)
+# 3 -- full flex completion (abc => ABraCadabra)
+zstyle ':completion:*' matcher-list '' \
+    'm:{a-z\-}={A-Z\_}' \
+    'r:[^[:alpha:]]||[[:alpha:]]=** r:|=* m:{a-z\-}={A-Z\_}' \
+    'r:|?=** m:{a-z\-}={A-Z\_}'
+
+# %% ---------- [colors and prompt] ----------:
+
+autoload -U colors && colors
+PS1=" %{$fg[green]%}%~%{$fg[green]%} %{$reset_color%}$%b "
+zle_highlight=('region:bg=168,fg=251')
+zle_highlight=('paste:bg=168,fg=251', 'region:bg=168,fg=251')
+
+# %% -------- [others] ----------:
+
+# xdg open (open file from terminal with default app)
+alias H="history 0"
+# Bind Ctrl-space to clear-screen
+bindkey '^@' clear-screen
 
 # %% ---------- [syntax highlighting] ----------:
 
