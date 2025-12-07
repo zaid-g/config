@@ -2,6 +2,8 @@
 source ~/.zshrc
 MKJ
 tmux split-window -h
-bash ~/doc/config/tmux/rename_window.sh
 TB
+tmux send-keys -t 1 'VB' Enter
+tmux split-window -v
+bash ~/doc/config/tmux/rename_window.sh
 QQ

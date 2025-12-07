@@ -38,22 +38,84 @@ function MKD() {
     mkdir -p ~/doc/"$1" && cd ~/doc/"$1"
 }
 
+FIND_BRAIN_PATH() {
+    local dir="$PWD"
+    while [[ "$dir" != "/" ]]; do
+        if [[ -d "$dir/brain" ]]; then
+            echo "$dir"
+            return 0
+        fi
+        dir="$(dirname "$dir")"
+    done
+    echo "No 'brain' directory found searching up to filesystem root" >&2
+    return 1
+}
 
 alias TH="mkdir -p brain && touch brain/command_history.txt"
-alias TB='mkdir -p brain && cd brain && touch notes.txt junk.txt ai.txt && git init && cd .. && if git rev-parse --git-dir > /dev/null 2>&1; then echo "brain/" >> .gitignore; fi'
-alias CH="cat brain/command_history.txt"
-alias CN="cat brain/notes.txt"
-alias CJ="cat brain/junk.txt"
-alias CAI="cat brain/ai.txt"
+alias TB='mkdir -p brain && cd brain && touch notes.txt junk.txt related.txt ai.txt && git init && cd .. && if git rev-parse --git-dir > /dev/null 2>&1; then echo "brain/" >> .gitignore; fi'
+
+function CH() {
+    local brain_parent=$(FIND_BRAIN_PATH)
+    [[ -n "$brain_parent" ]] && cat "$brain_parent/brain/command_history.txt"
+}
+
+function CN() {
+    local brain_parent=$(FIND_BRAIN_PATH)
+    [[ -n "$brain_parent" ]] && cat "$brain_parent/brain/notes.txt"
+}
+
+function CJ() {
+    local brain_parent=$(FIND_BRAIN_PATH)
+    [[ -n "$brain_parent" ]] && cat "$brain_parent/brain/junk.txt"
+}
+
+function CAI() {
+    local brain_parent=$(FIND_BRAIN_PATH)
+    [[ -n "$brain_parent" ]] && cat "$brain_parent/brain/ai.txt"
+}
+
+function CRE() {
+    local brain_parent=$(FIND_BRAIN_PATH)
+    [[ -n "$brain_parent" ]] && cat "$brain_parent/brain/related.txt"
+}
+
+function ARE() {
+    if [[ $# -ne 1 ]]; then
+        echo "Error: ARE requires exactly one argument (path)" >&2
+        return 1
+    fi
+    
+    if [[ ! -e "$1" ]]; then
+        echo "Error: Path '$1' does not exist" >&2
+        return 1
+    fi
+    
+    local brain_parent=$(FIND_BRAIN_PATH)
+    if [[ -n "$brain_parent" ]]; then
+        local full_path=$(readlink -f "$1")
+        local temp_file=$(mktemp)
+        
+        # Add existing paths and new path to temp file, then sort unique
+        if [[ -f "$brain_parent/brain/related.txt" ]]; then
+            cat "$brain_parent/brain/related.txt" > "$temp_file"
+        fi
+        echo "$full_path" >> "$temp_file"
+        
+        # Remove duplicates and save back
+        sort -u "$temp_file" > "$brain_parent/brain/related.txt"
+        rm "$temp_file"
+    fi
+}
 
 preexec() {
-    if [[ -n "$1" && -f "brain/command_history.txt" ]]; then
+    local brain_parent=$(FIND_BRAIN_PATH 2>/dev/null)
+    if [[ -n "$1" && $? -eq 0 && -f "$brain_parent/brain/command_history.txt" ]]; then
         local lines=()
         while IFS= read -r line; do
-            [[ "$line" != "$1"$'\t'* ]] && lines+=("$line")
-        done < "brain/command_history.txt"
-        lines+=("$1"$'\t\t\t'"$(date '+%Y-%m-%d %H:%M:%S')")
-        printf '%s\n' "${lines[@]}" | awk '{ts=substr($0,length($0)-18); print ts "|" $0}' | sort -r | cut -d'|' -f2 > "brain/command_history.txt"
+            [[ "$line" != "$PWD"$'\t\t\t'"$1"$'\t'* ]] && lines+=("$line")
+        done < "$brain_parent/brain/command_history.txt"
+        lines+=("$PWD"$'\t\t\t'"$1"$'\t\t\t'"$(date '+%Y-%m-%d %H:%M:%S')")
+        printf '%s\n' "${lines[@]}" | awk '{ts=substr($0,length($0)-18); print ts "|" $0}' | sort -r | cut -d'|' -f2 > "$brain_parent/brain/command_history.txt"
     fi
 }
 
@@ -75,18 +137,18 @@ function MV(){
         # Number and prefix - move N files with prefix
         GET_FROM_DOWNLOADS "$1" | while read file; do
             filename=$(basename "$file")
-            mv "$file" "${2}_$filename"
+            mv -v "$file" "${2}_$filename"
         done
     elif [[ "$1" =~ ^[0-9]+$ ]] || [ "$#" -eq 0 ]; then
         # Number or no args - move files
         GET_FROM_DOWNLOADS "$1" | while read file; do
-            mv "$file" .
+            mv -v "$file" .
         done
     else
         # Non-numeric arg - use as prefix for latest file
         latest_download=~/Downloads/$(ls -Art ~/Downloads | tail -n 1)
         latest_download_file_name=$(basename "$latest_download")
-        mv "$latest_download" "${1}_$latest_download_file_name"
+        mv -v "$latest_download" "${1}_$latest_download_file_name"
     fi
 }
 
@@ -243,11 +305,18 @@ function VS(){
     $NEOVIM_EDITOR -S .vim/$git_branch.vim
 }
 
+function VB() {
+    local brain_parent=$(FIND_BRAIN_PATH)
+    if [[ -n "$brain_parent" ]]; then
+        cd "$brain_parent"
+        $NEOVIM_EDITOR brain/notes.txt brain/junk.txt brain/ai.txt brain/*
+    fi
+}
+
+alias VZ='$NEOVIM_EDITOR ~/.zshrc'
 alias VNOTES='$NEOVIM_EDITOR ~/doc/brain/notes.txt'
 alias VJUNK='$NEOVIM_EDITOR ~/doc/brain/junk.txt'
 alias VAI='$NEOVIM_EDITOR ~/doc/brain/ai.txt'
-alias VB='$NEOVIM_EDITOR brain/notes.txt brain/junk.txt brain/ai.txt brain/*'
-alias VZ='$NEOVIM_EDITOR ~/.zshrc'
 
 # %% -------- [git] ----------:
 
@@ -256,10 +325,8 @@ alias GS="git status --untracked-files=all"
 alias GI="git init"
 alias GR="git restore"
 alias GD="git diff"
-alias GDB="cd brain && git diff && cd .."
 alias GA="git add"
 alias GC="git commit -m"
-alias GCB="cd brain && git add . && git commit -m 'F' && cd .."
 alias GCH="git checkout"
 alias GM="git merge"
 alias GF="git fetch"
@@ -268,6 +335,27 @@ alias GFO="git fetch origin"
 alias GB="git branch --sort=-committerdate"
 alias GPUSH="git push -u origin HEAD"
 alias GPULL='git pull --rebase origin $(git rev-parse --abbrev-ref HEAD)'
+
+function GDB() {
+    local brain_parent=$(FIND_BRAIN_PATH)
+    if [[ -n "$brain_parent" ]]; then
+        cd "$brain_parent/brain" && git diff && cd "$brain_parent"
+    fi
+}
+
+function GSB() {
+    local brain_parent=$(FIND_BRAIN_PATH)
+    if [[ -n "$brain_parent" ]]; then
+        cd "$brain_parent/brain" && git status && cd "$brain_parent"
+    fi
+}
+
+function GCB() {
+    local brain_parent=$(FIND_BRAIN_PATH)
+    if [[ -n "$brain_parent" ]]; then
+        cd "$brain_parent/brain" && git add . && git commit -m 'F' && cd "$brain_parent"
+    fi
+}
 
 function GDIFF() {
     git rev-parse --git-dir >/dev/null 2>&1 || { echo "Not a git repo"; return 1; }
