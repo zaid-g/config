@@ -51,8 +51,8 @@ FIND_BRAIN_PATH() {
     return 1
 }
 
-alias TH="mkdir -p brain && touch brain/command_history.txt"
 alias TB='mkdir -p brain && cd brain && touch notes.txt junk.txt related.txt ai.txt && git init && cd .. && if git rev-parse --git-dir > /dev/null 2>&1; then echo "brain/" >> .gitignore; fi'
+alias TH='mkdir -p "$(FIND_BRAIN_PATH)/brain" && touch "$(FIND_BRAIN_PATH)/brain/command_history.txt"'
 
 function CH() {
     local brain_parent=$(FIND_BRAIN_PATH)
@@ -339,21 +339,21 @@ alias GPULL='git pull --rebase origin $(git rev-parse --abbrev-ref HEAD)'
 function GDB() {
     local brain_parent=$(FIND_BRAIN_PATH)
     if [[ -n "$brain_parent" ]]; then
-        cd "$brain_parent/brain" && git diff && cd "$brain_parent"
+        git -C "$brain_parent/brain" diff
     fi
 }
 
 function GSB() {
     local brain_parent=$(FIND_BRAIN_PATH)
     if [[ -n "$brain_parent" ]]; then
-        cd "$brain_parent/brain" && git status && cd "$brain_parent"
+        git -C "$brain_parent/brain" status
     fi
 }
 
 function GCB() {
     local brain_parent=$(FIND_BRAIN_PATH)
     if [[ -n "$brain_parent" ]]; then
-        cd "$brain_parent/brain" && git add . && git commit -m 'F' && cd "$brain_parent"
+        git -C "$brain_parent/brain" add . && git -C "$brain_parent/brain" commit -m 'F'
     fi
 }
 
@@ -588,7 +588,7 @@ alias CDA="cd ~/doc"
 alias CDD="cd ~/Downloads"
 alias CD="cd ~/doc"
 alias CDJ="cd ~/junk"
-alias CDB="cd brain"
+alias CDB='cd "$(FIND_BRAIN_PATH)/brain"'
 # get full path
 alias FP='readlink -f'
 
