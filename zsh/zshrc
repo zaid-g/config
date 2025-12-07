@@ -51,7 +51,7 @@ FIND_BRAIN_PATH() {
     return 1
 }
 
-alias TB='mkdir -p brain && cd brain && touch notes.txt junk.txt related.txt ai.txt && git init && cd .. && if git rev-parse --git-dir > /dev/null 2>&1; then echo "brain/" >> .gitignore; fi'
+alias TB='mkdir -p brain && touch brain/notes.txt brain/junk.txt brain/related.txt brain/ai.txt && [[ ! -d brain/.git ]] && git -C brain init && if git rev-parse --git-dir > /dev/null 2>&1; then echo "brain/" >> .gitignore; fi'
 alias TH='mkdir -p "$(FIND_BRAIN_PATH)/brain" && touch "$(FIND_BRAIN_PATH)/brain/command_history.txt"'
 
 function CH() {
@@ -109,12 +109,13 @@ function ARE() {
 
 preexec() {
     local brain_parent=$(FIND_BRAIN_PATH 2>/dev/null)
-    if [[ -n "$1" && $? -eq 0 && -f "$brain_parent/brain/command_history.txt" ]]; then
+    if [[ -n "$2" && $? -eq 0 && -f "$brain_parent/brain/command_history.txt" ]]; then
+        local clean_cmd=$(echo "$2" | tr '\n\r' ' ')
         local lines=()
         while IFS= read -r line; do
-            [[ "$line" != "$PWD"$'\t\t\t'"$1"$'\t'* ]] && lines+=("$line")
+            [[ "$line" != "$PWD"$'\t\t\t'"$clean_cmd"$'\t'* ]] && lines+=("$line")
         done < "$brain_parent/brain/command_history.txt"
-        lines+=("$PWD"$'\t\t\t'"$1"$'\t\t\t'"$(date '+%Y-%m-%d %H:%M:%S')")
+        lines+=("$PWD"$'\t\t\t'"$clean_cmd"$'\t\t\t'"$(date '+%Y-%m-%d %H:%M:%S')")
         printf '%s\n' "${lines[@]}" | awk '{ts=substr($0,length($0)-18); print ts "|" $0}' | sort -r | cut -d'|' -f2 > "$brain_parent/brain/command_history.txt"
     fi
 }
@@ -135,13 +136,13 @@ function MV(){
     local file filename latest_download latest_download_file_name
     if [[ "$1" =~ ^[0-9]+$ ]] && [ "$#" -eq 2 ]; then
         # Number and prefix - move N files with prefix
-        GET_FROM_DOWNLOADS "$1" | while read file; do
+        GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
             filename=$(basename "$file")
             mv -v "$file" "${2}_$filename"
         done
     elif [[ "$1" =~ ^[0-9]+$ ]] || [ "$#" -eq 0 ]; then
         # Number or no args - move files
-        GET_FROM_DOWNLOADS "$1" | while read file; do
+        GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
             mv -v "$file" .
         done
     else
@@ -156,13 +157,13 @@ function CP(){
     local file filename latest_download latest_download_file_name
     if [[ "$1" =~ ^[0-9]+$ ]] && [ "$#" -eq 2 ]; then
         # Number and prefix - copy N files with prefix
-        GET_FROM_DOWNLOADS "$1" | while read file; do
+        GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
             filename=$(basename "$file")
             cp "$file" "${2}_$filename"
         done
     elif [[ "$1" =~ ^[0-9]+$ ]] || [ "$#" -eq 0 ]; then
         # Number or no args - copy files
-        GET_FROM_DOWNLOADS "$1" | while read file; do
+        GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
             cp "$file" .
         done
     else
@@ -175,7 +176,7 @@ function CP(){
 
 function RM(){
     local file
-    GET_FROM_DOWNLOADS "$1" | while read file; do
+    GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
         [ -f "$file" ] && rm "$file"
     done
 }
@@ -185,13 +186,13 @@ function CPR(){
     ssh $REMOTE "mkdir -p ~/Downloads"
     if [[ "$1" =~ ^[0-9]+$ ]] && [ "$#" -eq 2 ]; then
         # Number and prefix - copy N files with prefix
-        GET_FROM_DOWNLOADS "$1" | while read file; do
+        GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
             filename=$(basename "$file")
             [ -f "$file" ] && scp "$file" $REMOTE:~/Downloads/"${2}_$filename"
         done
     elif [[ "$1" =~ ^[0-9]+$ ]] || [ "$#" -eq 0 ]; then
         # Number or no args - copy files
-        GET_FROM_DOWNLOADS "$1" | while read file; do
+        GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
             [ -f "$file" ] && scp "$file" $REMOTE:~/Downloads/
         done
     else
@@ -436,15 +437,12 @@ function PVENV(){
     PIP3 # keep at end
 }
 
-function cd() {
-    builtin cd $1
-    local current_working_directory_leaf="$(basename $(pwd))"
-    if [[ -d ~/.virtualenvs/.$current_working_directory_leaf ]] ; then
-        if [[ -z "$VIRTUAL_ENV" ]] ; then
-            . ~/.virtualenvs/.$current_working_directory_leaf/bin/activate
-        fi
-        deactivate
-        . ~/.virtualenvs/.$current_working_directory_leaf/bin/activate
+function chpwd() {
+    local leaf="${PWD:t}"
+    local env="$HOME/.virtualenvs/.$leaf"
+    if [[ -d "$env" && "$VIRTUAL_ENV" != "$env" ]]; then
+        [[ -n "$VIRTUAL_ENV" ]] && deactivate
+        source "$env/bin/activate"
     fi
 }
 
@@ -600,7 +598,7 @@ alias LLALL="ls -lA --color=auto"
 alias LLA="ls -l --color=auto"
 
 # verbose mv
-alias mv="mv -v"
+alias mvv="mv -v"
 
 # %% -------- [config management] ----------:
 
