@@ -53,6 +53,11 @@ FIND_BRAIN_PATH() {
 
 alias TB='mkdir -p brain && touch brain/notes.txt brain/junk.txt brain/related.txt brain/ai.txt && [[ ! -d brain/.git ]] && git -C brain init && if git rev-parse --git-dir > /dev/null 2>&1; then echo "brain/" >> .gitignore; fi'
 alias TH='mkdir -p "$(FIND_BRAIN_PATH)/brain" && touch "$(FIND_BRAIN_PATH)/brain/command_history.txt"'
+alias DH='rm -f "$(FIND_BRAIN_PATH)/brain/command_history.txt"'
+
+function WB() {
+    echo "$(FIND_BRAIN_PATH)/brain"
+}
 
 function CH() {
     local brain_parent=$(FIND_BRAIN_PATH)
@@ -108,17 +113,27 @@ function ARE() {
 }
 
 preexec() {
-    local brain_parent=$(FIND_BRAIN_PATH 2>/dev/null)
-    if [[ -n "$2" && $? -eq 0 && -f "$brain_parent/brain/command_history.txt" ]]; then
-        local clean_cmd=$(echo "$2" | tr '\n\r' ' ')
-        local lines=()
-        while IFS= read -r line; do
-            [[ "$line" != "$PWD"$'\t\t\t'"$clean_cmd"$'\t'* ]] && lines+=("$line")
-        done < "$brain_parent/brain/command_history.txt"
-        lines+=("$PWD"$'\t\t\t'"$clean_cmd"$'\t\t\t'"$(date '+%Y-%m-%d %H:%M:%S')")
-        printf '%s\n' "${lines[@]}" | awk '{ts=substr($0,length($0)-18); print ts "|" $0}' | sort -r | cut -d'|' -f2 > "$brain_parent/brain/command_history.txt"
-    fi
+    local brain_parent
+    brain_parent=$(FIND_BRAIN_PATH 2>/dev/null)
+    [[ -f "$brain_parent/brain/command_history.txt" ]] || return
+
+    # Use $3 which contains the full expanded command
+    local clean_cmd=$(echo "$3" | tr '\n\r' ' ')
+
+    # Remove duplicates for current command and PWD
+    local lines=()
+    while IFS= read -r line; do
+        [[ "$line" != *$'\t\t\t'"$clean_cmd"$'\t\t\t'"$PWD" ]] && lines+=("$line")
+    done < "$brain_parent/brain/command_history.txt"
+
+    # Append new entry: DATETIME \t\t\t COMMAND \t\t\t PATH
+    lines+=("$(date '+%Y-%m-%d %H:%M:%S')"$'\t\t\t'"$clean_cmd"$'\t\t\t'"$PWD")
+
+    # Sort by first field (datetime) in descending order
+    printf '%s\n' "${lines[@]}" | sort > "$brain_parent/brain/command_history.txt"
 }
+
+
 
 #  %% -------- [Downloads management] ----------:
 
@@ -181,7 +196,9 @@ function RM(){
     done
 }
 
-function CPR(){
+#  %% -------- [remote file sharing] ----------:
+
+function CPDTOR(){
     local file filename latest_download latest_download_file_name
     ssh $REMOTE "mkdir -p ~/Downloads"
     if [[ "$1" =~ ^[0-9]+$ ]] && [ "$#" -eq 2 ]; then
@@ -200,6 +217,40 @@ function CPR(){
         latest_download=~/Downloads/$(ls -Art ~/Downloads | tail -n 1)
         latest_download_file_name=$(basename "$latest_download")
         scp "$latest_download" $REMOTE:~/Downloads/"${1}_$latest_download_file_name"
+    fi
+}
+
+function CPTOR() {
+    local filepath=$1
+    if [ -z "$filepath" ]; then
+        echo "Usage: CPTOR <path>"
+        return 1
+    fi
+    ssh $REMOTE "mkdir -p ~/Downloads"
+    scp -r "$filepath" $REMOTE:~/Downloads/
+}
+
+function CPFROMR() {
+    if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
+        echo "Usage: CPFROMR <remote_path> [local_dir]"
+        return 1
+    fi
+    local REMOTE_PATH=$1
+    local LOCAL_DIR=${2:-.}
+    if [ -z "$REMOTE" ]; then
+        echo "Error: REMOTE environment variable must be set"
+        return 1
+    fi
+    mkdir -p "$LOCAL_DIR"
+    # Strip leading and trailing slashes, then replace remaining slashes with underscores
+    local CLEAN_PATH=$(echo "$REMOTE_PATH" | sed 's|^/||; s|/$||; s|/|_|g')
+    local LOCAL_NAME="${REMOTE}_${CLEAN_PATH}"
+    if scp -r $REMOTE:$REMOTE_PATH "$LOCAL_DIR/$LOCAL_NAME"; then
+        chmod -R u+w "$LOCAL_DIR/"
+        echo "✅ Copied to: $LOCAL_DIR/$LOCAL_NAME"
+    else
+        echo "❌ SCP failed for $REMOTE:$REMOTE_PATH"
+        return 1
     fi
 }
 
@@ -314,6 +365,7 @@ function VB() {
     fi
 }
 
+alias VD='$NEOVIM_EDITOR "$(GET_FROM_DOWNLOADS)"'
 alias VZ='$NEOVIM_EDITOR ~/.zshrc'
 alias VNOTES='$NEOVIM_EDITOR ~/doc/brain/notes.txt'
 alias VJUNK='$NEOVIM_EDITOR ~/doc/brain/junk.txt'
@@ -492,29 +544,6 @@ alias QQE="cd ~/empty && q chat --trust-all-tools"
 function WW() {
     pkill -f "WW_INSTANCE=true"
     WW_INSTANCE=true cd /Users/zghar/doc/whisper-dictation && python3 src/main.py
-}
-
-#  %% -------- [remote management] ----------:
-
-function SCPPULL() {
-    local USER_HOST=$1
-    local REMOTE_PATH=$2
-    local LOCAL_DIR=$3
-    if [ -z "$USER_HOST" ] || [ -z "$REMOTE_PATH" ] || [ -z "$LOCAL_DIR" ]; then
-        echo "Usage: SCP <user@host> <remote_path> <local_dir>"
-        return 1
-    fi
-    mkdir -p "$LOCAL_DIR"
-    # Strip leading and trailing slashes, then replace remaining slashes with underscores
-    local CLEAN_PATH=$(echo "$REMOTE_PATH" | sed 's|^/||; s|/$||; s|/|_|g')
-    local LOCAL_NAME="${USER_HOST}_${CLEAN_PATH}"
-    if scp -r $USER_HOST:$REMOTE_PATH "$LOCAL_DIR/$LOCAL_NAME"; then
-        chmod -R u+w "$LOCAL_DIR/"
-        echo "✅ Copied to: $LOCAL_DIR/$LOCAL_NAME"
-    else
-        echo "❌ SCP failed for $USER_HOST:$REMOTE_PATH"
-        return 1
-    fi
 }
 
 #  %% -------- [sleep management caff decaff] ----------:
