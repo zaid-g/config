@@ -38,7 +38,7 @@ function MKD() {
     mkdir -p ~/doc/"$1" && cd ~/doc/"$1"
 }
 
-FIND_BRAIN_PATH() {
+FIND_BRAIN_PARENT_PATH() {
     local dir="$PWD"
     while [[ "$dir" != "/" ]]; do
         if [[ -d "$dir/brain" ]]; then
@@ -51,36 +51,73 @@ FIND_BRAIN_PATH() {
     return 1
 }
 
-alias TB='mkdir -p brain && touch brain/notes.txt brain/junk.txt brain/related.txt brain/ai.txt && [[ ! -d brain/.git ]] && git -C brain init && if git rev-parse --git-dir > /dev/null 2>&1; then echo "brain/" >> .gitignore; fi'
-alias TH='mkdir -p "$(FIND_BRAIN_PATH)/brain" && touch "$(FIND_BRAIN_PATH)/brain/command_history.txt"'
-alias DH='rm -f "$(FIND_BRAIN_PATH)/brain/command_history.txt"'
+function TB() {
+    mkdir -p brain/ai/logs
+    touch brain/notes.txt brain/junk.txt brain/related.txt
+    cp ~/doc/brain/ai/ai.txt brain/ai/
+    [[ ! -d brain/.git ]] && git -C brain init
+    if git rev-parse --git-dir > /dev/null 2>&1; then
+        echo "brain/" >> .gitignore
+    fi
+}
+
+function TH() {
+    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
+    mkdir -p "$brain_parent/brain"
+    touch "$brain_parent/brain/command_history.txt"
+}
+
+function RH() {
+    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
+    rm -f "$brain_parent/brain/command_history.txt"
+}
 
 function WB() {
-    echo "$(FIND_BRAIN_PATH)/brain"
+    echo "$(FIND_BRAIN_PARENT_PATH)/brain"
+}
+
+function WH() {
+    echo "$(FIND_BRAIN_PARENT_PATH)/brain/command_history.txt"
+}
+
+function WN() {
+    echo "$(FIND_BRAIN_PARENT_PATH)/brain/notes.txt"
+}
+
+function WJ() {
+    echo "$(FIND_BRAIN_PARENT_PATH)/brain/junk.txt"
+}
+
+function WAI() {
+    echo "$(FIND_BRAIN_PARENT_PATH)/brain/ai.txt"
+}
+
+function WR() {
+    echo "$(FIND_BRAIN_PARENT_PATH)/brain/related.txt"
 }
 
 function CH() {
-    local brain_parent=$(FIND_BRAIN_PATH)
+    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
     [[ -n "$brain_parent" ]] && cat "$brain_parent/brain/command_history.txt"
 }
 
 function CN() {
-    local brain_parent=$(FIND_BRAIN_PATH)
+    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
     [[ -n "$brain_parent" ]] && cat "$brain_parent/brain/notes.txt"
 }
 
 function CJ() {
-    local brain_parent=$(FIND_BRAIN_PATH)
+    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
     [[ -n "$brain_parent" ]] && cat "$brain_parent/brain/junk.txt"
 }
 
 function CAI() {
-    local brain_parent=$(FIND_BRAIN_PATH)
+    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
     [[ -n "$brain_parent" ]] && cat "$brain_parent/brain/ai.txt"
 }
 
 function CRE() {
-    local brain_parent=$(FIND_BRAIN_PATH)
+    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
     [[ -n "$brain_parent" ]] && cat "$brain_parent/brain/related.txt"
 }
 
@@ -95,7 +132,7 @@ function ARE() {
         return 1
     fi
     
-    local brain_parent=$(FIND_BRAIN_PATH)
+    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
     if [[ -n "$brain_parent" ]]; then
         local full_path=$(readlink -f "$1")
         local temp_file=$(mktemp)
@@ -114,7 +151,7 @@ function ARE() {
 
 preexec() {
     local brain_parent
-    brain_parent=$(FIND_BRAIN_PATH 2>/dev/null)
+    brain_parent=$(FIND_BRAIN_PARENT_PATH 2>/dev/null)
     [[ -f "$brain_parent/brain/command_history.txt" ]] || return
 
     # Use $3 which contains the full expanded command
@@ -138,12 +175,13 @@ preexec() {
 #  %% -------- [Downloads management] ----------:
 
 function GET_FROM_DOWNLOADS(){
+    local files=$(ls -Art ~/Downloads 2>/dev/null)
+    [[ -z "$files" ]] && { echo "Downloads is empty" >&2; return 1; }
+    
     if [[ "$1" =~ ^[0-9]+$ ]]; then
-        # If argument is a number, get that many recent files
-        ls -Art ~/Downloads | tail -n $1 | while read file; do echo ~/Downloads/"$file"; done
+        echo "$files" | tail -n $1 | while read file; do echo ~/Downloads/"$file"; done
     else
-        # No arguments or invalid, get latest file
-        echo ~/Downloads/$(ls -Art ~/Downloads | tail -n 1)
+        echo ~/Downloads/$(echo "$files" | tail -n 1)
     fi
 }
 
@@ -151,18 +189,24 @@ function MV(){
     local file filename latest_download latest_download_file_name
     if [[ "$1" =~ ^[0-9]+$ ]] && [ "$#" -eq 2 ]; then
         # Number and prefix - move N files with prefix
-        GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
+        if ! GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
             filename=$(basename "$file")
             mv -v "$file" "${2}_$filename"
-        done
+        done; then
+            echo "No files to move" >&2; return 1
+        fi
     elif [[ "$1" =~ ^[0-9]+$ ]] || [ "$#" -eq 0 ]; then
         # Number or no args - move files
-        GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
+        if ! GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
             mv -v "$file" .
-        done
+        done; then
+            echo "No files to move" >&2; return 1
+        fi
     else
         # Non-numeric arg - use as prefix for latest file
-        latest_download=~/Downloads/$(ls -Art ~/Downloads | tail -n 1)
+        if ! latest_download=$(GET_FROM_DOWNLOADS 2>/dev/null); then
+            echo "No files to move" >&2; return 1
+        fi
         latest_download_file_name=$(basename "$latest_download")
         mv -v "$latest_download" "${1}_$latest_download_file_name"
     fi
@@ -172,28 +216,36 @@ function CP(){
     local file filename latest_download latest_download_file_name
     if [[ "$1" =~ ^[0-9]+$ ]] && [ "$#" -eq 2 ]; then
         # Number and prefix - copy N files with prefix
-        GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
+        if ! GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
             filename=$(basename "$file")
-            cp "$file" "${2}_$filename"
-        done
+            cp -v "$file" "${2}_$filename"
+        done; then
+            echo "No files to copy" >&2; return 1
+        fi
     elif [[ "$1" =~ ^[0-9]+$ ]] || [ "$#" -eq 0 ]; then
         # Number or no args - copy files
-        GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
-            cp "$file" .
-        done
+        if ! GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
+            cp -v "$file" .
+        done; then
+            echo "No files to copy" >&2; return 1
+        fi
     else
         # Non-numeric arg - use as prefix for latest file
-        latest_download=~/Downloads/$(ls -Art ~/Downloads | tail -n 1)
+        if ! latest_download=$(GET_FROM_DOWNLOADS 2>/dev/null); then
+            echo "No files to copy" >&2; return 1
+        fi
         latest_download_file_name=$(basename "$latest_download")
-        cp "$latest_download" "${1}_$latest_download_file_name"
+        cp -v "$latest_download" "${1}_$latest_download_file_name"
     fi
 }
 
 function RM(){
     local file
-    GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
-        [ -f "$file" ] && rm "$file"
-    done
+    if ! GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
+        [ -f "$file" ] && rm -v "$file"
+    done; then
+        echo "No files to remove" >&2; return 1
+    fi
 }
 
 #  %% -------- [remote file sharing] ----------:
@@ -358,10 +410,10 @@ function VS(){
 }
 
 function VB() {
-    local brain_parent=$(FIND_BRAIN_PATH)
+    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
     if [[ -n "$brain_parent" ]]; then
         cd "$brain_parent"
-        $NEOVIM_EDITOR brain/notes.txt brain/junk.txt brain/ai.txt brain/*
+        $NEOVIM_EDITOR brain/notes.txt brain/junk.txt brain/ai/ai.txt **/*.txt
     fi
 }
 
@@ -369,7 +421,7 @@ alias VD='$NEOVIM_EDITOR "$(GET_FROM_DOWNLOADS)"'
 alias VZ='$NEOVIM_EDITOR ~/.zshrc'
 alias VNOTES='$NEOVIM_EDITOR ~/doc/brain/notes.txt'
 alias VJUNK='$NEOVIM_EDITOR ~/doc/brain/junk.txt'
-alias VAI='$NEOVIM_EDITOR ~/doc/brain/ai.txt'
+alias VAI='$NEOVIM_EDITOR ~/doc/brain/ai/ai.txt'
 
 # %% -------- [git] ----------:
 
@@ -378,6 +430,7 @@ alias GS="git status --untracked-files=all"
 alias GI="git init"
 alias GR="git restore"
 alias GD="git diff"
+alias GDNO="git diff --name-only"
 alias GA="git add"
 alias GC="git commit -m"
 alias GCH="git checkout"
@@ -390,21 +443,21 @@ alias GPUSH="git push -u origin HEAD"
 alias GPULL='git pull --rebase origin $(git rev-parse --abbrev-ref HEAD)'
 
 function GDB() {
-    local brain_parent=$(FIND_BRAIN_PATH)
+    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
     if [[ -n "$brain_parent" ]]; then
         git -C "$brain_parent/brain" diff
     fi
 }
 
 function GSB() {
-    local brain_parent=$(FIND_BRAIN_PATH)
+    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
     if [[ -n "$brain_parent" ]]; then
         git -C "$brain_parent/brain" status
     fi
 }
 
 function GCB() {
-    local brain_parent=$(FIND_BRAIN_PATH)
+    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
     if [[ -n "$brain_parent" ]]; then
         git -C "$brain_parent/brain" add . && git -C "$brain_parent/brain" commit -m 'F'
     fi
@@ -615,7 +668,8 @@ alias CDA="cd ~/doc"
 alias CDD="cd ~/Downloads"
 alias CD="cd ~/doc"
 alias CDJ="cd ~/junk"
-alias CDB='cd "$(FIND_BRAIN_PATH)/brain"'
+alias CDB='cd "$(FIND_BRAIN_PARENT_PATH)/brain"'
+alias CDBP='cd "$(FIND_BRAIN_PARENT_PATH)"'
 # get full path
 alias FP='readlink -f'
 
