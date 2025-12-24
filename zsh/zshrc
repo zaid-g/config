@@ -1,4 +1,5 @@
-#
+# Formatting notes for file
+# 1. All variables declared inside functions must be local
 
 
 # %% -------- [project creation and management] ----------:
@@ -21,21 +22,23 @@ function GENERATE_8_PRONOUNCEABLE_RANDOM_CHARS() {
     echo "$result"
 }
 
+function CREATE_TIMESTAMPED_DIR_AND_CD() {
+    local base_dir="$1"
+    local name=${2:-$(GENERATE_8_PRONOUNCEABLE_RANDOM_CHARS 8)}
+    local dir="${base_dir:+$base_dir/}${name}_$(date +%F_%H-%M-%S)"
+    mkdir -p "$dir" && cd "$dir" && GI
+}
+
 function MKJ() {
-    local base_dir=~/junk
-    local name=${1:-$(GENERATE_8_PRONOUNCEABLE_RANDOM_CHARS 8)}
-    local dir="$base_dir/${name}_$(date +%F_%H-%M-%S)"
-    mkdir -p "$dir" && cd "$dir"
+    CREATE_TIMESTAMPED_DIR_AND_CD ~/junk "$1"
 }
 
 function MK() {
-    local name=${1:-$(GENERATE_8_PRONOUNCEABLE_RANDOM_CHARS 8)}
-    local dir="${name}_$(date +%F_%H-%M-%S)"
-    mkdir -p "$dir" && cd "$dir"
+    CREATE_TIMESTAMPED_DIR_AND_CD "" "$1"
 }
 
 function MKD() {
-    mkdir -p ~/doc/"$1" && cd ~/doc/"$1"
+    CREATE_TIMESTAMPED_DIR_AND_CD ~/doc "$1"
 }
 
 FIND_BRAIN_PARENT_PATH() {
@@ -186,19 +189,21 @@ function GET_FROM_DOWNLOADS(){
 }
 
 function MV(){
-    local file filename latest_download latest_download_file_name
+    local file filename latest_download latest_download_file_name dest
     if [[ "$1" =~ ^[0-9]+$ ]] && [ "$#" -eq 2 ]; then
         # Number and prefix - move N files with prefix
         if ! GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
-            filename=$(basename "$file")
-            mv -v "$file" "${2}_$filename"
+            local filename=$(basename "$file" | tr ' ' '_')
+            local dest="${2}_$filename"
+            mv "$file" "$dest" && echo "$file -> $(readlink -f "$dest")"
         done; then
             echo "No files to move" >&2; return 1
         fi
     elif [[ "$1" =~ ^[0-9]+$ ]] || [ "$#" -eq 0 ]; then
         # Number or no args - move files
         if ! GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
-            mv -v "$file" .
+            local filename=$(basename "$file" | tr ' ' '_')
+            mv "$file" "$filename" && echo "$file -> $(readlink -f "$filename")"
         done; then
             echo "No files to move" >&2; return 1
         fi
@@ -207,25 +212,28 @@ function MV(){
         if ! latest_download=$(GET_FROM_DOWNLOADS 2>/dev/null); then
             echo "No files to move" >&2; return 1
         fi
-        latest_download_file_name=$(basename "$latest_download")
-        mv -v "$latest_download" "${1}_$latest_download_file_name"
+        latest_download_file_name=$(basename "$latest_download" | tr ' ' '_')
+        dest="${1}_$latest_download_file_name"
+        mv "$latest_download" "$dest" && echo "$latest_download -> $(readlink -f "$dest")"
     fi
 }
 
 function CP(){
-    local file filename latest_download latest_download_file_name
+    local file filename latest_download latest_download_file_name dest
     if [[ "$1" =~ ^[0-9]+$ ]] && [ "$#" -eq 2 ]; then
         # Number and prefix - copy N files with prefix
         if ! GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
-            filename=$(basename "$file")
-            cp -v "$file" "${2}_$filename"
+            local filename=$(basename "$file" | tr ' ' '_')
+            local dest="${2}_$filename"
+            cp "$file" "$dest" && echo "$file -> $(readlink -f "$dest")"
         done; then
             echo "No files to copy" >&2; return 1
         fi
     elif [[ "$1" =~ ^[0-9]+$ ]] || [ "$#" -eq 0 ]; then
         # Number or no args - copy files
         if ! GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
-            cp -v "$file" .
+            local filename=$(basename "$file" | tr ' ' '_')
+            cp "$file" "$filename" && echo "$file -> $(readlink -f "$filename")"
         done; then
             echo "No files to copy" >&2; return 1
         fi
@@ -234,8 +242,9 @@ function CP(){
         if ! latest_download=$(GET_FROM_DOWNLOADS 2>/dev/null); then
             echo "No files to copy" >&2; return 1
         fi
-        latest_download_file_name=$(basename "$latest_download")
-        cp -v "$latest_download" "${1}_$latest_download_file_name"
+        latest_download_file_name=$(basename "$latest_download" | tr ' ' '_')
+        dest="${1}_$latest_download_file_name"
+        cp "$latest_download" "$dest" && echo "$latest_download -> $(readlink -f "$dest")"
     fi
 }
 
@@ -412,8 +421,10 @@ function VS(){
 function VB() {
     local brain_parent=$(FIND_BRAIN_PARENT_PATH)
     if [[ -n "$brain_parent" ]]; then
+        local original_dir="$PWD"
         cd "$brain_parent"
         $NEOVIM_EDITOR brain/notes.txt brain/junk.txt brain/ai/ai.txt **/*.txt
+        cd "$original_dir"
     fi
 }
 
@@ -427,7 +438,6 @@ alias VAI='$NEOVIM_EDITOR ~/doc/brain/ai/ai.txt'
 
 alias G="git"
 alias GS="git status --untracked-files=all"
-alias GI="git init"
 alias GR="git restore"
 alias GD="git diff"
 alias GDNO="git diff --name-only"
@@ -441,6 +451,15 @@ alias GFO="git fetch origin"
 alias GB="git branch --sort=-committerdate"
 alias GPUSH="git push -u origin HEAD"
 alias GPULL='git pull --rebase origin $(git rev-parse --abbrev-ref HEAD)'
+
+function GI() {
+    git init
+    cp ~/doc/config/git/gitignore .gitignore
+}
+
+function GCN() {
+    git add . && git commit -m "$(date '+%Y-%m-%d %H:%M:%S')"
+}
 
 function GDB() {
     local brain_parent=$(FIND_BRAIN_PARENT_PATH)
