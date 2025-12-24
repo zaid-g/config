@@ -1,5 +1,6 @@
 # Formatting notes for file
 # 1. All variables declared inside functions must be local
+# 2. function and alias names must always be uppercase and using underscore
 
 
 # %% -------- [project creation and management] ----------:
@@ -190,61 +191,73 @@ function GET_FROM_DOWNLOADS(){
 
 function MV(){
     local file filename latest_download latest_download_file_name dest
+
     if [[ "$1" =~ ^[0-9]+$ ]] && [ "$#" -eq 2 ]; then
         # Number and prefix - move N files with prefix
         if ! GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
-            local filename=$(basename "$file" | tr ' ' '_')
-            local dest="${2}_$filename"
-            mv "$file" "$dest" && echo "$file -> $(readlink -f "$dest")"
+            filename=$(basename "$file" | tr ' ' '_')
+            dest="${2}_$filename"
+            mv "$file" "$dest" && printf "%s ->\n%s\n" "$file" "$(readlink -f "$dest")"
         done; then
-            echo "No files to move" >&2; return 1
+            echo "No files to move" >&2
+            return 1
         fi
+
     elif [[ "$1" =~ ^[0-9]+$ ]] || [ "$#" -eq 0 ]; then
         # Number or no args - move files
         if ! GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
-            local filename=$(basename "$file" | tr ' ' '_')
-            mv "$file" "$filename" && echo "$file -> $(readlink -f "$filename")"
+            filename=$(basename "$file" | tr ' ' '_')
+            mv "$file" "$filename" && printf "%s ->\n%s\n" "$file" "$(readlink -f "$filename")"
         done; then
-            echo "No files to move" >&2; return 1
+            echo "No files to move" >&2
+            return 1
         fi
+
     else
         # Non-numeric arg - use as prefix for latest file
         if ! latest_download=$(GET_FROM_DOWNLOADS 2>/dev/null); then
-            echo "No files to move" >&2; return 1
+            echo "No files to move" >&2
+            return 1
         fi
         latest_download_file_name=$(basename "$latest_download" | tr ' ' '_')
         dest="${1}_$latest_download_file_name"
-        mv "$latest_download" "$dest" && echo "$latest_download -> $(readlink -f "$dest")"
+        mv "$latest_download" "$dest" && printf "%s ->\n%s\n" "$latest_download" "$(readlink -f "$dest")"
     fi
 }
 
 function CP(){
     local file filename latest_download latest_download_file_name dest
+
     if [[ "$1" =~ ^[0-9]+$ ]] && [ "$#" -eq 2 ]; then
         # Number and prefix - copy N files with prefix
         if ! GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
-            local filename=$(basename "$file" | tr ' ' '_')
-            local dest="${2}_$filename"
-            cp "$file" "$dest" && echo "$file -> $(readlink -f "$dest")"
+            filename=$(basename "$file" | tr ' ' '_')
+            dest="${2}_$filename"
+            cp "$file" "$dest" && printf "%s ->\n%s\n" "$file" "$(readlink -f "$dest")"
         done; then
-            echo "No files to copy" >&2; return 1
+            echo "No files to copy" >&2
+            return 1
         fi
+
     elif [[ "$1" =~ ^[0-9]+$ ]] || [ "$#" -eq 0 ]; then
         # Number or no args - copy files
         if ! GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
-            local filename=$(basename "$file" | tr ' ' '_')
-            cp "$file" "$filename" && echo "$file -> $(readlink -f "$filename")"
+            filename=$(basename "$file" | tr ' ' '_')
+            cp "$file" "$filename" && printf "%s ->\n%s\n" "$file" "$(readlink -f "$filename")"
         done; then
-            echo "No files to copy" >&2; return 1
+            echo "No files to copy" >&2
+            return 1
         fi
+
     else
         # Non-numeric arg - use as prefix for latest file
         if ! latest_download=$(GET_FROM_DOWNLOADS 2>/dev/null); then
-            echo "No files to copy" >&2; return 1
+            echo "No files to copy" >&2
+            return 1
         fi
         latest_download_file_name=$(basename "$latest_download" | tr ' ' '_')
         dest="${1}_$latest_download_file_name"
-        cp "$latest_download" "$dest" && echo "$latest_download -> $(readlink -f "$dest")"
+        cp "$latest_download" "$dest" && printf "%s ->\n%s\n" "$latest_download" "$(readlink -f "$dest")"
     fi
 }
 
