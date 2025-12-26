@@ -178,6 +178,11 @@ preexec() {
 
 #  %% -------- [Downloads management] ----------:
 
+function CLEAN_FILENAME() {
+    local input="$1"
+    echo "$input" | tr -d '*?[]|&;<>$`!"'"'"'(){}^~#\\' | tr ' \t\n' '___'
+}
+
 function GET_FROM_DOWNLOADS(){
     local files=$(ls -Art ~/Downloads 2>/dev/null)
     [[ -z "$files" ]] && { echo "Downloads is empty" >&2; return 1; }
@@ -195,7 +200,7 @@ function MV(){
     if [[ "$1" =~ ^[0-9]+$ ]] && [ "$#" -eq 2 ]; then
         # Number and prefix - move N files with prefix
         if ! GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
-            filename=$(basename "$file" | tr ' ' '_')
+            filename=$(CLEAN_FILENAME "$(basename "$file")")
             dest="${2}_$filename"
             mv "$file" "$dest" && printf "%s ->\n%s\n" "$file" "$(readlink -f "$dest")"
         done; then
@@ -206,7 +211,7 @@ function MV(){
     elif [[ "$1" =~ ^[0-9]+$ ]] || [ "$#" -eq 0 ]; then
         # Number or no args - move files
         if ! GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
-            filename=$(basename "$file" | tr ' ' '_')
+            filename=$(CLEAN_FILENAME "$(basename "$file")")
             mv "$file" "$filename" && printf "%s ->\n%s\n" "$file" "$(readlink -f "$filename")"
         done; then
             echo "No files to move" >&2
@@ -219,7 +224,7 @@ function MV(){
             echo "No files to move" >&2
             return 1
         fi
-        latest_download_file_name=$(basename "$latest_download" | tr ' ' '_')
+        latest_download_file_name=$(CLEAN_FILENAME "$(basename "$latest_download")")
         dest="${1}_$latest_download_file_name"
         mv "$latest_download" "$dest" && printf "%s ->\n%s\n" "$latest_download" "$(readlink -f "$dest")"
     fi
@@ -231,7 +236,7 @@ function CP(){
     if [[ "$1" =~ ^[0-9]+$ ]] && [ "$#" -eq 2 ]; then
         # Number and prefix - copy N files with prefix
         if ! GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
-            filename=$(basename "$file" | tr ' ' '_')
+            filename=$(CLEAN_FILENAME "$(basename "$file")")
             dest="${2}_$filename"
             cp "$file" "$dest" && printf "%s ->\n%s\n" "$file" "$(readlink -f "$dest")"
         done; then
@@ -242,7 +247,7 @@ function CP(){
     elif [[ "$1" =~ ^[0-9]+$ ]] || [ "$#" -eq 0 ]; then
         # Number or no args - copy files
         if ! GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
-            filename=$(basename "$file" | tr ' ' '_')
+            filename=$(CLEAN_FILENAME "$(basename "$file")")
             cp "$file" "$filename" && printf "%s ->\n%s\n" "$file" "$(readlink -f "$filename")"
         done; then
             echo "No files to copy" >&2
@@ -255,7 +260,7 @@ function CP(){
             echo "No files to copy" >&2
             return 1
         fi
-        latest_download_file_name=$(basename "$latest_download" | tr ' ' '_')
+        latest_download_file_name=$(CLEAN_FILENAME "$(basename "$latest_download")")
         dest="${1}_$latest_download_file_name"
         cp "$latest_download" "$dest" && printf "%s ->\n%s\n" "$latest_download" "$(readlink -f "$dest")"
     fi
@@ -278,24 +283,29 @@ function CPDTOR(){
     if [[ "$1" =~ ^[0-9]+$ ]] && [ "$#" -eq 2 ]; then
         # Number and prefix - copy N files with prefix
         GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
-            filename=$(basename "$file")
+            filename=$(CLEAN_FILENAME "$(basename "$file")")
             [ -f "$file" ] && scp "$file" $REMOTE:~/Downloads/"${2}_$filename"
         done
     elif [[ "$1" =~ ^[0-9]+$ ]] || [ "$#" -eq 0 ]; then
         # Number or no args - copy files
         GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
-            [ -f "$file" ] && scp "$file" $REMOTE:~/Downloads/
+            filename=$(CLEAN_FILENAME "$(basename "$file")")
+            [ -f "$file" ] && scp "$file" $REMOTE:~/Downloads/"$filename"
         done
     else
         # Non-numeric arg - use as prefix for latest file
-        latest_download=~/Downloads/$(ls -Art ~/Downloads | tail -n 1)
-        latest_download_file_name=$(basename "$latest_download")
+        if ! latest_download=$(GET_FROM_DOWNLOADS 2>/dev/null); then
+            echo "No files to copy" >&2
+            return 1
+        fi
+        latest_download_file_name=$(CLEAN_FILENAME "$(basename "$latest_download")")
         scp "$latest_download" $REMOTE:~/Downloads/"${1}_$latest_download_file_name"
     fi
 }
 
 function CPTOR() {
-    local filepath=$1
+    local filepath
+    filepath=$1
     if [ -z "$filepath" ]; then
         echo "Usage: CPTOR <path>"
         return 1
@@ -305,20 +315,21 @@ function CPTOR() {
 }
 
 function CPFROMR() {
+    local REMOTE_PATH LOCAL_DIR CLEAN_PATH LOCAL_NAME
     if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
         echo "Usage: CPFROMR <remote_path> [local_dir]"
         return 1
     fi
-    local REMOTE_PATH=$1
-    local LOCAL_DIR=${2:-.}
+    REMOTE_PATH=$1
+    LOCAL_DIR=${2:-.}
     if [ -z "$REMOTE" ]; then
         echo "Error: REMOTE environment variable must be set"
         return 1
     fi
     mkdir -p "$LOCAL_DIR"
     # Strip leading and trailing slashes, then replace remaining slashes with underscores
-    local CLEAN_PATH=$(echo "$REMOTE_PATH" | sed 's|^/||; s|/$||; s|/|_|g')
-    local LOCAL_NAME="${REMOTE}_${CLEAN_PATH}"
+    CLEAN_PATH=$(CLEAN_FILENAME "$(echo "$REMOTE_PATH" | sed 's|^/||; s|/$||; s|/|_|g')")
+    LOCAL_NAME="${REMOTE}_${CLEAN_PATH}"
     if scp -r $REMOTE:$REMOTE_PATH "$LOCAL_DIR/$LOCAL_NAME"; then
         chmod -R u+w "$LOCAL_DIR/"
         echo "✅ Copied to: $LOCAL_DIR/$LOCAL_NAME"
