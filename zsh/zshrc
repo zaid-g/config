@@ -652,10 +652,10 @@ alias LIDDECAFF='sudo pmset -a disablesleep 0'
 # %% -------- [docker] ----------:
 
 function DOCK(){
-    sudo docker run -it -v $HOME/doc/config:/home/ubuntu/doc/config $@ main
+    sudo docker run -it -v $HOME/doc/config/config:/home/ubuntu/doc/config $@ main
 }
 function DOCKCWD(){
-    sudo docker run -it -v $(pwd):$(pwd) -v $HOME/doc/config:/home/ubuntu/doc/config -w $(pwd) $@ main
+    sudo docker run -it -v $(pwd):$(pwd) -v $HOME/doc/config/config:/home/ubuntu/doc/config -w $(pwd) $@ main
 }
 alias D="docker"
 alias DB="docker build"
