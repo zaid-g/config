@@ -58,9 +58,13 @@ FIND_BRAIN_PARENT_PATH() {
 function TB() {
     mkdir -p brain/ai/logs
     touch brain/notes.txt brain/junk.txt brain/related.txt
-    cp ~/doc/brain/ai/ai.txt brain/ai/
+    if [[ -f ~/doc/brain/ai/ai.txt ]]; then
+        cp ~/doc/brain/ai/ai.txt brain/ai/
+    else
+        touch brain/ai/ai.txt
+    fi
     [[ ! -d brain/.git ]] && git -C brain init
-    if git rev-parse --git-dir > /dev/null 2>&1; then
+    if git rev-parse --git-dir > /dev/null 2>&1 && ! grep -q "^brain/$" .gitignore 2>/dev/null; then
         echo "brain/" >> .gitignore
     fi
 }
@@ -454,6 +458,7 @@ function VB() {
 
 alias VD='$NEOVIM_EDITOR "$(GET_FROM_DOWNLOADS)"'
 alias VZ='$NEOVIM_EDITOR ~/.zshrc'
+alias VT='$NEOVIM_EDITOR ~/.tmux.conf'
 alias VNOTES='$NEOVIM_EDITOR ~/doc/brain/notes.txt'
 alias VJUNK='$NEOVIM_EDITOR ~/doc/brain/junk.txt'
 alias VAI='$NEOVIM_EDITOR ~/doc/brain/ai/ai.txt'
