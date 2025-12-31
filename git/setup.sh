@@ -16,3 +16,8 @@ git config --global delta.whitespace-error-style "reverse purple"
 
 git config --global core.excludesfile ~/.gitignore_global
 echo ".local/" >> ~/.gitignore_global
+
+
+#  %% -------- [default main branch name] ----------:
+
+git config --global init.defaultBranch main
