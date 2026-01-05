@@ -180,131 +180,60 @@ preexec() {
 
 
 
-#  %% -------- [Downloads management] ----------:
+#  %% -------- [file folder directory management] ----------:
 
 function CLEAN_FILENAME() {
-    local input="$1"
-    echo "$input" | tr -d '*?[]|&;<>$`!"'"'"'(){}^~#\\' | tr ' \t\n' '___'
+    echo -n "$1" | tr -d '*?[]|&;<>$`!"'"'"'(){}^~#\\' | tr ' \t\n' '___'
 }
 
-function GET_FROM_DOWNLOADS(){
-    local files=$(ls -Art ~/Downloads 2>/dev/null)
-    [[ -z "$files" ]] && { echo "Downloads is empty" >&2; return 1; }
-    
-    if [[ "$1" =~ ^[0-9]+$ ]]; then
-        echo "$files" | tail -n $1 | while read file; do echo ~/Downloads/"$file"; done
-    else
-        echo ~/Downloads/$(echo "$files" | tail -n 1)
+function PROCESS_DOWNLOAD_FILES_PATHS() {
+    local prefix="" count=1
+
+    if [[ "$1" =~ ^[0-9]+$ ]] && [[ -n "$2" ]]; then
+        count="$1"; prefix="$2"
+    elif [[ "$1" =~ ^[0-9]+$ ]]; then
+        count="$1"
+    elif [[ -n "$1" ]]; then
+        prefix="$1"
     fi
+
+    local files=$(ls -Art ~/Downloads 2>/dev/null | tail -n $count)
+    [[ -z "$files" ]] && { echo "No files found" >&2; return 1; }
+
+    echo "$files" | while IFS= read -r f; do
+        local source_path="$HOME/Downloads/$f"
+        local clean_filename=$(CLEAN_FILENAME "$f")
+        local dest_filename="${prefix:+${prefix}_}$clean_filename"
+        echo "$source_path|$dest_filename"
+    done
 }
 
-function MV(){
-    local file filename latest_download latest_download_file_name dest
-
-    if [[ "$1" =~ ^[0-9]+$ ]] && [ "$#" -eq 2 ]; then
-        # Number and prefix - move N files with prefix
-        if ! GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
-            filename=$(CLEAN_FILENAME "$(basename "$file")")
-            dest="${2}_$filename"
-            mv "$file" "$dest" && printf "%s ->\n%s\n" "$file" "$(readlink -f "$dest")"
-        done; then
-            echo "No files to move" >&2
-            return 1
-        fi
-
-    elif [[ "$1" =~ ^[0-9]+$ ]] || [ "$#" -eq 0 ]; then
-        # Number or no args - move files
-        if ! GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
-            filename=$(CLEAN_FILENAME "$(basename "$file")")
-            mv "$file" "$filename" && printf "%s ->\n%s\n" "$file" "$(readlink -f "$filename")"
-        done; then
-            echo "No files to move" >&2
-            return 1
-        fi
-
-    else
-        # Non-numeric arg - use as prefix for latest file
-        if ! latest_download=$(GET_FROM_DOWNLOADS 2>/dev/null); then
-            echo "No files to move" >&2
-            return 1
-        fi
-        latest_download_file_name=$(CLEAN_FILENAME "$(basename "$latest_download")")
-        dest="${1}_$latest_download_file_name"
-        mv "$latest_download" "$dest" && printf "%s ->\n%s\n" "$latest_download" "$(readlink -f "$dest")"
-    fi
+function MV() {
+    PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r source dest; do
+        mv "$source" "$dest" && printf "%s ->\n%s\n" "$source" "$(readlink -f "$dest")"
+    done
 }
 
-function CP(){
-    local file filename latest_download latest_download_file_name dest
-
-    if [[ "$1" =~ ^[0-9]+$ ]] && [ "$#" -eq 2 ]; then
-        # Number and prefix - copy N files with prefix
-        if ! GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
-            filename=$(CLEAN_FILENAME "$(basename "$file")")
-            dest="${2}_$filename"
-            cp "$file" "$dest" && printf "%s ->\n%s\n" "$file" "$(readlink -f "$dest")"
-        done; then
-            echo "No files to copy" >&2
-            return 1
-        fi
-
-    elif [[ "$1" =~ ^[0-9]+$ ]] || [ "$#" -eq 0 ]; then
-        # Number or no args - copy files
-        if ! GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
-            filename=$(CLEAN_FILENAME "$(basename "$file")")
-            cp "$file" "$filename" && printf "%s ->\n%s\n" "$file" "$(readlink -f "$filename")"
-        done; then
-            echo "No files to copy" >&2
-            return 1
-        fi
-
-    else
-        # Non-numeric arg - use as prefix for latest file
-        if ! latest_download=$(GET_FROM_DOWNLOADS 2>/dev/null); then
-            echo "No files to copy" >&2
-            return 1
-        fi
-        latest_download_file_name=$(CLEAN_FILENAME "$(basename "$latest_download")")
-        dest="${1}_$latest_download_file_name"
-        cp "$latest_download" "$dest" && printf "%s ->\n%s\n" "$latest_download" "$(readlink -f "$dest")"
-    fi
+function CP() {
+    PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r source dest; do
+        cp "$source" "$dest" && printf "%s ->\n%s\n" "$source" "$(readlink -f "$dest")"
+    done
 }
 
-function RM(){
-    local file
-    if ! GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
-        [ -f "$file" ] && rm -v "$file"
-    done; then
-        echo "No files to remove" >&2; return 1
-    fi
-}
-
-#  %% -------- [remote file sharing] ----------:
-
-function CPDTOR(){
-    local file filename latest_download latest_download_file_name
+function CPDTOR() {
     ssh $REMOTE "mkdir -p ~/Downloads"
-    if [[ "$1" =~ ^[0-9]+$ ]] && [ "$#" -eq 2 ]; then
-        # Number and prefix - copy N files with prefix
-        GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
-            filename=$(CLEAN_FILENAME "$(basename "$file")")
-            [ -f "$file" ] && scp "$file" $REMOTE:~/Downloads/"${2}_$filename"
-        done
-    elif [[ "$1" =~ ^[0-9]+$ ]] || [ "$#" -eq 0 ]; then
-        # Number or no args - copy files
-        GET_FROM_DOWNLOADS "$1" | while IFS= read -r file; do
-            filename=$(CLEAN_FILENAME "$(basename "$file")")
-            [ -f "$file" ] && scp "$file" $REMOTE:~/Downloads/"$filename"
-        done
-    else
-        # Non-numeric arg - use as prefix for latest file
-        if ! latest_download=$(GET_FROM_DOWNLOADS 2>/dev/null); then
-            echo "No files to copy" >&2
-            return 1
+    PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r source dest; do
+        [ -f "$source" ] && scp "$source" $REMOTE:~/Downloads/"$dest"
+    done
+}
+
+function MVDTOR() {
+    ssh $REMOTE "mkdir -p ~/Downloads"
+    PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r source dest; do
+        if [ -f "$source" ]; then
+            scp "$source" $REMOTE:~/Downloads/"$dest" && rm "$source"
         fi
-        latest_download_file_name=$(CLEAN_FILENAME "$(basename "$latest_download")")
-        scp "$latest_download" $REMOTE:~/Downloads/"${1}_$latest_download_file_name"
-    fi
+    done
 }
 
 function CPTOR() {
@@ -410,15 +339,16 @@ function GREP() {
 
 # %% -------- [vi vim lazyvim neovim nvim vi mode vi-mode] ----------:
 
-# vi mode
+# zsh vi mode
 bindkey -v
 export KEYTIMEOUT=1
 
-export NEOVIM_EDITOR=~/app/neovim/squashfs-root/AppRun
-export EDITOR=~/app/neovim/squashfs-root/AppRun
+# override this on dev machine
+export NVIM_APPNAME="nvim" # lazyvim
+export NEOVIM_EDITOR="nvim"
 
 # vim, VM taken
-alias V='$NEOVIM_EDITOR'
+alias V="$NEOVIM_EDITOR"
 
 function VP() {
     local files
@@ -456,12 +386,15 @@ function VB() {
     fi
 }
 
-alias VD='$NEOVIM_EDITOR "$(GET_FROM_DOWNLOADS)"'
-alias VZ='$NEOVIM_EDITOR ~/.zshrc'
-alias VT='$NEOVIM_EDITOR ~/.tmux.conf'
-alias VNOTES='$NEOVIM_EDITOR ~/doc/brain/notes.txt'
-alias VJUNK='$NEOVIM_EDITOR ~/doc/brain/junk.txt'
-alias VAI='$NEOVIM_EDITOR ~/doc/brain/ai/ai.txt'
+function VZ() { $NEOVIM_EDITOR ~/.zshrc; }
+
+function VT() { $NEOVIM_EDITOR ~/.tmux.conf; }
+
+function VNOTES() { $NEOVIM_EDITOR ~/doc/brain/notes.txt; }
+
+function VJUNK() { $NEOVIM_EDITOR ~/doc/brain/junk.txt; }
+
+function VAI() { $NEOVIM_EDITOR ~/doc/brain/ai/ai.txt; }
 
 # %% -------- [git] ----------:
 
@@ -601,14 +534,14 @@ function chpwd() {
 
 # %% -------- [tmux] ----------:
 
-alias T="tmux -2"
+alias T='DISPLAY_COLOR=$DISPLAY_COLOR tmux -2'
 alias TLS="tmux ls"
 alias TAS="tmux attach-session -t"
 alias TKS="tmux kill-session -t"
 alias TKAS="tmux kill-server"
 
 function TS() {
-    tmux new-session -d
+    DISPLAY_COLOR="$DISPLAY_COLOR" tmux new-session -d
     local SESSION=$(tmux display-message -p '#S')
 
     # "doc" (horizontal split)
@@ -633,7 +566,7 @@ function TS() {
     tmux new-window -t $SESSION: -n 'config'
     tmux split-window -h -t $SESSION:3
     tmux send-keys -t $SESSION:3.0 'CDC' C-m
-    tmux send-keys -t $SESSION:3.1 'CDC' C-m
+    tmux send-keys -t $SESSION:3.1 'CDCC' C-m
 
     tmux attach-session -t $SESSION:0
 }
@@ -712,6 +645,7 @@ function ADAL() {
 # %% -------- [path management cd directories movement] ----------:
 
 alias CDC="cd ~/doc/config"
+alias CDCC="cd ~/doc/config/config"
 alias CDA="cd ~/doc"
 alias CDD="cd ~/Downloads"
 alias CD="cd ~/doc"
@@ -778,12 +712,14 @@ zstyle ':completion:*' matcher-list '' \
     'r:[^[:alpha:]]||[[:alpha:]]=** r:|=* m:{a-z\-}={A-Z\_}' \
     'r:|?=** m:{a-z\-}={A-Z\_}'
 
-# %% ---------- [colors and prompt] ----------:
+# %% ---------- [colors and prompt display color DISPLAY_COLOR] ----------:
 
+export DISPLAY_COLOR=green  # blue green cyan
+setopt PROMPT_SUBST # expands PS1 single quote
 autoload -U colors && colors
-PS1=" %{$fg[green]%}%~%{$fg[green]%} %{$reset_color%}$%b "
-zle_highlight=('region:bg=168,fg=251')
-zle_highlight=('paste:bg=168,fg=251', 'region:bg=168,fg=251')
+export PS1=' %{$fg[$DISPLAY_COLOR]%}%~%{$fg[$DISPLAY_COLOR]%} %{$reset_color%}$%b '
+export zle_highlight=('region:bg=168,fg=251')
+export zle_highlight=('paste:bg=168,fg=251', 'region:bg=168,fg=251')
 
 # %% -------- [others] ----------:
 
@@ -791,8 +727,3 @@ zle_highlight=('paste:bg=168,fg=251', 'region:bg=168,fg=251')
 alias H="history 0"
 # Bind Ctrl-space to clear-screen
 bindkey '^@' clear-screen
-
-# %% ---------- [syntax highlighting] ----------:
-
-# should be last.
-source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null

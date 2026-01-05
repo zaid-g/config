@@ -12,17 +12,23 @@ mkdir -p ~/.config/waybar
 mkdir -p ~/.config/alacritty
 mkdir -p ~/.ipython/profile_default
 
-# %% -------- [nvim] ----------:
+# %% -------- [nvim base] ----------:
 
-# touch -a ~/.config/nvim/init.lua
-# grep -qF 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/basic.lua"))' ~/.config/nvim/init.lua || echo "$(
-#     cat ~/.config/nvim/init.lua
-#     printf '%s\n' 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/basic.lua"))'
-# )" >~/.config/nvim/init.lua
-# grep -qF 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/advanced.lua"))' ~/.config/nvim/init.lua || echo "$(
-#     cat ~/.config/nvim/init.lua
-#     printf '%s\n' '--dofile(vim.fn.expand("~/doc/config/config/vi/nvim/advanced.lua"))'
-# )" >~/.config/nvim/init.lua
+touch -a ~/.config/nvim/init.lua
+grep -qF 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/basic.lua"))' ~/.config/nvim/init.lua || echo "$(
+    cat ~/.config/nvim/init.lua
+    printf '%s\n' 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/basic.lua"))'
+)" >~/.config/nvim/init.lua
+grep -qF 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/advanced.lua"))' ~/.config/nvim/init.lua || echo "$(
+    cat ~/.config/nvim/init.lua
+    printf '%s\n' '--dofile(vim.fn.expand("~/doc/config/config/vi/nvim/advanced.lua"))'
+)" >~/.config/nvim/init.lua
+
+
+
+#  %% -------- [lazyvim] ----------:
+
+bash ~/doc/config/config/vi/lazyvim/apply_config.sh
 
 # %% -------- [zsh] ----------:
 
