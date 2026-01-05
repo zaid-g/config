@@ -64,9 +64,6 @@ function TB() {
         touch brain/ai/ai.txt
     fi
     [[ ! -d brain/.git ]] && git -C brain init
-    if git rev-parse --git-dir > /dev/null 2>&1 && ! grep -q "^brain/$" .gitignore 2>/dev/null; then
-        echo "brain/" >> .gitignore
-    fi
 }
 
 function TH() {
@@ -381,7 +378,7 @@ function VB() {
     if [[ -n "$brain_parent" ]]; then
         local original_dir="$PWD"
         cd "$brain_parent"
-        $NEOVIM_EDITOR brain/notes.txt brain/junk.txt brain/ai/ai.txt **/*.txt
+        $NEOVIM_EDITOR brain/notes.txt brain/junk.txt brain/ai/ai.txt brain/**/*.txt
         cd "$original_dir"
     fi
 }
