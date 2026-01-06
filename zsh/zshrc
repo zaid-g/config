@@ -56,14 +56,18 @@ FIND_BRAIN_PARENT_PATH() {
 }
 
 function TB() {
-    mkdir -p brain/ai/logs
-    touch brain/notes.txt brain/junk.txt brain/related.txt
-    if [[ -f ~/doc/brain/ai/ai.txt ]]; then
-        cp ~/doc/brain/ai/ai.txt brain/ai/
+    local src="$HOME/doc/brain/ai/ai.txt"
+    local dst_dir="brain/ai"
+    mkdir -p "$dst_dir/logs" || return 1
+    touch brain/notes.txt brain/junk.txt brain/related.txt || return 1
+    if [[ -f "$src" ]]; then
+        [[ -f "$dst_dir/ai.txt" ]] || cp "$src" "$dst_dir/"
     else
-        touch brain/ai/ai.txt
+        touch "$dst_dir/ai.txt"
     fi
-    [[ ! -d brain/.git ]] && git -C brain init
+    if [[ ! -d brain/.git ]]; then
+        git -C brain init >/dev/null 2>&1 || return 1
+    fi
 }
 
 function TH() {
