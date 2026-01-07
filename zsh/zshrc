@@ -669,7 +669,7 @@ alias mvv="mv -v"
 # %% -------- [config management] ----------:
 
 alias AC="bash ~/doc/config/config/apply_config.sh"
-FAAC() {
+function FAAC() {
   [[ $PWD == */doc/config/config ]] && cd ~/doc/config
   bash ~/doc/config/config/fetch_and_apply_config.sh
 }
