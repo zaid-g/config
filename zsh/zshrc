@@ -56,17 +56,10 @@ FIND_BRAIN_PARENT_PATH() {
 }
 
 function TB() {
-    local src="$HOME/doc/brain/ai/ai.txt"
-    local dst_dir="brain/ai"
-    mkdir -p "$dst_dir/logs" || return 1
-    touch brain/notes.txt brain/junk.txt brain/related.txt || return 1
-    if [[ -f "$src" ]]; then
-        [[ -f "$dst_dir/ai.txt" ]] || cp "$src" "$dst_dir/"
-    else
-        touch "$dst_dir/ai.txt"
-    fi
+    mkdir -p brain/junk brain/logs brain/ai
+    touch brain/notes.txt brain/junk/junk.txt brain/related.txt
     if [[ ! -d brain/.git ]]; then
-        git -C brain init >/dev/null 2>&1 || return 1
+        git -C brain init >/dev/null 2>&1
     fi
 }
 
@@ -94,7 +87,7 @@ function WN() {
 }
 
 function WJ() {
-    echo "$(FIND_BRAIN_PARENT_PATH)/brain/junk.txt"
+    echo "$(FIND_BRAIN_PARENT_PATH)/brain/junk/junk.txt"
 }
 
 function WAI() {
@@ -117,7 +110,7 @@ function CN() {
 
 function CJ() {
     local brain_parent=$(FIND_BRAIN_PARENT_PATH)
-    [[ -n "$brain_parent" ]] && cat "$brain_parent/brain/junk.txt"
+    [[ -n "$brain_parent" ]] && cat "$brain_parent/brain/junk/junk.txt"
 }
 
 function CAI() {
@@ -266,7 +259,8 @@ function CPFROMR() {
     LOCAL_NAME="${REMOTE}_${CLEAN_PATH}"
     if scp -r $REMOTE:$REMOTE_PATH "$LOCAL_DIR/$LOCAL_NAME"; then
         chmod -R u+w "$LOCAL_DIR/"
-        echo "✅ Copied to: $LOCAL_DIR/$LOCAL_NAME"
+        echo "✅ Copied to: "
+        echo "$LOCAL_DIR/$LOCAL_NAME"
     else
         echo "❌ SCP failed for $REMOTE:$REMOTE_PATH"
         return 1
@@ -382,7 +376,7 @@ function VB() {
     if [[ -n "$brain_parent" ]]; then
         local original_dir="$PWD"
         cd "$brain_parent"
-        $NEOVIM_EDITOR brain/notes.txt brain/junk.txt brain/ai/ai.txt brain/**/*.txt
+        $NEOVIM_EDITOR brain/notes.txt brain/junk/junk.txt brain/ai/ai.txt brain/**/*.txt
         cd "$original_dir"
     fi
 }
@@ -393,7 +387,7 @@ function VT() { $NEOVIM_EDITOR ~/.tmux.conf; }
 
 function VNOTES() { $NEOVIM_EDITOR ~/doc/brain/notes.txt; }
 
-function VJUNK() { $NEOVIM_EDITOR ~/doc/brain/junk.txt; }
+function VJUNK() { $NEOVIM_EDITOR ~/doc/brain/junk/junk.txt; }
 
 function VAI() { $NEOVIM_EDITOR ~/doc/brain/ai/ai.txt; }
 
