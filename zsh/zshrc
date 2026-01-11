@@ -376,7 +376,7 @@ function VB() {
     if [[ -n "$brain_parent" ]]; then
         local original_dir="$PWD"
         cd "$brain_parent"
-        $NEOVIM_EDITOR brain/notes.txt brain/junk/junk.txt brain/ai/ai.txt brain/**/*.txt
+        $NEOVIM_EDITOR brain/**/notes.txt brain/**/junk.txt brain/**/ai.txt brain/**/*.txt
         cd "$original_dir"
     fi
 }
