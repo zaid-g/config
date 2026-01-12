@@ -31,7 +31,7 @@ function CREATE_TIMESTAMPED_DIR_AND_CD() {
 }
 
 function MKJ() {
-    CREATE_TIMESTAMPED_DIR_AND_CD ~/junk "$1"
+    CREATE_TIMESTAMPED_DIR_AND_CD ~/doc/junk "$1"
 }
 
 function MK() {
@@ -418,27 +418,6 @@ function GCN() {
     git add . && git commit -m "$(date '+%Y-%m-%d %H:%M:%S')"
 }
 
-function GDB() {
-    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
-    if [[ -n "$brain_parent" ]]; then
-        git -C "$brain_parent/brain" diff
-    fi
-}
-
-function GSB() {
-    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
-    if [[ -n "$brain_parent" ]]; then
-        git -C "$brain_parent/brain" status
-    fi
-}
-
-function GCB() {
-    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
-    if [[ -n "$brain_parent" ]]; then
-        git -C "$brain_parent/brain" add . && git -C "$brain_parent/brain" commit -m 'F'
-    fi
-}
-
 function GDIFF() {
     git rev-parse --git-dir >/dev/null 2>&1 || { echo "Not a git repo"; return 1; }
     local tmpfile=$(mktemp) file
@@ -644,7 +623,7 @@ alias CDCC="cd ~/doc/config/config"
 alias CDA="cd ~/doc"
 alias CDD="cd ~/Downloads"
 alias CD="cd ~/doc"
-alias CDJ="cd ~/junk"
+alias CDJ="cd ~/doc/junk"
 alias CDB='cd "$(FIND_BRAIN_PARENT_PATH)/brain"'
 alias CDBP='cd "$(FIND_BRAIN_PARENT_PATH)"'
 # get full path
