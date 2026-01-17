@@ -57,7 +57,7 @@ FIND_BRAIN_PARENT_PATH() {
 
 function TB() {
     mkdir -p brain/junk brain/logs brain/ai
-    touch brain/notes.txt brain/junk/junk.txt brain/related.txt
+    touch brain/notes.txt brain/junk/junk.txt brain/related.txt brain/ai/ai.txt
     if [[ ! -d brain/.git ]]; then
         git -C brain init >/dev/null 2>&1
     fi
@@ -123,6 +123,7 @@ function CRE() {
     [[ -n "$brain_parent" ]] && cat "$brain_parent/brain/related.txt"
 }
 
+# add related
 function ARE() {
     if [[ $# -ne 1 ]]; then
         echo "Error: ARE requires exactly one argument (path)" >&2
@@ -416,6 +417,27 @@ function GI() {
 
 function GCN() {
     git add . && git commit -m "$(date '+%Y-%m-%d %H:%M:%S')"
+}
+
+function GDBP() {
+    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
+    if [[ -n "$brain_parent" ]]; then
+        git -C "$brain_parent" diff
+    fi
+}
+
+function GSBP() {
+    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
+    if [[ -n "$brain_parent" ]]; then
+        git -C "$brain_parent" status
+    fi
+}
+
+function GCBP() {
+    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
+    if [[ -n "$brain_parent" ]]; then
+        git -C "$brain_parent" add . && git -C "$brain_parent" commit -m 'F'
+    fi
 }
 
 function GDIFF() {
