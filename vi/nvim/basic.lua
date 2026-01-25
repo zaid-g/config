@@ -229,6 +229,9 @@ vim.keymap.set(
 	"<c-w>n:setlocal buftype=nofile<CR>:setlocal bufhidden=hide<CR>:setlocal noswapfile<CR>"
 )
 
+-- print full path of current buffer
+vim.keymap.set("n", "mFP", ":echo expand('%:p')<CR>", { silent = true })
+
 -- switch to last window
 vim.keymap.set('n', '<ESC><ESC>', 'g<TAB>')
 

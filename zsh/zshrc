@@ -55,75 +55,96 @@ FIND_BRAIN_PARENT_PATH() {
     return 1
 }
 
+FIND_BRAIN_PARENT_NAME() {
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    basename "$brain_parent_path"
+}
+
 function TB() {
     mkdir -p brain/junk brain/logs brain/ai
-    touch brain/notes.txt brain/junk/junk.txt brain/related.txt brain/ai/ai.txt
-    if [[ ! -d brain/.git ]]; then
-        git -C brain init >/dev/null 2>&1
-    fi
+    touch brain/notes.txt brain/junk/junk.txt brain/related.txt brain/ai/ai.txt brain/tags.txt
 }
 
 function TH() {
-    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
-    mkdir -p "$brain_parent/brain"
-    touch "$brain_parent/brain/command_history.txt"
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    mkdir -p "$brain_parent_path/brain"
+    touch "$brain_parent_path/brain/command_history.txt"
 }
 
 function RH() {
-    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
-    rm -f "$brain_parent/brain/command_history.txt"
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    rm -f "$brain_parent_path/brain/command_history.txt"
 }
 
 function WB() {
-    echo "$(FIND_BRAIN_PARENT_PATH)/brain"
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    echo "$brain_parent_path/brain"
 }
 
 function WH() {
-    echo "$(FIND_BRAIN_PARENT_PATH)/brain/command_history.txt"
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    echo "$brain_parent_path/brain/command_history.txt"
 }
 
 function WN() {
-    echo "$(FIND_BRAIN_PARENT_PATH)/brain/notes.txt"
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    echo "$brain_parent_path/brain/notes.txt"
 }
 
 function WJ() {
-    echo "$(FIND_BRAIN_PARENT_PATH)/brain/junk/junk.txt"
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    echo "$brain_parent_path/brain/junk/junk.txt"
 }
 
 function WAI() {
-    echo "$(FIND_BRAIN_PARENT_PATH)/brain/ai.txt"
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    echo "$brain_parent_path/brain/ai.txt"
 }
 
 function WR() {
-    echo "$(FIND_BRAIN_PARENT_PATH)/brain/related.txt"
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    echo "$brain_parent_path/brain/related.txt"
 }
 
 function CH() {
-    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
-    [[ -n "$brain_parent" ]] && cat "$brain_parent/brain/command_history.txt"
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    cat "$brain_parent_path/brain/command_history.txt"
 }
 
 function CN() {
-    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
-    [[ -n "$brain_parent" ]] && cat "$brain_parent/brain/notes.txt"
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    cat "$brain_parent_path/brain/notes.txt"
 }
 
 function CJ() {
-    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
-    [[ -n "$brain_parent" ]] && cat "$brain_parent/brain/junk/junk.txt"
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    cat "$brain_parent_path/brain/junk/junk.txt"
 }
 
 function CAI() {
-    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
-    [[ -n "$brain_parent" ]] && cat "$brain_parent/brain/ai.txt"
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    cat "$brain_parent_path/brain/ai.txt"
 }
 
 function CRE() {
-    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
-    [[ -n "$brain_parent" ]] && cat "$brain_parent/brain/related.txt"
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    cat "$brain_parent_path/brain/related.txt"
 }
 
-# add related
 function ARE() {
     if [[ $# -ne 1 ]]; then
         echo "Error: ARE requires exactly one argument (path)" >&2
@@ -135,27 +156,25 @@ function ARE() {
         return 1
     fi
     
-    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
-    if [[ -n "$brain_parent" ]]; then
-        local full_path=$(readlink -f "$1")
-        local temp_file=$(mktemp)
-        
-        # Add existing paths and new path to temp file, then sort unique
-        if [[ -f "$brain_parent/brain/related.txt" ]]; then
-            cat "$brain_parent/brain/related.txt" > "$temp_file"
-        fi
-        echo "$full_path" >> "$temp_file"
-        
-        # Remove duplicates and save back
-        sort -u "$temp_file" > "$brain_parent/brain/related.txt"
-        rm "$temp_file"
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    local full_path=$(readlink -f "$1")
+    local temp_file=$(mktemp)
+    
+    # Add existing paths and new path to temp file, then sort unique
+    if [[ -f "$brain_parent_path/brain/related.txt" ]]; then
+        cat "$brain_parent_path/brain/related.txt" > "$temp_file"
     fi
+    echo "$full_path" >> "$temp_file"
+    
+    # Remove duplicates and save back
+    sort -u "$temp_file" > "$brain_parent_path/brain/related.txt"
+    rm "$temp_file"
 }
 
 preexec() {
-    local brain_parent
-    brain_parent=$(FIND_BRAIN_PARENT_PATH 2>/dev/null)
-    [[ -f "$brain_parent/brain/command_history.txt" ]] || return
+    local brain_parent_path=$(FIND_BRAIN_PARENT_PATH 2>/dev/null) || return
+    [[ -f "$brain_parent_path/brain/command_history.txt" ]] || return
 
     # Use $3 which contains the full expanded command
     local clean_cmd=$(echo "$3" | tr '\n\r' ' ')
@@ -164,13 +183,13 @@ preexec() {
     local lines=()
     while IFS= read -r line; do
         [[ "$line" != *$'\t\t\t'"$clean_cmd"$'\t\t\t'"$PWD" ]] && lines+=("$line")
-    done < "$brain_parent/brain/command_history.txt"
+    done < "$brain_parent_path/brain/command_history.txt"
 
     # Append new entry: DATETIME \t\t\t COMMAND \t\t\t PATH
     lines+=("$(date '+%Y-%m-%d %H:%M:%S')"$'\t\t\t'"$clean_cmd"$'\t\t\t'"$PWD")
 
     # Sort by first field (datetime) in descending order
-    printf '%s\n' "${lines[@]}" | sort > "$brain_parent/brain/command_history.txt"
+    printf '%s\n' "${lines[@]}" | sort > "$brain_parent_path/brain/command_history.txt"
 }
 
 
@@ -373,13 +392,12 @@ function VS(){
 }
 
 function VB() {
-    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
-    if [[ -n "$brain_parent" ]]; then
-        local original_dir="$PWD"
-        cd "$brain_parent"
-        $NEOVIM_EDITOR brain/**/notes.txt brain/**/junk.txt brain/**/ai.txt brain/**/*.txt
-        cd "$original_dir"
-    fi
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    local original_dir="$PWD"
+    cd "$brain_parent_path"
+    $NEOVIM_EDITOR -c "set autowrite" brain/**/notes.txt brain/**/junk.txt brain/**/ai.txt brain/**/*.txt
+    cd "$original_dir"
 }
 
 function VZ() { $NEOVIM_EDITOR ~/.zshrc; }
@@ -391,6 +409,11 @@ function VNOTES() { $NEOVIM_EDITOR ~/doc/brain/notes.txt; }
 function VJUNK() { $NEOVIM_EDITOR ~/doc/brain/junk/junk.txt; }
 
 function VAI() { $NEOVIM_EDITOR ~/doc/brain/ai/ai.txt; }
+
+function VD() {
+    local files=($(PROCESS_DOWNLOAD_FILES_PATHS "$@" | cut -d'|' -f1))
+    (( ${#files[@]} )) && $NEOVIM_EDITOR "${files[@]}"
+}
 
 # %% -------- [git] ----------:
 
@@ -411,8 +434,20 @@ alias GPUSH="git push -u origin HEAD"
 alias GPULL='git pull --rebase origin $(git rev-parse --abbrev-ref HEAD)'
 
 function GI() {
-    git init
-    cp ~/doc/config/config/git/gitignore .gitignore
+    if [[ ! -d .git ]]; then
+        git init
+        cp ~/doc/config/config/git/gitignore .gitignore
+        GCN
+    else
+        echo "Git repository already exists"
+    fi
+}
+
+function GIG() {
+    [[ -z "$1" ]] && { echo "Usage: GIG <path>"; return 1; }
+    [[ ! -d .git ]] && { echo "Not a git repository"; return 1; }
+    [[ ! -f .gitignore ]] && touch .gitignore
+    grep -Fxq "$1" .gitignore || echo "$1" >> .gitignore
 }
 
 function GCN() {
@@ -420,24 +455,21 @@ function GCN() {
 }
 
 function GDBP() {
-    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
-    if [[ -n "$brain_parent" ]]; then
-        git -C "$brain_parent" diff
-    fi
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    git -C "$brain_parent_path" diff
 }
 
 function GSBP() {
-    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
-    if [[ -n "$brain_parent" ]]; then
-        git -C "$brain_parent" status
-    fi
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    git -C "$brain_parent_path" status
 }
 
 function GCBP() {
-    local brain_parent=$(FIND_BRAIN_PARENT_PATH)
-    if [[ -n "$brain_parent" ]]; then
-        git -C "$brain_parent" add . && git -C "$brain_parent" commit -m 'F'
-    fi
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    git -C "$brain_parent_path" add . && git -C "$brain_parent_path" commit -m 'F'
 }
 
 function GDIFF() {
@@ -521,6 +553,7 @@ function PVENV(){
 
 function chpwd() {
     local leaf="${PWD:t}"
+    [[ -z "$leaf" ]] && return  # Skip if at root or empty
     local env="$HOME/.virtualenvs/.$leaf"
     if [[ -d "$env" && "$VIRTUAL_ENV" != "$env" ]]; then
         [[ -n "$VIRTUAL_ENV" ]] && deactivate
@@ -565,6 +598,27 @@ function TS() {
     tmux send-keys -t $SESSION:3.1 'CDCC' C-m
 
     tmux attach-session -t $SESSION:0
+}
+
+function TMUX_RENAME_WINDOW() {
+    local window_name
+    window_name=$(FIND_BRAIN_PARENT_NAME) || window_name=$(basename "$PWD")
+    [[ ${#window_name} -gt 15 ]] && window_name="${window_name:0:12}…"
+    tmux rename-window "$window_name"
+}
+
+function TMUX_OPEN_BRAIN_PARENT_IN_NEW_WINDOW() {
+    local brain_parent_name
+    brain_parent_name=$(FIND_BRAIN_PARENT_NAME) || return 1
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    cd $brain_parent_path
+    tmux new-window
+    TMUX_RENAME_WINDOW
+    tmux split-window -h
+    tmux split-window -v
+    tmux send-keys -t 0 'QQ' Enter
+    tmux send-keys -t 1 'VB' Enter
 }
 
 #  %% -------- [AI] ----------:
@@ -646,8 +700,18 @@ alias CDA="cd ~/doc"
 alias CDD="cd ~/Downloads"
 alias CD="cd ~/doc"
 alias CDJ="cd ~/doc/junk"
-alias CDB='cd "$(FIND_BRAIN_PARENT_PATH)/brain"'
-alias CDBP='cd "$(FIND_BRAIN_PARENT_PATH)"'
+alias CDT="cd ~/trash"
+function CDB() {
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    cd "$brain_parent_path/brain"
+}
+
+function CDBP() {
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    cd "$brain_parent_path"
+}
 # get full path
 alias FP='readlink -f'
 
@@ -669,6 +733,7 @@ function FAAC() {
   bash ~/doc/config/config/fetch_and_apply_config.sh
 }
 alias RS="source ~/.zshrc && cd ."
+alias RSC="source ~/doc/config/config/zsh/zshrc && cd ." # re-source zsh file from Config folder
 
 #  %% -------- [unix archlinux linux] ----------:
 

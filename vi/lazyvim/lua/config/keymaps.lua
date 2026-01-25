@@ -1,3 +1,5 @@
+
+
 -- %% -------- [leader stuff] ----------:
 
 -- frees up m to use for my own mappings (don't override leader since lazyvim sets it)
@@ -210,6 +212,9 @@ vim.keymap.set("n", "msb", ":botr vs<CR>:b ")
 
 -- scratch window
 vim.keymap.set("n", "msw", "<c-w>n:setlocal buftype=nofile<CR>:setlocal bufhidden=hide<CR>:setlocal noswapfile<CR>")
+
+-- print full path of current buffer
+vim.keymap.set("n", "mFP", ":echo expand('%:p')<CR>", { silent = true })
 
 -- %% -------- [git] ----------:
 
