@@ -717,7 +717,7 @@ alias FP='readlink -f'
 
 # ls colors
 alias ls="ls --color=auto"
-alias LL="ls -lt --color=auto"
+alias LL="ls -la --color=auto"
 alias LLR="ls -ltr --color=auto"
 alias LLALL="ls -lA --color=auto"
 alias LLA="ls -l --color=auto"
