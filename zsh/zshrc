@@ -396,7 +396,7 @@ function VB() {
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
     local original_dir="$PWD"
     cd "$brain_parent_path"
-    $NEOVIM_EDITOR -c "set autowrite" brain/**/notes.txt brain/**/junk.txt brain/**/ai.txt brain/**/*.txt
+    $NEOVIM_EDITOR -c "autocmd TextChanged,TextChangedI * call timer_start(1000, {-> execute('silent! write')})" brain/**/notes.txt brain/**/junk.txt brain/**/ai.txt brain/**/*.txt
     cd "$original_dir"
 }
 
