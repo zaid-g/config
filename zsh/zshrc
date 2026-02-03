@@ -237,7 +237,7 @@ function CP() {
 function CPDTOR() {
     ssh $REMOTE "mkdir -p ~/Downloads"
     PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r source dest; do
-        [ -f "$source" ] && scp "$source" $REMOTE:~/Downloads/"$dest"
+        [ -f "$source" ] && rsync -avz "$source" $REMOTE:~/Downloads/"$dest"
     done
 }
 
@@ -245,7 +245,7 @@ function MVDTOR() {
     ssh $REMOTE "mkdir -p ~/Downloads"
     PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r source dest; do
         if [ -f "$source" ]; then
-            scp "$source" $REMOTE:~/Downloads/"$dest" && rm "$source"
+            rsync -avz "$source" $REMOTE:~/Downloads/"$dest" && rm "$source"
         fi
     done
 }
@@ -258,11 +258,11 @@ function CPTOR() {
         return 1
     fi
     ssh $REMOTE "mkdir -p ~/Downloads"
-    scp -r "$filepath" $REMOTE:~/Downloads/
+    rsync -avz "$filepath" $REMOTE:~/Downloads/
 }
 
 function CPFROMR() {
-    local REMOTE_PATH LOCAL_DIR CLEAN_PATH LOCAL_NAME
+    local REMOTE_PATH LOCAL_DIR
     if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
         echo "Usage: CPFROMR <remote_path> [local_dir]"
         return 1
@@ -274,15 +274,11 @@ function CPFROMR() {
         return 1
     fi
     mkdir -p "$LOCAL_DIR"
-    # Strip leading and trailing slashes, then replace remaining slashes with underscores
-    CLEAN_PATH=$(CLEAN_FILENAME "$(echo "$REMOTE_PATH" | sed 's|^/||; s|/$||; s|/|_|g')")
-    LOCAL_NAME="${REMOTE}_${CLEAN_PATH}"
-    if scp -r $REMOTE:$REMOTE_PATH "$LOCAL_DIR/$LOCAL_NAME"; then
+    if rsync -avz "$REMOTE:$REMOTE_PATH" "$LOCAL_DIR/"; then
         chmod -R u+w "$LOCAL_DIR/"
-        echo "✅ Copied to: "
-        echo "$LOCAL_DIR/$LOCAL_NAME"
+        echo "✅ Copied to: $LOCAL_DIR/"
     else
-        echo "❌ SCP failed for $REMOTE:$REMOTE_PATH"
+        echo "❌ rsync failed for $REMOTE:$REMOTE_PATH"
         return 1
     fi
 }
