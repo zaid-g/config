@@ -173,23 +173,52 @@ function ARE() {
 }
 
 preexec() {
+    export CMD_START_EPOCH=$(date +%s)
+    export CMD_START_TIME=$(date '+%Y-%m-%d %H:%M:%S')
+    
     local brain_parent_path=$(FIND_BRAIN_PARENT_PATH 2>/dev/null) || return
     [[ -f "$brain_parent_path/brain/command_history.txt" ]] || return
 
-    # Use $3 which contains the full expanded command
     local clean_cmd=$(echo "$3" | tr '\n\r' ' ')
 
-    # Remove duplicates for current command and PWD
     local lines=()
     while IFS= read -r line; do
         [[ "$line" != *$'\t\t\t'"$clean_cmd"$'\t\t\t'"$PWD" ]] && lines+=("$line")
     done < "$brain_parent_path/brain/command_history.txt"
 
-    # Append new entry: DATETIME \t\t\t COMMAND \t\t\t PATH
     lines+=("$(date '+%Y-%m-%d %H:%M:%S')"$'\t\t\t'"$clean_cmd"$'\t\t\t'"$PWD")
 
-    # Sort by first field (datetime) in descending order
     printf '%s\n' "${lines[@]}" | sort > "$brain_parent_path/brain/command_history.txt"
+}
+
+precmd() {
+    if [[ -n $CMD_START_EPOCH ]]; then
+        local end_epoch=$(date +%s)
+        local delta=$((end_epoch - CMD_START_EPOCH))
+        
+        if [[ $delta -ge 10 ]]; then
+            local end_time=$(date '+%Y-%m-%d %H:%M:%S')
+            local duration=""
+            
+            if [[ $delta -ge 3600 ]]; then
+                local hours=$((delta / 3600))
+                local mins=$(((delta % 3600) / 60))
+                local secs=$((delta % 60))
+                duration="${hours}h ${mins}m ${secs}s"
+            elif [[ $delta -ge 60 ]]; then
+                local mins=$((delta / 60))
+                local secs=$((delta % 60))
+                duration="${mins}m ${secs}s"
+            else
+                duration="${delta}s"
+            fi
+            
+            echo "\n - Completed in $duration ($CMD_START_TIME → $end_time)\n"
+        fi
+        
+        unset CMD_START_EPOCH
+        unset CMD_START_TIME
+    fi
 }
 
 
