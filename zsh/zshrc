@@ -213,7 +213,7 @@ precmd() {
                 duration="${delta}s"
             fi
             
-            echo "\n - Completed in $duration ($CMD_START_TIME → $end_time)\n"
+            echo "\n - Time: $duration ($CMD_START_TIME → $end_time)\n"
         fi
         
         unset CMD_START_EPOCH
