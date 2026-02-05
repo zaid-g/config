@@ -27,7 +27,7 @@ function CREATE_TIMESTAMPED_DIR_AND_CD() {
     local base_dir="$1"
     local name=${2:-$(GENERATE_8_PRONOUNCEABLE_RANDOM_CHARS 8)}
     local dir="${base_dir:+$base_dir/}${name}_$(date +%F_%H-%M-%S)"
-    mkdir -p "$dir" && cd "$dir" && GI
+    mkdir -p "$dir" && cd "$dir"
 }
 
 function MKJ() {
@@ -173,8 +173,8 @@ function ARE() {
 }
 
 preexec() {
-    export CMD_START_EPOCH=$(date +%s)
-    export CMD_START_TIME=$(date '+%Y-%m-%d %H:%M:%S')
+    CMD_START_EPOCH=$(date +%s)
+    CMD_START_TIME=$(date '+%Y-%m-%d %H:%M:%S')
     
     local brain_parent_path=$(FIND_BRAIN_PARENT_PATH 2>/dev/null) || return
     [[ -f "$brain_parent_path/brain/command_history.txt" ]] || return
@@ -302,10 +302,15 @@ function CPFROMR() {
         echo "Error: REMOTE environment variable must be set"
         return 1
     fi
+    
+    local hostname=$(echo "$REMOTE" | cut -d'@' -f2 | cut -d'.' -f1)
+    local basename=$(basename "$REMOTE_PATH")
+    local prefixed_name="${hostname}_${basename}"
+    
     mkdir -p "$LOCAL_DIR"
-    if rsync -avz "$REMOTE:$REMOTE_PATH" "$LOCAL_DIR/"; then
-        chmod -R u+w "$LOCAL_DIR/"
-        echo "✅ Copied to: $LOCAL_DIR/"
+    if rsync -avz "$REMOTE:$REMOTE_PATH" "$LOCAL_DIR/$prefixed_name"; then
+        chmod -R u+w "$LOCAL_DIR/$prefixed_name"
+        echo "✅ Copied to: $LOCAL_DIR/$prefixed_name"
     else
         echo "❌ rsync failed for $REMOTE:$REMOTE_PATH"
         return 1
@@ -595,6 +600,7 @@ alias TKS="tmux kill-session -t"
 alias TKAS="tmux kill-server"
 
 function TS() {
+    builtin cd ~
     DISPLAY_COLOR="$DISPLAY_COLOR" tmux new-session -d
     local SESSION=$(tmux display-message -p '#S')
 
@@ -632,13 +638,27 @@ function TMUX_RENAME_WINDOW() {
     tmux rename-window "$window_name"
 }
 
-function TMUX_OPEN_BRAIN_PARENT_IN_NEW_WINDOW() {
+# tmux open brain parent in new window
+function TOBP() {
+    local new_window=false
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -n|--new-window)
+                new_window=true
+                shift
+                ;;
+            *)
+                echo "Unknown option: $1" >&2
+                return 1
+                ;;
+        esac
+    done
     local brain_parent_name
     brain_parent_name=$(FIND_BRAIN_PARENT_NAME) || return 1
     local brain_parent_path
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
-    cd $brain_parent_path
-    tmux new-window
+    cd "$brain_parent_path"
+    [[ $new_window == true ]] && tmux new-window
     TMUX_RENAME_WINDOW
     tmux split-window -h
     tmux split-window -v
