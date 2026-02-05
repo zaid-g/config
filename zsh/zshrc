@@ -426,7 +426,7 @@ function VB() {
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
     local original_dir="$PWD"
     cd "$brain_parent_path"
-    $NEOVIM_EDITOR -c "lua local timer; vim.api.nvim_create_autocmd({'TextChanged', 'TextChangedI'}, {callback = function() if timer then timer:stop() end; timer = vim.defer_fn(function() pcall(vim.cmd, 'write') end, 5000) end})" brain/**/notes.txt brain/**/junk.txt brain/**/ai.txt brain/**/*.txt
+    $NEOVIM_EDITOR -c "lua local timer; vim.api.nvim_create_autocmd({'TextChanged', 'TextChangedI'}, {callback = function() if timer then timer:stop() end; timer = vim.defer_fn(function() pcall(vim.cmd, 'wall') end, 5000) end})" brain/**/notes.txt brain/**/junk.txt brain/**/ai.txt brain/**/*.txt
     cd "$original_dir"
 }
 
