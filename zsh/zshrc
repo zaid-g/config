@@ -39,7 +39,7 @@ function MK() {
 }
 
 function MKD() {
-    CREATE_TIMESTAMPED_DIR_AND_CD ~/doc "$1"
+    CREATE_TIMESTAMPED_DIR_AND_CD ~/Downloads "$1"
 }
 
 FIND_BRAIN_PARENT_PATH() {
@@ -221,8 +221,6 @@ precmd() {
     fi
 }
 
-
-
 #  %% -------- [file folder directory management] ----------:
 
 function CLEAN_FILENAME() {
@@ -231,7 +229,6 @@ function CLEAN_FILENAME() {
 
 function PROCESS_DOWNLOAD_FILES_PATHS() {
     local prefix="" count=1
-
     if [[ "$1" =~ ^[0-9]+$ ]] && [[ -n "$2" ]]; then
         count="$1"; prefix="$2"
     elif [[ "$1" =~ ^[0-9]+$ ]]; then
@@ -239,10 +236,8 @@ function PROCESS_DOWNLOAD_FILES_PATHS() {
     elif [[ -n "$1" ]]; then
         prefix="$1"
     fi
-
     local files=$(ls -Art ~/Downloads 2>/dev/null | tail -n $count)
     [[ -z "$files" ]] && { echo "No files found" >&2; return 1; }
-
     echo "$files" | while IFS= read -r f; do
         local source_path="$HOME/Downloads/$f"
         local clean_filename=$(CLEAN_FILENAME "$f")
@@ -251,68 +246,101 @@ function PROCESS_DOWNLOAD_FILES_PATHS() {
     done
 }
 
+# cp folders from local filesystem to local Downloads
+function CPD() {
+    mkdir -p ~/Downloads
+    for item in "$@"; do
+        local clean_name=$(CLEAN_FILENAME "$(basename "$item")")
+        cp -r "$item" ~/Downloads/"$clean_name" && echo "✅ Copied: $item → ~/Downloads/$clean_name"
+    done
+}
+
+# mv folders from local filesystem to local Downloads
+function MVD() {
+    mkdir -p ~/Downloads
+    for item in "$@"; do
+        local clean_name=$(CLEAN_FILENAME "$(basename "$item")")
+        mv "$item" ~/Downloads/"$clean_name" && echo "✅ Moved: $item → ~/Downloads/$clean_name"
+    done
+}
+
+# mv folders from local Downloads to cwd in filesystem
 function MV() {
     PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r source dest; do
         mv "$source" "$dest" && printf "%s ->\n%s\n" "$source" "$(readlink -f "$dest")"
     done
 }
 
+# cp folders from local Downloads to cwd in filesystem
 function CP() {
     PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r source dest; do
         cp "$source" "$dest" && printf "%s ->\n%s\n" "$source" "$(readlink -f "$dest")"
     done
 }
 
-function CPDTOR() {
+# upload Downloads content to remote
+# (from local Downloads to remote Downloads)
+function UDTOR() {
     ssh $REMOTE "mkdir -p ~/Downloads"
     PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r source dest; do
         [ -f "$source" ] && rsync -avz "$source" $REMOTE:~/Downloads/"$dest"
     done
 }
 
-function MVDTOR() {
-    ssh $REMOTE "mkdir -p ~/Downloads"
-    PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r source dest; do
-        if [ -f "$source" ]; then
-            rsync -avz "$source" $REMOTE:~/Downloads/"$dest" && rm "$source"
-        fi
-    done
-}
-
-function CPTOR() {
+# upload local filesystem content to remote Downloads
+function UTOR() {
     local filepath
     filepath=$1
     if [ -z "$filepath" ]; then
-        echo "Usage: CPTOR <path>"
+        echo "Usage: UTOR <path>"
         return 1
     fi
     ssh $REMOTE "mkdir -p ~/Downloads"
     rsync -avz "$filepath" $REMOTE:~/Downloads/
 }
 
-function CPFROMR() {
-    local REMOTE_PATH LOCAL_DIR
-    if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
-        echo "Usage: CPFROMR <remote_path> [local_dir]"
+# download from remote (remote filesystem to local Downloads)
+function DFR() {
+    local REMOTE_PATH
+    if [ "$#" -ne 1 ]; then
+        echo "Usage: DFR <remote_path>"
         return 1
     fi
     REMOTE_PATH=$1
-    LOCAL_DIR=${2:-.}
     if [ -z "$REMOTE" ]; then
         echo "Error: REMOTE environment variable must be set"
         return 1
     fi
-    
     local hostname=$(echo "$REMOTE" | cut -d'@' -f2 | cut -d'.' -f1)
-    local basename=$(basename "$REMOTE_PATH")
-    local prefixed_name="${hostname}_${basename}"
-    
-    mkdir -p "$LOCAL_DIR"
-    if rsync -avz "$REMOTE:$REMOTE_PATH" "$LOCAL_DIR/$prefixed_name"; then
-        chmod -R u+w "$LOCAL_DIR/$prefixed_name"
-        echo "✅ Copied to: $LOCAL_DIR/$prefixed_name"
+    MKD "$hostname"
+    if rsync -avz "$REMOTE:$REMOTE_PATH" ./; then
+        chmod -R u+w .
+        echo "✅ Downloaded to: $PWD"
+        cd -
     else
         echo "❌ rsync failed for $REMOTE:$REMOTE_PATH"
+        cd -
+        return 1
+    fi
+}
+
+# download from Remote's Downloads
+# (remote Downloads to local Downloads)
+function DFRD() {
+    if [ -z "$REMOTE" ]; then
+        echo "Error: REMOTE environment variable must be set"
+        return 1
+    fi
+    local latest=$(ssh $REMOTE "ls -Art ~/Downloads 2>/dev/null | tail -n 1")
+    if [ -z "$latest" ]; then
+        echo "❌ No files found in remote Downloads"
+        return 1
+    fi
+    if rsync -avz "$REMOTE:~/Downloads/$latest" ~/Downloads/; then
+        chmod -R u+w ~/Downloads/"$latest"
+        echo "✅ Downloaded to: ~/Downloads/$latest"
+    else
+        echo "❌ rsync failed for $REMOTE:~/Downloads/$latest"
         return 1
     fi
 }
@@ -426,7 +454,7 @@ function VB() {
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
     local original_dir="$PWD"
     cd "$brain_parent_path"
-    $NEOVIM_EDITOR -c "lua local timer; vim.api.nvim_create_autocmd({'TextChanged', 'TextChangedI'}, {callback = function() if timer then timer:stop() end; timer = vim.defer_fn(function() pcall(vim.cmd, 'wall') end, 5000) end})" brain/**/notes.txt brain/**/junk.txt brain/**/ai.txt brain/**/*.txt
+    $NEOVIM_EDITOR -c "lua local timer; vim.api.nvim_create_autocmd({'TextChanged', 'TextChangedI'}, {callback = function() if timer then timer:stop() end; timer = vim.defer_fn(function() pcall(vim.cmd, 'write') end, 5000) end})" brain/**/notes.txt brain/**/junk.txt brain/**/ai.txt brain/**/*.txt
     cd "$original_dir"
 }
 
