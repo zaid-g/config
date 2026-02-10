@@ -225,7 +225,7 @@ input "type:keyboard" {
 set $laptop eDP-1
 
 # resolution
-output HDMI-A-1 res 1920x1080@120.000000Hz position 0,1080
+output HDMI-A-1 res 1920x1080@120.000000Hz position 0,0
 output $laptop res 1920x1080 position 0,0
 
 # clamshell mode
