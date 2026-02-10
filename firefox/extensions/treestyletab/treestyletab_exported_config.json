@@ -1,0 +1,51 @@
+{
+  "__ConfigsMigration__userValuesSameToDefaultAreCleared": true,
+  "autoCollapseExpandSubtreeOnAttach": false,
+  "autoCollapseExpandSubtreeOnSelect": false,
+  "cachedExternalAddons": [
+    "tst-indent-line@piro.sakura.ne.jp"
+  ],
+  "chunkedUserStyleRules0": "OnJvb3QgewogIC0taW5kZW50LXNpemU6IDQwcHggIWltcG9ydGFudDsKfQp0YWItaXRlbVtkYXRhLWxldmVsXVtkYXRhLWxldmVsPSIxIl0gewogIC0tdGFiLWluZGVudDogNDBweCAhaW1wb3J0YW50Owp9CnRhYi1pdGVtW2RhdGEtbGV2ZWxdW2RhdGEtbGV2ZWw9IjIiXSB7CiAgLS10YWItaW5kZW50OiA4MHB4ICFpbXBvcnRhbnQ7Cn0KdGFiLWl0ZW1bZGF0YS1sZXZlbF1bZGF0YS1sZXZlbD0iMyJdIHsKICAtLXRhYi1pbmRlbnQ6IDEyMHB4ICFpbXBvcnRhbnQ7Cn0KdGFiLWl0ZW1bZGF0YS1sZXZlbF1bZGF0YS1sZXZlbD0iNCJdIHsKICAtLXRhYi1pbmRlbnQ6IDE2MHB4ICFpbXBvcnRhbnQ7Cn0KdGFiLWl0ZW1bZGF0YS1sZXZlbF1bZGF0YS1sZXZlbD0iNSJdIHsKICAtLXRhYi1pbmRlbnQ6IDIwMHB4ICFpbXBvcnRhbnQ7Cn0KdGFiLWl0ZW1bZGF0YS1sZXZlbF1bZGF0YS1sZXZlbD0iNiJdIHsKICAtLXRhYi1pbmRlbnQ6IDI0MHB4ICFpbXBvcnRhbnQ7Cn0KdGFiLWl0ZW1bZGF0YS1sZXZlbF1bZGF0YS1sZXZlbD0iNyJdIHsKICAtLXRhYi1pbmRlbnQ6IDI4MHB4ICFpbXBvcnRhbnQ7Cn0KdGFiLWl0ZW1bZGF0YS1sZXZlbF1bZGF0YS1sZXZlbD0iOCJdIHsKICAtLXRhYi1pbmRlbnQ6IDMyMHB4ICFpbXBvcnRhbnQ7Cn0KdGFiLWl0ZW1bZGF0YS1sZXZlbF1bZGF0YS1sZXZlbD0iOSJdIHsKICAtLXRhYi1pbmRlbnQ6IDM2MHB4ICFpbXBvcnRhbnQ7Cn0KdGFiLWl0ZW1bZGF0YS1sZXZlbF1bZGF0YS1sZXZlbD0iMTAiXSB7CiAgLS10YWItaW5kZW50OiA0MDBweCAhaW1wb3J0YW50Owp9CnRhYi1pdGVtW2RhdGEtbGV2ZWxdW2RhdGEtbGV2ZWw9IjExIl0gewogIC0tdGFiLWluZGVudDogNDQwcHggIWltcG9ydGFudDsKfQp0YWItaXRlbVtkYXRhLWxldmVsXVtkYXRhLWxldmVsPSIxMiJdIHsKICAtLXRhYi1pbmRlbnQ6IDQ4MHB4ICFpbXBvcnRhbnQ7Cn0KdGFiLWl0ZW1bZGF0YS1sZXZlbF1bZGF0YS1sZXZlbD0iMTMiXSB7CiAgLS10YWItaW5kZW50OiA1MjBweCAhaW1wb3J0YW50Owp9CnRhYi1pdGVtW2RhdGEtbGV2ZWxdW2RhdGEtbGV2ZWw9IjE0Il0gewogIC0tdGFiLWluZGVudDogNTYwcHggIWltcG9ydGFudDsKfQoKdGFiLWl0ZW0gewogIC0taW5kZW50LWxpbmUtY29sb3I6IGdyYXk7CiAgLS1pbmRlbnQtbGluZS1jb2xvci1hY3RpdmU6IGJsdWU7CiAgLS1pbmRlbnQtbGluZS13aWR0aDogMi41cHg7CiAgLS1pbmRlbnQtbGluZS13aWR0aC1hY3RpdmU6IDVweDsKfQoKdGFiLWl0ZW06bm90KC5waW5uZWQpIDo6cGFydChleHRyYS1jb250ZW50cy1ieS10c3QtaW5kZW50LWxpbmVfcGlyb19zYWt1cmFfbmVfanAgaW5kZW50LWxpbmUpIHsKICBpbnNldC1pbmxpbmUtc3RhcnQ6IDZweDsKfQoKCgoKCi8qIE5vcm1hbCB0YWJzICovCnRhYi1pdGVtIHsKICBiYWNrZ3JvdW5kOiAjMDAwICFpbXBvcnRhbnQ7CiAgY29sb3I6ICMwMDAgIWltcG9ydGFudDsKfQoKLyogQWN0aXZlIHRhYiAqLwp0YWItaXRlbS5hY3RpdmUgewogIGJhY2tncm91bmQ6ICMwMDAgIWltcG9ydGFudDsKICBjb2xvcjogIzAwMCAhaW1wb3J0YW50Owp9CgovKiBIb3ZlcmVkIHRhYiAqLwp0YWItaXRlbTpob3ZlciB7CiAgYmFja2dyb3VuZDogIzAwMCAhaW1wb3J0YW50Owp9CgoKCg==",
+  "colorScheme": "system-color",
+  "configsVersion": 33,
+  "notifiedFeaturesVersion": 9,
+  "optionsExpandedSections": [
+    "section-appearance",
+    "section-addons",
+    "section-advanced",
+    "section-drag",
+    "section-treeBehavior",
+    "section-newTab",
+    "section-newTabWithOwner",
+    "section-contextMenu",
+    "section-debug"
+  ],
+  "showExpertOptions": true,
+  "sidebarWidthInWindow": {
+    "3": 407,
+    "5": 451,
+    "9": 378,
+    "190": 378
+  },
+  "style": "highcontrast",
+  "syncDevices": {
+    "device-1738888521467-21152": {
+      "id": "device-1738888521467-21152",
+      "name": "Firefox on macOS",
+      "icon": "device-desktop",
+      "timestamp": 1770535818102
+    }
+  },
+  "tabDragBehavior": 0,
+  "userStyleRules": "",
+  "userStyleRules0": "",
+  "userStyleRules1": "",
+  "userStyleRules2": "",
+  "userStyleRules3": "",
+  "userStyleRules4": "",
+  "userStyleRules5": "",
+  "userStyleRules6": "",
+  "userStyleRules7": "",
+  "userStyleRulesFieldHeight": "130px",
+  "workaroundForBug1548949DroppedItems": "1770308387200-779/708"
+}

@@ -1,0 +1,46 @@
+/* Firefox UI customization - Pure black theme */
+
+:root {
+  --toolbar-bgcolor: #000000 !important;
+  --toolbar-color: #ffffff !important;
+  --tab-selected-bgcolor: #000000 !important;
+  --lwt-accent-color: #000000 !important;
+  --lwt-text-color: #ffffff !important;
+}
+
+/* Black everything */
+#nav-bar, #PersonalToolbar, #TabsToolbar, #titlebar,
+toolbar, menubar, .toolbar-items {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+/* Black tabs */
+.tabbrowser-tab {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.tabbrowser-tab[selected] {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border-bottom: 2px solid #ffffff !important;
+}
+
+/* Black URL bar */
+#urlbar, #searchbar, #urlbar-background {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+/* Black dropdowns and menus */
+menupopup, popup, panel, #contentAreaContextMenu {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+/* Black sidebar */
+#sidebar-box, #sidebar-header {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}

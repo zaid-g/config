@@ -25,21 +25,23 @@ function GENERATE_8_PRONOUNCEABLE_RANDOM_CHARS() {
 
 function CREATE_TIMESTAMPED_DIR_AND_CD() {
     local base_dir="$1"
-    local name=${2:-$(GENERATE_8_PRONOUNCEABLE_RANDOM_CHARS 8)}
-    local dir="${base_dir:+$base_dir/}${name}_$(date +%F_%H-%M-%S)"
+    shift
+    local raw_folder_name="${*:-$(GENERATE_8_PRONOUNCEABLE_RANDOM_CHARS 8)}"
+    local cleaned_folder_name=$(CLEAN_FILENAME "$raw_folder_name")
+    local dir="${base_dir:+$base_dir/}${cleaned_folder_name}_$(date +%F_%H-%M-%S)"
     mkdir -p "$dir" && cd "$dir"
 }
 
 function MKJ() {
-    CREATE_TIMESTAMPED_DIR_AND_CD ~/doc/junk "$1"
+    CREATE_TIMESTAMPED_DIR_AND_CD ~/doc/junk "$@"
 }
 
 function MK() {
-    CREATE_TIMESTAMPED_DIR_AND_CD "" "$1"
+    CREATE_TIMESTAMPED_DIR_AND_CD "" "$@"
 }
 
 function MKD() {
-    CREATE_TIMESTAMPED_DIR_AND_CD ~/Downloads "$1"
+    CREATE_TIMESTAMPED_DIR_AND_CD ~/Downloads "$@"
 }
 
 FIND_BRAIN_PARENT_PATH() {
@@ -281,9 +283,9 @@ function CP() {
 # upload Downloads content to remote
 # (from local Downloads to remote Downloads)
 function UDTOR() {
-    ssh $REMOTE "mkdir -p ~/Downloads"
+    ssh "$REMOTE" "mkdir -p ~/Downloads"
     PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r source dest; do
-        [ -f "$source" ] && rsync -avz "$source" $REMOTE:~/Downloads/"$dest"
+        [ -f "$source" ] && rsync -avz "$source" "$REMOTE:~/Downloads/$dest"
     done
 }
 
@@ -295,8 +297,8 @@ function UTOR() {
         echo "Usage: UTOR <path>"
         return 1
     fi
-    ssh $REMOTE "mkdir -p ~/Downloads"
-    rsync -avz "$filepath" $REMOTE:~/Downloads/
+    ssh "$REMOTE" "mkdir -p ~/Downloads"
+    rsync -avz "$filepath" "$REMOTE:~/Downloads/"
 }
 
 # download from remote (remote filesystem to local Downloads)
@@ -331,7 +333,7 @@ function DFRD() {
         echo "Error: REMOTE environment variable must be set"
         return 1
     fi
-    local latest=$(ssh $REMOTE "ls -Art ~/Downloads 2>/dev/null | tail -n 1")
+    local latest=$(ssh "$REMOTE" "ls -Art ~/Downloads 2>/dev/null | tail -n 1")
     if [ -z "$latest" ]; then
         echo "❌ No files found in remote Downloads"
         return 1
@@ -454,7 +456,7 @@ function VB() {
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
     local original_dir="$PWD"
     cd "$brain_parent_path"
-    $NEOVIM_EDITOR -c "lua local timer; vim.api.nvim_create_autocmd({'TextChanged', 'TextChangedI'}, {callback = function() if timer then timer:stop() end; timer = vim.defer_fn(function() pcall(vim.cmd, 'write') end, 5000) end})" brain/**/notes.txt brain/**/junk.txt brain/**/ai.txt brain/**/*.txt
+	$NEOVIM_EDITOR -c "lua vim.api.nvim_create_autocmd('CursorHold', {callback = function() vim.cmd('silent! wall') end})" brain/**/notes.txt brain/**/junk.txt brain/**/ai.txt brain/**/*.txt
     cd "$original_dir"
 }
 
@@ -794,6 +796,10 @@ alias LL="ls -la --color=auto"
 alias LLR="ls -ltr --color=auto"
 alias LLALL="ls -lA --color=auto"
 alias LLA="ls -l --color=auto"
+
+function LLD() {
+    ls -d --color=always -1 *"$@"* | sort -t_ -k2,3
+}
 
 # verbose mv
 alias mvv="mv -v"
