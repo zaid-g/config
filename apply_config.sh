@@ -76,19 +76,25 @@ mkdir -p ~/.aws/amazonq/cli-agents
 cp ~/doc/config/config/aws/amazonq/cli-agents/* ~/.aws/amazonq/cli-agents/
 
 # %% -------- [firefox] ----------:
-
 if [[ "$OSTYPE" == "darwin"* ]]; then
     PROFILE_DIR="$HOME/Library/Application Support/Firefox/Profiles"
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     PROFILE_DIR="$HOME/.mozilla/firefox"
 fi
 
-DEFAULT_PROFILE=$(find "$PROFILE_DIR" -maxdepth 1 -name "*.default*" -type d 2>/dev/null | head -1)
+# Try to find default-release first, then fall back to default
+DEFAULT_PROFILE=$(find "$PROFILE_DIR" -maxdepth 1 -name "*.default-release" -type d 2>/dev/null | head -1)
+if [[ -z "$DEFAULT_PROFILE" ]]; then
+    DEFAULT_PROFILE=$(find "$PROFILE_DIR" -maxdepth 1 -name "*.default" -type d 2>/dev/null | head -1)
+fi
+
 if [[ -n "$DEFAULT_PROFILE" ]]; then
     cp ~/doc/config/config/firefox/user.js "$DEFAULT_PROFILE/user.js"
     mkdir -p "$DEFAULT_PROFILE/chrome"
     cp ~/doc/config/config/firefox/userChrome.css "$DEFAULT_PROFILE/chrome/userChrome.css"
-    echo "✅ Firefox config applied"
+    echo "✅ Firefox config applied to: $(basename "$DEFAULT_PROFILE")"
+else
+    echo "❌ No Firefox profile found"
 fi
 
 # %% -------- [done] ----------:
