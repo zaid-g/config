@@ -250,21 +250,23 @@ function PROCESS_DOWNLOAD_FILES_PATHS() {
 
 # cp folders from local filesystem to local Downloads
 function CPD() {
+    [[ $# -eq 0 ]] && { echo "Usage: CPD <path>..."; return 1; }
     mkdir -p ~/Downloads
-    for filepath in "$@"; do
-        local full_path=$(readlink -f "$filepath")
-        local cleaned_filename=$(CLEAN_FILENAME "$(basename "$full_path")")
-        cp -r "$filepath" ~/Downloads/"$cleaned_filename" && echo "✅ Copied: $filepath → ~/Downloads/$cleaned_filename"
+    for item in "$@"; do
+        local resolved_path=$(readlink -f "$item")
+        local cleaned_filename=$(CLEAN_FILENAME "$(basename "$resolved_path")")
+        cp -rv "$item" ~/Downloads/"$cleaned_filename"
     done
 }
 
 # mv folders from local filesystem to local Downloads
 function MVD() {
+    [[ $# -eq 0 ]] && { echo "Usage: MVD <path>..."; return 1; }
     mkdir -p ~/Downloads
-    for filepath in "$@"; do
-        local full_path=$(readlink -f "$filepath")
-        local cleaned_filename=$(CLEAN_FILENAME "$(basename "$full_path")")
-        mv "$filepath" ~/Downloads/"$cleaned_filename" && echo "✅ Moved: $filepath → ~/Downloads/$cleaned_filename"
+    for item in "$@"; do
+        local resolved_path=$(readlink -f "$item")
+        local cleaned_filename=$(CLEAN_FILENAME "$(basename "$resolved_path")")
+        mv -v "$item" ~/Downloads/"$cleaned_filename"
     done
 }
 
