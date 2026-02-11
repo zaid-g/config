@@ -802,8 +802,16 @@ alias mvv="mv -v"
 
 alias AC="bash ~/doc/config/config/apply_config.sh"
 function FAAC() {
-  [[ $PWD == */doc/config/config ]] && cd ~/doc/config
-  bash ~/doc/config/config/fetch_and_apply_config.sh
+  local was_in_config=false
+  [[ $PWD == ~/doc/config/config* ]] && was_in_config=true
+  (
+    cd ~/doc/config && \
+    (git clone git@github.com:zaid-g/config.git config.new || git clone https://github.com/zaid-g/config.git config.new) && \
+    rm -rf config && \
+    mv config.new config && \
+    bash config/apply_config.sh
+  )
+  [[ $was_in_config == true ]] && cd ~/doc/config/config
 }
 alias RS="source ~/.zshrc && cd ."
 alias RSC="source ~/doc/config/config/zsh/zshrc && cd ." # re-source zsh file from Config folder
