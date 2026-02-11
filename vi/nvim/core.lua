@@ -11,6 +11,8 @@ vim.g.autoformat = false
 vim.opt.relativenumber = false
 vim.g.snacks_animate = false
 vim.opt.autoread = true
+vim.opt.ignorecase = true
+vim.opt.smartcase = true
 
 -- %% -------- [leader stuff] ----------:
 
