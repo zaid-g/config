@@ -16,14 +16,16 @@ mkdir -p ~/.ipython/profile_default
 # %% -------- [nvim base] ----------:
 
 touch -a ~/.config/nvim/init.lua
-grep -qF 'dofile(vim.fn.expand("~/doc/config/config/vi/lazyvim/lua/config/core.lua"))' ~/.config/nvim/init.lua || echo "$(
+grep -qF 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/core.lua"))' ~/.config/nvim/init.lua || echo "$(
     cat ~/.config/nvim/init.lua
-    printf '%s\n' 'dofile(vim.fn.expand("~/doc/config/config/vi/lazyvim/lua/config/core.lua"))'
+    printf '%s\n' 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/core.lua"))'
 )" >~/.config/nvim/init.lua
 
 #  %% -------- [lazyvim] ----------:
 
 bash ~/doc/config/config/vi/lazyvim/apply_config.sh
+rm -r ~/.config/lazyvim/lua/config/*
+cp ~/doc/config/config/vi/nvim/core.lua ~/.config/lazyvim/lua/config/keymaps.lua
 
 # %% -------- [zsh] ----------:
 
