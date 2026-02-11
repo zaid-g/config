@@ -796,8 +796,9 @@ alias LL="ls -la --color=auto"
 alias LLR="ls -ltr --color=auto"
 alias LLALL="ls -lA --color=auto"
 alias LLA="ls -l --color=auto"
+alias LLD="LLR ~/Downloads"
 
-function LLD() {
+function FIND1() {
     ls -d --color=always -1 *"$@"* | sort -t_ -k2,3
 }
 
