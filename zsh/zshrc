@@ -252,8 +252,8 @@ function PROCESS_DOWNLOAD_FILES_PATHS() {
 function CPD() {
     mkdir -p ~/Downloads
     for item in "$@"; do
-        local resolved_path=$(readlink -f "$item")
-        local cleaned_filename=$(CLEAN_FILENAME "$(basename "$resolved_path")")
+        local full_path=$(readlink -f "$item")
+        local cleaned_filename=$(CLEAN_FILENAME "$(basename "$full_path")")
         cp -r "$item" ~/Downloads/"$cleaned_filename" && echo "✅ Copied: $item → ~/Downloads/$cleaned_filename"
     done
 }
@@ -262,8 +262,8 @@ function CPD() {
 function MVD() {
     mkdir -p ~/Downloads
     for item in "$@"; do
-        local resolved_path=$(readlink -f "$item")
-        local cleaned_filename=$(CLEAN_FILENAME "$(basename "$resolved_path")")
+        local full_path=$(readlink -f "$item")
+        local cleaned_filename=$(CLEAN_FILENAME "$(basename "$full_path")")
         mv "$item" ~/Downloads/"$cleaned_filename" && echo "✅ Moved: $item → ~/Downloads/$cleaned_filename"
     done
 }
@@ -293,14 +293,16 @@ function UDTOR() {
 
 # upload local filesystem content to remote Downloads
 function UTOR() {
-    local filepath
-    filepath=$1
-    if [ -z "$filepath" ]; then
-        echo "Usage: UTOR <path>"
+    if [ $# -eq 0 ]; then
+        echo "Usage: UTOR <path> [path2 ...]"
         return 1
     fi
     ssh "$REMOTE" "mkdir -p ~/Downloads"
-    rsync -avz "$filepath" "$REMOTE:~/Downloads/"
+    local full_paths=()
+    for path in "$@"; do
+        full_paths+=($(readlink -f "$path"))
+    done
+    rsync -avz "${full_paths[@]}" "$REMOTE:~/Downloads/"
 }
 
 # download from remote (remote filesystem to local Downloads)
