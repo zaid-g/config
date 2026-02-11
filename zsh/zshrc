@@ -647,7 +647,7 @@ function TS() {
     # "ai" (horizontal split)
     tmux new-window -t $SESSION: -n 'ai'
     tmux split-window -h -t $SESSION:2
-    tmux send-keys -t $SESSION:2.0 'QQ' C-m
+    tmux send-keys -t $SESSION:2.0 'KK' C-m
     tmux send-keys -t $SESSION:2.1 'VAI' C-m
 
     # "config" (horizontal split)
@@ -690,18 +690,14 @@ function TOBP() {
     TMUX_RENAME_WINDOW
     tmux split-window -h
     tmux split-window -v
-    tmux send-keys -t 0 'QQ' Enter
+    tmux send-keys -t 0 'KK' Enter
     tmux send-keys -t 1 'VB' Enter
 }
 
 #  %% -------- [AI] ----------:
 
-alias QQ="q chat --trust-all-tools"
-alias QQE="cd ~/empty && q chat --trust-all-tools"
-function WW() {
-    pkill -f "WW_INSTANCE=true"
-    WW_INSTANCE=true cd /Users/zghar/doc/whisper-dictation && python3 src/main.py
-}
+alias KK="kiro-cli chat --trust-all-tools"
+alias KKE="cd ~/empty && kiro-cli chat --trust-all-tools"
 
 #  %% -------- [sleep management caff decaff] ----------:
 

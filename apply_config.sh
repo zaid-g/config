@@ -6,6 +6,7 @@ mkdir -p ~/app/
 mkdir -p ~/dat/
 mkdir -p ~/junk/
 mkdir -p ~/trash/
+mkdir -p ~/empty/
 mkdir -p ~/pic/
 mkdir -p ~/.config/nvim
 mkdir -p ~/.config/sway
