@@ -251,20 +251,20 @@ function PROCESS_DOWNLOAD_FILES_PATHS() {
 # cp folders from local filesystem to local Downloads
 function CPD() {
     mkdir -p ~/Downloads
-    for item in "$@"; do
-        local full_path=$(readlink -f "$item")
+    for filepath in "$@"; do
+        local full_path=$(readlink -f "$filepath")
         local cleaned_filename=$(CLEAN_FILENAME "$(basename "$full_path")")
-        cp -r "$item" ~/Downloads/"$cleaned_filename" && echo "✅ Copied: $item → ~/Downloads/$cleaned_filename"
+        cp -r "$filepath" ~/Downloads/"$cleaned_filename" && echo "✅ Copied: $filepath → ~/Downloads/$cleaned_filename"
     done
 }
 
 # mv folders from local filesystem to local Downloads
 function MVD() {
     mkdir -p ~/Downloads
-    for item in "$@"; do
-        local full_path=$(readlink -f "$item")
+    for filepath in "$@"; do
+        local full_path=$(readlink -f "$filepath")
         local cleaned_filename=$(CLEAN_FILENAME "$(basename "$full_path")")
-        mv "$item" ~/Downloads/"$cleaned_filename" && echo "✅ Moved: $item → ~/Downloads/$cleaned_filename"
+        mv "$filepath" ~/Downloads/"$cleaned_filename" && echo "✅ Moved: $filepath → ~/Downloads/$cleaned_filename"
     done
 }
 
@@ -299,8 +299,8 @@ function UTOR() {
     fi
     ssh "$REMOTE" "mkdir -p ~/Downloads"
     local full_paths=()
-    for path in "$@"; do
-        full_paths+=($(readlink -f "$path"))
+    for filepath in "$@"; do
+        full_paths+=($(readlink -f "$filepath"))
     done
     rsync -avz "${full_paths[@]}" "$REMOTE:~/Downloads/"
 }
