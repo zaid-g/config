@@ -859,7 +859,7 @@ zstyle ':completion:*' matcher-list '' \
 export DISPLAY_COLOR=green  # blue green cyan
 setopt PROMPT_SUBST # expands PS1 single quote
 autoload -U colors && colors
-export PS1='%{$fg[$DISPLAY_COLOR]%}%~%{$fg[$DISPLAY_COLOR]%} %{$reset_color%}$%b '
+export PS1='%{$fg[$DISPLAY_COLOR]%}%~ ▶%{$reset_color%} '
 export zle_highlight=('region:bg=168,fg=251')
 export zle_highlight=('paste:bg=168,fg=251', 'region:bg=168,fg=251')
 
