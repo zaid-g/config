@@ -252,8 +252,9 @@ function PROCESS_DOWNLOAD_FILES_PATHS() {
 function CPD() {
     mkdir -p ~/Downloads
     for item in "$@"; do
-        local clean_name=$(CLEAN_FILENAME "$(basename "$item")")
-        cp -r "$item" ~/Downloads/"$clean_name" && echo "✅ Copied: $item → ~/Downloads/$clean_name"
+        local resolved_path=$(readlink -f "$item")
+        local cleaned_filename=$(CLEAN_FILENAME "$(basename "$resolved_path")")
+        cp -r "$item" ~/Downloads/"$cleaned_filename" && echo "✅ Copied: $item → ~/Downloads/$cleaned_filename"
     done
 }
 
@@ -261,8 +262,9 @@ function CPD() {
 function MVD() {
     mkdir -p ~/Downloads
     for item in "$@"; do
-        local clean_name=$(CLEAN_FILENAME "$(basename "$item")")
-        mv "$item" ~/Downloads/"$clean_name" && echo "✅ Moved: $item → ~/Downloads/$clean_name"
+        local resolved_path=$(readlink -f "$item")
+        local cleaned_filename=$(CLEAN_FILENAME "$(basename "$resolved_path")")
+        mv "$item" ~/Downloads/"$cleaned_filename" && echo "✅ Moved: $item → ~/Downloads/$cleaned_filename"
     done
 }
 
