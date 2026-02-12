@@ -249,7 +249,7 @@ function PROCESS_DOWNLOAD_FILES_PATHS() {
 }
 
 # cp folders from local filesystem to local Downloads
-function CPD() {
+function CPTOD() {
     [[ $# -eq 0 ]] && { echo "Usage: CPD <path>..."; return 1; }
     mkdir -p ~/Downloads
     for item in "$@"; do
@@ -260,7 +260,7 @@ function CPD() {
 }
 
 # mv folders from local filesystem to local Downloads
-function MVD() {
+function MVTOD() {
     [[ $# -eq 0 ]] && { echo "Usage: MVD <path>..."; return 1; }
     mkdir -p ~/Downloads
     for item in "$@"; do
@@ -270,17 +270,17 @@ function MVD() {
     done
 }
 
-# mv folders from local Downloads to cwd in filesystem
-function MV() {
+# cp folders from local Downloads to cwd in filesystem
+function CPFROMD() {
     PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r source dest; do
-        mv "$source" "$dest" && printf "%s ->\n%s\n" "$source" "$(readlink -f "$dest")"
+        cp "$source" "$dest" && printf "%s ->\n%s\n" "$source" "$(readlink -f "$dest")"
     done
 }
 
-# cp folders from local Downloads to cwd in filesystem
-function CP() {
+# mv folders from local Downloads to cwd in filesystem
+function MVFROMD() {
     PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r source dest; do
-        cp "$source" "$dest" && printf "%s ->\n%s\n" "$source" "$(readlink -f "$dest")"
+        mv "$source" "$dest" && printf "%s ->\n%s\n" "$source" "$(readlink -f "$dest")"
     done
 }
 
@@ -308,7 +308,7 @@ function UTOR() {
 }
 
 # download from remote (remote filesystem to local Downloads)
-function DFR() {
+function DFROMR() {
     local REMOTE_PATH
     if [ "$#" -ne 1 ]; then
         echo "Usage: DFR <remote_path>"
@@ -334,7 +334,7 @@ function DFR() {
 
 # download from Remote's Downloads
 # (remote Downloads to local Downloads)
-function DFRD() {
+function DFROMD() {
     if [ -z "$REMOTE" ]; then
         echo "Error: REMOTE environment variable must be set"
         return 1
@@ -351,6 +351,28 @@ function DFRD() {
         echo "❌ rsync failed for $REMOTE:~/Downloads/$latest"
         return 1
     fi
+}
+
+TARGZ() {
+	local target_path="$1"
+	[[ -z "$target_path" ]] && { echo "Usage: TARGZ <path>"; return 1; }
+	[[ ! -e "$target_path" ]] && { echo "Error: '$target_path' does not exist"; return 1; }
+	local full_path
+	local file_name
+	local full_path_output
+	full_path="$(readlink -f "$target_path")"
+	file_name="$(basename "$full_path")"
+	full_path_output="$PWD/${file_name}.tar.gz"
+	tar -czf "$full_path_output" -C "$(dirname "$full_path")" "$file_name"
+}
+
+UNTARGZ() {
+  local archive_path="$1"
+  [[ -z "$archive_path" ]] && { echo "Usage: UNTARGZ <archive.tar.gz>"; return 1; }
+  [[ ! -f "$archive_path" ]] && { echo "Error: '$archive_path' does not exist or is not a file"; return 1; }
+  local full_path
+  full_path="$(readlink -f "$archive_path")"
+  tar -xzf "$full_path" -C "$PWD"
 }
 
 #  %% -------- [find search grep] ----------:
