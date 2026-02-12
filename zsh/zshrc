@@ -537,7 +537,7 @@ function GIG() {
 }
 
 function GCN() {
-    git add . && git commit -m "$(date '+%Y-%m-%d %H:%M:%S')"
+  git add . && git commit -m "${1:-$(date '+%Y-%m-%d %H:%M:%S')}"
 }
 
 function GDBP() {
