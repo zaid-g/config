@@ -13,6 +13,7 @@ vim.g.snacks_animate = false
 vim.opt.autoread = true
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
+vim.opt.updatetime = 200
 
 -- %% -------- [leader stuff] ----------:
 

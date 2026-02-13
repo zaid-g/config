@@ -3,7 +3,7 @@
 # 2. function and alias names must always be uppercase and using underscore
 
 
-# %% -------- [project creation and management] ----------:
+# %% -------- [project creation and management brain] ----------:
 
 function GENERATE_8_PRONOUNCEABLE_RANDOM_CHARS() {
     local length=${1:-8}
@@ -174,22 +174,19 @@ function ARE() {
     rm "$temp_file"
 }
 
+#  %% -------- [zsh hooks] ----------:
+
 preexec() {
     CMD_START_EPOCH=$(date +%s)
     CMD_START_TIME=$(date '+%Y-%m-%d %H:%M:%S')
-    
     local brain_parent_path=$(FIND_BRAIN_PARENT_PATH 2>/dev/null) || return
     [[ -f "$brain_parent_path/brain/command_history.txt" ]] || return
-
     local clean_cmd=$(echo "$3" | tr '\n\r' ' ')
-
     local lines=()
     while IFS= read -r line; do
         [[ "$line" != *$'\t\t\t'"$clean_cmd"$'\t\t\t'"$PWD" ]] && lines+=("$line")
     done < "$brain_parent_path/brain/command_history.txt"
-
     lines+=("$(date '+%Y-%m-%d %H:%M:%S')"$'\t\t\t'"$clean_cmd"$'\t\t\t'"$PWD")
-
     printf '%s\n' "${lines[@]}" | sort > "$brain_parent_path/brain/command_history.txt"
 }
 
@@ -197,11 +194,9 @@ precmd() {
     if [[ -n $CMD_START_EPOCH ]]; then
         local end_epoch=$(date +%s)
         local delta=$((end_epoch - CMD_START_EPOCH))
-        
         if [[ $delta -ge 10 ]]; then
             local end_time=$(date '+%Y-%m-%d %H:%M:%S')
             local duration=""
-            
             if [[ $delta -ge 3600 ]]; then
                 local hours=$((delta / 3600))
                 local mins=$(((delta % 3600) / 60))
@@ -214,16 +209,58 @@ precmd() {
             else
                 duration="${delta}s"
             fi
-            
             echo "\n - Time: $duration ($CMD_START_TIME → $end_time)\n"
         fi
-        
         unset CMD_START_EPOCH
         unset CMD_START_TIME
     fi
 }
 
-#  %% -------- [file folder directory management] ----------:
+function chpwd() {
+    local leaf="${PWD:t}"
+    [[ -z "$leaf" ]] && return  # Skip if at root or empty
+    local env="$HOME/.virtualenvs/.$leaf"
+    if [[ -d "$env" && "$VIRTUAL_ENV" != "$env" ]]; then
+        [[ -n "$VIRTUAL_ENV" ]] && deactivate
+        source "$env/bin/activate"
+    fi
+}
+
+#  %% -------- [files folders path management] ----------:
+
+alias CDC="cd ~/doc/config"
+alias CDCC="cd ~/doc/config/config"
+alias CDA="cd ~/doc"
+alias CDD="cd ~/Downloads"
+alias CD="cd ~/doc"
+alias CDJ="cd ~/doc/junk"
+alias CDT="cd ~/trash"
+
+function CDB() {
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    cd "$brain_parent_path/brain"
+}
+
+function CDBP() {
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    cd "$brain_parent_path"
+}
+
+# get full path
+alias FP='readlink -f'
+
+# verbose mv
+alias MVV="mv -v"
+
+# ls
+alias LLA="ls -la --color=auto"
+alias LLR="ls -ltr --color=auto"
+alias LLALL="ls -lA --color=auto"
+alias LL="ls -l --color=auto"
+alias LLD="LLR ~/Downloads"
+alias LLT="LLR ~/trash"
 
 function CLEAN_FILENAME() {
     echo -n "$1" | tr -d '*?[]|&;<>$`!"'"'"'(){}^~#\\' | tr ' \t\n' '___'
@@ -250,7 +287,7 @@ function PROCESS_DOWNLOAD_FILES_PATHS() {
 
 # cp folders from local filesystem to local Downloads
 function CPTOD() {
-    [[ $# -eq 0 ]] && { echo "Usage: CPD <path>..."; return 1; }
+    [[ $# -eq 0 ]] && { echo "Usage: <command> <path>..."; return 1; }
     mkdir -p ~/Downloads
     for item in "$@"; do
         local resolved_path=$(readlink -f "$item")
@@ -261,7 +298,7 @@ function CPTOD() {
 
 # mv folders from local filesystem to local Downloads
 function MVTOD() {
-    [[ $# -eq 0 ]] && { echo "Usage: MVD <path>..."; return 1; }
+    [[ $# -eq 0 ]] && { echo "Usage: <command> <path>..."; return 1; }
     mkdir -p ~/Downloads
     for item in "$@"; do
         local resolved_path=$(readlink -f "$item")
@@ -270,15 +307,26 @@ function MVTOD() {
     done
 }
 
+# mv folders from local filesystem to trash
+function MVTOT() {
+    [[ $# -eq 0 ]] && { echo "Usage: <command> <path>..."; return 1; }
+    mkdir -p ~/trash
+    for item in "$@"; do
+        local resolved_path=$(readlink -f "$item")
+        local cleaned_filename=$(CLEAN_FILENAME "$(basename "$resolved_path")")
+        mv -v "$item" ~/trash/"$cleaned_filename"
+    done
+}
+
 # cp folders from local Downloads to cwd in filesystem
-function CPFROMD() {
+function CP() {
     PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r source dest; do
         cp "$source" "$dest" && printf "%s ->\n%s\n" "$source" "$(readlink -f "$dest")"
     done
 }
 
 # mv folders from local Downloads to cwd in filesystem
-function MVFROMD() {
+function MV() {
     PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r source dest; do
         mv "$source" "$dest" && printf "%s ->\n%s\n" "$source" "$(readlink -f "$dest")"
     done
@@ -353,17 +401,24 @@ function DFROMD() {
     fi
 }
 
-TARGZ() {
+TARGZ () {
 	local target_path="$1"
-	[[ -z "$target_path" ]] && { echo "Usage: TARGZ <path>"; return 1; }
-	[[ ! -e "$target_path" ]] && { echo "Error: '$target_path' does not exist"; return 1; }
+	[[ -z "$target_path" ]] && {
+		echo "Usage: TARGZ <path>"
+		return 1
+	}
+	[[ ! -e "$target_path" ]] && {
+		echo "Error: '$target_path' does not exist"
+		return 1
+	}
 	local full_path
 	local file_name
 	local full_path_output
 	full_path="$(readlink -f "$target_path")"
 	file_name="$(basename "$full_path")"
-	full_path_output="$PWD/${file_name}.tar.gz"
-	tar -czf "$full_path_output" -C "$(dirname "$full_path")" "$file_name"
+	full_path_output="$(dirname "$full_path")/${file_name}.tar.gz"
+	tar -czf "$full_path_output" -C "$(dirname "$full_path")" "$file_name" && \
+		mv "$full_path_output" "$PWD/"
 }
 
 UNTARGZ() {
@@ -438,6 +493,11 @@ function GREP() {
     while IFS= read -r file; do
         "$GNU_GREP" -Hni -e "$pattern" "$file"
     done <<< "$files"
+}
+
+# find files matching pattern one layer deep
+function FINDOL() {
+    ls -d --color=always -1 *"$@"* | sort -t_ -k2,3
 }
 
 # %% -------- [vi vim lazyvim neovim nvim vi mode vi-mode] ----------:
@@ -637,16 +697,6 @@ function PVENV(){
     PIP3 # keep at end
 }
 
-function chpwd() {
-    local leaf="${PWD:t}"
-    [[ -z "$leaf" ]] && return  # Skip if at root or empty
-    local env="$HOME/.virtualenvs/.$leaf"
-    if [[ -d "$env" && "$VIRTUAL_ENV" != "$env" ]]; then
-        [[ -n "$VIRTUAL_ENV" ]] && deactivate
-        source "$env/bin/activate"
-    fi
-}
-
 # %% -------- [tmux] ----------:
 
 alias T='DISPLAY_COLOR=$DISPLAY_COLOR tmux -2'
@@ -789,44 +839,6 @@ function ADAL() {
     ada credentials update --account="$account_number" --provider=conduit --role=IibsAdminAccess-DO-NOT-DELETE
 }
 
-# %% -------- [path management cd directories movement] ----------:
-
-alias CDC="cd ~/doc/config"
-alias CDCC="cd ~/doc/config/config"
-alias CDA="cd ~/doc"
-alias CDD="cd ~/Downloads"
-alias CD="cd ~/doc"
-alias CDJ="cd ~/doc/junk"
-alias CDT="cd ~/trash"
-function CDB() {
-    local brain_parent_path
-    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
-    cd "$brain_parent_path/brain"
-}
-
-function CDBP() {
-    local brain_parent_path
-    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
-    cd "$brain_parent_path"
-}
-# get full path
-alias FP='readlink -f'
-
-# ls colors
-alias ls="ls --color=auto"
-alias LL="ls -la --color=auto"
-alias LLR="ls -ltr --color=auto"
-alias LLALL="ls -lA --color=auto"
-alias LLA="ls -l --color=auto"
-alias LLD="LLR ~/Downloads"
-
-function FIND1() {
-    ls -d --color=always -1 *"$@"* | sort -t_ -k2,3
-}
-
-# verbose mv
-alias mvv="mv -v"
-
 # %% -------- [config management] ----------:
 
 alias AC="bash ~/doc/config/config/apply_config.sh"
@@ -843,7 +855,6 @@ function FAAC() {
   [[ $was_in_config == true ]] && cd ~/doc/config/config
 }
 alias RS="source ~/.zshrc && cd ."
-alias RSC="source ~/doc/config/config/zsh/zshrc && cd ." # re-source zsh file from Config folder
 
 #  %% -------- [unix archlinux linux] ----------:
 
@@ -864,7 +875,7 @@ function GRIM(){
     fi
 }
 
-# %% ---------- [auto-completion] ----------:
+# %% ---------- [zsh auto-completion] ----------:
 
 autoload -U compinit
 zmodload zsh/complist
