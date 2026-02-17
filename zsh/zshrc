@@ -700,7 +700,7 @@ function PVENV(){
 
 # %% -------- [tmux] ----------:
 
-alias T='DISPLAY_COLOR=$DISPLAY_COLOR tmux -2'
+alias T='DISPLAY_COLOR=$DISPLAY_COLOR TEXT_COLOR_IF_COLORED_BACKGROUND=$TEXT_COLOR_IF_COLORED_BACKGROUND HIGHLIGHT_COLOR_TMUX=$HIGHLIGHT_COLOR_TMUX ACTIVE_INDICATOR_COLOR_TMUX=$ACTIVE_INDICATOR_COLOR_TMUX tmux -2'
 alias TLS="tmux ls"
 alias TAS="tmux attach-session -t"
 alias TKS="tmux kill-session -t"
@@ -708,7 +708,7 @@ alias TKAS="tmux kill-server"
 
 function TS() {
     builtin cd ~
-    DISPLAY_COLOR="$DISPLAY_COLOR" tmux new-session -d
+    DISPLAY_COLOR="$DISPLAY_COLOR" TEXT_COLOR_IF_COLORED_BACKGROUND="$TEXT_COLOR_IF_COLORED_BACKGROUND" HIGHLIGHT_COLOR_TMUX="$HIGHLIGHT_COLOR_TMUX" ACTIVE_INDICATOR_COLOR_TMUX="$ACTIVE_INDICATOR_COLOR_TMUX" tmux new-session -d
     local SESSION=$(tmux display-message -p '#S')
 
     # "doc" (horizontal split)
@@ -776,8 +776,8 @@ function TOBP() {
 #  %% -------- [AI] ----------:
 
 alias KK="kiro-cli chat --trust-all-tools"
-alias KKR="kiro-cli chat --trust-all-tools"
-alias KKE="cd ~/empty && kiro-cli chat --trust-all-tools --resume"
+alias KKR="kiro-cli chat --trust-all-tools --resume"
+alias KKE="cd ~/empty && kiro-cli chat --trust-all-tools"
 alias KKER="cd ~/empty && kiro-cli chat --trust-all-tools --resume"
 
 #  %% -------- [sleep management caff decaff] ----------:
@@ -900,24 +900,30 @@ zstyle ':completion:*' matcher-list '' \
 # %% ---------- [colors and prompt display color DISPLAY_COLOR] ----------:
 
 # 256 color codes:
+# 0   = black
 # 28  = green
-# 46  = bright green
 # 51  = bright cyan
+# 168 = muted pink/mauve
+# 196 = bright red
 # 39  = bright blue
+# 46  = bright green
 # 226 = bright yellow
 # 201 = bright magenta
-# 196 = bright red
 # 208 = orange
 # 141 = purple
-# 250 = light gray
 # 240 = dark gray
+# 250 = light gray
+# 251 = light gray
 # 15  = white
-# 0   = black
 # for i in {0..255}; do
 #     printf "\x1b[38;5;${i}mcolor%-5i\x1b[0m" $i
 #     (( (i+1) % 8 == 0 )) && echo
 # done
 export DISPLAY_COLOR=28
+export TEXT_COLOR_IF_COLORED_BACKGROUND=0
+export HIGHLIGHT_COLOR_ZSH=168
+export HIGHLIGHT_COLOR_TMUX=51
+export ACTIVE_INDICATOR_COLOR_TMUX=196
 
 function COLORS(){
 	for i in {0..255}; do
@@ -928,7 +934,7 @@ function COLORS(){
 
 setopt PROMPT_SUBST # expands PS1 single quote
 export PS1='%F{$DISPLAY_COLOR}%~ ▶%f '
-export zle_highlight=('paste:bg=168,fg=251', 'region:bg=168,fg=251')
+export zle_highlight=("paste:bg=${HIGHLIGHT_COLOR_ZSH},fg=${TEXT_COLOR_IF_COLORED_BACKGROUND}" "region:bg=${HIGHLIGHT_COLOR_ZSH},fg=${TEXT_COLOR_IF_COLORED_BACKGROUND}")
 
 # %% -------- [others] ----------:
 
