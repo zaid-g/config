@@ -927,7 +927,7 @@ export ACTIVE_INDICATOR_COLOR_TMUX=196
 
 function COLORS(){
 	for i in {0..255}; do
-		printf "\x1b[38;5;${i}mcolor%-5i\x1b[0m" $i
+		printf "\x1b[38;5;${i}m██ %-5i\x1b[0m" $i
 		(( (i+1) % 8 == 0 )) && echo
 	done
 }
