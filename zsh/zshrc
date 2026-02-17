@@ -1,6 +1,8 @@
 # Formatting notes for file
 # 1. All variables declared inside functions must be local
-# 2. function and alias names must always be uppercase and using underscore
+# 2. internal function and alias names must always be uppercase and using underscore
+# 3. shorthand functions/aliases must always be uppercase
+
 
 
 # %% -------- [project creation and management brain] ----------:
@@ -255,10 +257,9 @@ alias FP='readlink -f'
 alias MVV="mv -v"
 
 # ls
-alias LLA="ls -la --color=auto"
-alias LLR="ls -ltr --color=auto"
-alias LLALL="ls -lA --color=auto"
 alias LL="ls -l --color=auto"
+alias LLA="ls -lA --color=auto"
+alias LLR="ls -ltr --color=auto"
 alias LLD="LLR ~/Downloads"
 alias LLT="LLR ~/trash"
 
@@ -496,7 +497,7 @@ function GREP() {
 }
 
 # find files matching pattern one layer deep
-function FINDOL() {
+function FIND1() {
     ls -d --color=always -1 *"$@"* | sort -t_ -k2,3
 }
 
@@ -775,7 +776,9 @@ function TOBP() {
 #  %% -------- [AI] ----------:
 
 alias KK="kiro-cli chat --trust-all-tools"
-alias KKE="cd ~/empty && kiro-cli chat --trust-all-tools"
+alias KKR="kiro-cli chat --trust-all-tools"
+alias KKE="cd ~/empty && kiro-cli chat --trust-all-tools --resume"
+alias KKER="cd ~/empty && kiro-cli chat --trust-all-tools --resume"
 
 #  %% -------- [sleep management caff decaff] ----------:
 
@@ -896,11 +899,35 @@ zstyle ':completion:*' matcher-list '' \
 
 # %% ---------- [colors and prompt display color DISPLAY_COLOR] ----------:
 
-export DISPLAY_COLOR=green  # blue green cyan
+# 256 color codes:
+# 28  = green
+# 46  = bright green
+# 51  = bright cyan
+# 39  = bright blue
+# 226 = bright yellow
+# 201 = bright magenta
+# 196 = bright red
+# 208 = orange
+# 141 = purple
+# 250 = light gray
+# 240 = dark gray
+# 15  = white
+# 0   = black
+# for i in {0..255}; do
+#     printf "\x1b[38;5;${i}mcolor%-5i\x1b[0m" $i
+#     (( (i+1) % 8 == 0 )) && echo
+# done
+export DISPLAY_COLOR=28
+
+function COLORS(){
+	for i in {0..255}; do
+		printf "\x1b[38;5;${i}mcolor%-5i\x1b[0m" $i
+		(( (i+1) % 8 == 0 )) && echo
+	done
+}
+
 setopt PROMPT_SUBST # expands PS1 single quote
-autoload -U colors && colors
-export PS1='%{$fg[$DISPLAY_COLOR]%}%~ ▶%{$reset_color%} '
-export zle_highlight=('region:bg=168,fg=251')
+export PS1='%F{$DISPLAY_COLOR}%~ ▶%f '
 export zle_highlight=('paste:bg=168,fg=251', 'region:bg=168,fg=251')
 
 # %% -------- [others] ----------:
