@@ -406,11 +406,18 @@ TARGZ() {
     local target_path="${1:-.}"
     local full_path
     full_path="$(readlink -f "$target_path")"
+
     [[ ! -e "$full_path" ]] && { echo "Error: '$target_path' does not exist"; return 1; }
+
     local file_name
     file_name="$(basename "$full_path")"
     local tmp_output="$HOME/${file_name}.tar.gz"
-    tar -czf "$tmp_output" -C "$(dirname "$full_path")" "$file_name" && mv "$tmp_output" "$PWD/"
+    local final_output="$PWD/${file_name}.tar.gz"
+
+    [[ -e "$final_output" ]] && { echo "Error: '$final_output' already exists"; return 1; }
+    [[ -e "$tmp_output" ]] && { echo "Error: '$tmp_output' already exists"; return 1; }
+
+    tar -czf "$tmp_output" -C "$(dirname "$full_path")" "$file_name" && mv "$tmp_output" "$final_output"
 }
 
 UNTARGZ() {
