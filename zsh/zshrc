@@ -402,24 +402,15 @@ function DFROMD() {
     fi
 }
 
-TARGZ () {
-	local target_path="$1"
-	[[ -z "$target_path" ]] && {
-		echo "Usage: TARGZ <path>"
-		return 1
-	}
-	[[ ! -e "$target_path" ]] && {
-		echo "Error: '$target_path' does not exist"
-		return 1
-	}
-	local full_path
-	local file_name
-	local full_path_output
-	full_path="$(readlink -f "$target_path")"
-	file_name="$(basename "$full_path")"
-	full_path_output="$(dirname "$full_path")/${file_name}.tar.gz"
-	tar -czf "$full_path_output" -C "$(dirname "$full_path")" "$file_name" && \
-		mv "$full_path_output" "$PWD/"
+TARGZ() {
+    local target_path="${1:-.}"
+    local full_path
+    full_path="$(readlink -f "$target_path")"
+    [[ ! -e "$full_path" ]] && { echo "Error: '$target_path' does not exist"; return 1; }
+    local file_name
+    file_name="$(basename "$full_path")"
+    local tmp_output="$HOME/${file_name}.tar.gz"
+    tar -czf "$tmp_output" -C "$(dirname "$full_path")" "$file_name" && mv "$tmp_output" "$PWD/"
 }
 
 UNTARGZ() {
