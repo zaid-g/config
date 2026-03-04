@@ -226,6 +226,9 @@ function chpwd() {
         [[ -n "$VIRTUAL_ENV" ]] && deactivate
         source "$env/bin/activate"
     fi
+    if [[ -n "$TMUX" ]] && [[ "$(tmux show-options -w @AUTORENAME 2>/dev/null | grep -o '0$')" != "0" ]]; then
+        TMUX_RENAME_WINDOW
+    fi
 }
 
 #  %% -------- [files folders path management] ----------:
@@ -722,72 +725,66 @@ alias TLS="tmux ls"
 alias TAS="tmux attach-session -t"
 alias TKS="tmux kill-session -t"
 alias TKAS="tmux kill-server"
+alias TLV="tmux show-window-options"
 
-function TS() {
-    builtin cd ~
-    DISPLAY_COLOR="$DISPLAY_COLOR" TEXT_COLOR_IF_COLORED_BACKGROUND="$TEXT_COLOR_IF_COLORED_BACKGROUND" HIGHLIGHT_COLOR_TMUX="$HIGHLIGHT_COLOR_TMUX" ACTIVE_INDICATOR_COLOR_TMUX="$ACTIVE_INDICATOR_COLOR_TMUX" tmux new-session -d
-    local SESSION=$(tmux display-message -p '#S')
-
-    # "doc" (horizontal split)
-    tmux rename-window -t $SESSION:0 'notes'
-    tmux split-window -h -t $SESSION:0
-    tmux send-keys -t $SESSION:0.0 'CD' C-m
-    tmux send-keys -t $SESSION:0.1 'VNOTES' C-m
-
-    # "junk" (horizontal split)
-    tmux new-window -t $SESSION: -n 'junk'
-    tmux split-window -h -t $SESSION:1
-    tmux send-keys -t $SESSION:1.0 'CDJ' C-m
-    tmux send-keys -t $SESSION:1.1 'VJUNK' C-m
-
-    # "ai" (horizontal split)
-    tmux new-window -t $SESSION: -n 'ai'
-    tmux split-window -h -t $SESSION:2
-    tmux send-keys -t $SESSION:2.0 'KK' C-m
-    tmux send-keys -t $SESSION:2.1 'VAI' C-m
-
-    # "config" (horizontal split)
-    tmux new-window -t $SESSION: -n 'config'
-    tmux split-window -h -t $SESSION:3
-    tmux send-keys -t $SESSION:3.0 'CDC' C-m
-    tmux send-keys -t $SESSION:3.1 'CDCC' C-m
-
-    tmux attach-session -t $SESSION:0
+function TTAR(){
+    tmux set-window-option -t $TMUX_PANE @AUTORENAME 0
 }
 
 function TMUX_RENAME_WINDOW() {
+    [[ "$PWD" == "/" ]] && return
     local window_name
-    window_name=$(FIND_BRAIN_PARENT_NAME) || window_name=$(basename "$PWD")
+    window_name=$(FIND_BRAIN_PARENT_NAME 2>/dev/null) || window_name=$(basename "$PWD")
     [[ ${#window_name} -gt 15 ]] && window_name="${window_name:0:12}…"
-    tmux rename-window "$window_name"
+    tmux rename-window -t "$TMUX_PANE" "$window_name"
 }
 
-# tmux open brain parent in new window
+# tmux commands continue in new(ly focused) splits/windows
+# but shell commands continue in calling pane
+# the trick is to never send keys to trigger a function
+# that calls tmux commands and later trigger tmux commands
+# (the send keys is asynchronous and tmux changes state before
+# the nested tmux commands execute).
+# ALSO, any nested tmux functionality needs to target $TMUX_PANE
+# since if splits/new windows happen any calls to tmux in calling
+# pane would execute in whichever pane spawned after the async 
+# tmux call
+function TS() {
+    tmux send-keys 'CD && TTAR && KKR' Enter
+    tmux split-window -h
+    tmux send-keys 'CD && VNOTES' Enter
+    tmux new-window
+    tmux send-keys 'CD && TTAR && KKR' Enter
+    tmux split-window -h
+    tmux send-keys 'CD && VJUNK' Enter
+    tmux new-window
+    tmux send-keys 'CD && TTAR && KKR' Enter
+    tmux split-window -h
+    tmux send-keys 'CD && VAI' Enter
+}
+
+# tmux open brain parent
 function TOBP() {
-    local new_window=false
-    while [[ $# -gt 0 ]]; do
-        case "$1" in
-            -n|--new-window)
-                new_window=true
-                shift
-                ;;
-            *)
-                echo "Unknown option: $1" >&2
-                return 1
-                ;;
-        esac
-    done
     local brain_parent_name
     brain_parent_name=$(FIND_BRAIN_PARENT_NAME) || return 1
     local brain_parent_path
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
     cd "$brain_parent_path"
-    [[ $new_window == true ]] && tmux new-window
-    TMUX_RENAME_WINDOW
+    TTAR
+    tmux send-keys 'KKR' Enter
     tmux split-window -h
+    tmux send-keys 'VB' Enter
     tmux split-window -v
-    tmux send-keys -t 0 'KKR' Enter
-    tmux send-keys -t 1 'VB' Enter
+}
+
+# tmux create brain parent
+function TCBP() {
+    tmux new-window
+    MKJ "$@"
+    TB
+    [[ "$IS_DEV_MACHINE" == "true" ]] && TH
+    GI
+    TOBP
 }
 
 #  %% -------- [AI] ----------:
