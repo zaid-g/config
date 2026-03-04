@@ -5,6 +5,11 @@
 
 
 
+
+#  %% -------- [machine setup/settings/options/configuration] ----------:
+
+export IS_DEV_MACHINE=false
+
 # %% -------- [project creation and management brain] ----------:
 
 function GENERATE_8_PRONOUNCEABLE_RANDOM_CHARS() {
@@ -761,6 +766,10 @@ function TS() {
     tmux send-keys 'CD && TTAR && KKR' Enter
     tmux split-window -h
     tmux send-keys 'CD && VAI' Enter
+    tmux new-window
+    tmux send-keys 'CDC && TTAR && KKR' Enter
+    tmux split-window -h
+    tmux send-keys 'CDCC' Enter
 }
 
 # tmux open brain parent
