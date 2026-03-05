@@ -732,6 +732,10 @@ alias TKS="tmux kill-session -t"
 alias TKAS="tmux kill-server"
 alias TLV="tmux show-window-options"
 
+function TSK(){
+    tmux send-keys "$*" Enter; 
+}
+
 function TTAR(){
     tmux set-window-option -t $TMUX_PANE @AUTORENAME 0
 }
@@ -749,51 +753,57 @@ function TMUX_RENAME_WINDOW() {
 # the trick is to never send keys to trigger a function
 # that calls tmux commands and later trigger tmux commands
 # (the send keys is asynchronous and tmux changes state before
-# the nested tmux commands execute).
+# the nested tmux commands execute). Avoid tmux parallelism.
 # ALSO, any nested tmux functionality needs to target $TMUX_PANE
 # since if splits/new windows happen any calls to tmux in calling
 # pane would execute in whichever pane spawned after the async 
 # tmux call
 function TS() {
-    tmux send-keys 'CD && TTAR && KKR' Enter
+    TSK 'CD'
+    TSK 'TTAR'
+    TSK 'KKR'
     tmux split-window -h
-    tmux send-keys 'CD && VNOTES' Enter
+    TSK 'CD'
+    TSK 'VNOTES'
     tmux new-window
-    tmux send-keys 'CD && TTAR && KKR' Enter
+    TSK 'CD'
+    TSK 'TTAR'
+    TSK 'KKR'
     tmux split-window -h
-    tmux send-keys 'CD && VJUNK' Enter
+    TSK 'CD'
+    TSK 'VJUNK'
     tmux new-window
-    tmux send-keys 'CD && TTAR && KKR' Enter
+    TSK 'CD'
+    TSK 'TTAR'
+    TSK 'KKR'
     tmux split-window -h
-    tmux send-keys 'CD && VAI' Enter
+    TSK 'CD'
+    TSK 'VAI'
     tmux new-window
-    tmux send-keys 'CDC && TTAR && KKR' Enter
+    TSK 'CD'
+    TSK 'TTAR'
+    TSK 'KKR'
     tmux split-window -h
-    tmux send-keys 'CDCC' Enter
+    TSK 'CDCC'
 }
 
 # tmux open brain parent
 function TOBP() {
-    local brain_parent_name
-    brain_parent_name=$(FIND_BRAIN_PARENT_NAME) || return 1
-    local brain_parent_path
-    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
-    cd "$brain_parent_path"
-    TTAR
-    tmux send-keys 'KKR' Enter
+    CDBP || return 1
+    TSK 'TTAR'
     tmux split-window -h
-    tmux send-keys 'VB' Enter
+    TSK 'VB'
     tmux split-window -v
 }
 
 # tmux create brain parent
 function TCBP() {
     tmux new-window
-    MKJ "$@"
-    TB
-    [[ "$IS_DEV_MACHINE" == "true" ]] && TH
-    GI
-    TOBP
+    TSK "MKJ $*"
+    TSK "TB"
+    [[ "$IS_DEV_MACHINE" == "true" ]] && TSK "TH"
+    TSK "GI"
+    TSK "TOBP"
 }
 
 #  %% -------- [AI] ----------:
