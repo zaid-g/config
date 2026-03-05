@@ -551,7 +551,7 @@ function VB() {
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
     local original_dir="$PWD"
     cd "$brain_parent_path"
-	$NEOVIM_EDITOR -c "lua vim.api.nvim_create_autocmd('CursorHold', {callback = function() vim.cmd('silent! wall') end})" brain/**/notes.txt brain/**/junk.txt brain/**/ai.txt brain/**/*.txt
+	NVIM_APPNAME=nvim $NEOVIM_EDITOR -c "lua vim.api.nvim_create_autocmd('CursorHold', {callback = function() vim.cmd('silent! wall') end})" brain/**/notes.txt brain/**/junk.txt brain/**/ai.txt brain/**/*.txt
     cd "$original_dir"
 }
 
