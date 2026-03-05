@@ -791,6 +791,7 @@ function TS() {
 function TOBP() {
     CDBP || return 1
     TSK 'TTAR'
+    TSK 'KKR'
     tmux split-window -h
     TSK 'VB'
     tmux split-window -v
