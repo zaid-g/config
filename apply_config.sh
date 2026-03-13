@@ -21,14 +21,14 @@ grep -qF 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/core.lua"))' ~/.conf
     cat ~/.config/nvim/init.lua
     printf '%s\n' 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/core.lua"))'
 )" >~/.config/nvim/init.lua
-grep -qF 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/nvim.lua"))' ~/.config/nvim/init.lua || echo "$(
+grep -qF 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/nvim/nvim.lua"))' ~/.config/nvim/init.lua || echo "$(
     cat ~/.config/nvim/init.lua
-    printf '%s\n' 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/nvim.lua"))'
+    printf '%s\n' 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/nvim/nvim.lua"))'
 )" >~/.config/nvim/init.lua
 
 #  %% -------- [lazyvim] ----------:
 
-bash ~/doc/config/config/vi/lazyvim/apply_config.sh
+bash ~/doc/config/config/vi/nvim/lazyvim/apply_config.sh
 cp ~/doc/config/config/vi/nvim/core.lua ~/.config/lazyvim/lua/config/keymaps.lua
 
 # %% -------- [zsh] ----------:
