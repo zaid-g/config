@@ -258,6 +258,15 @@ function CDBP() {
     cd "$brain_parent_path"
 }
 
+function CDG() {
+  local root
+  root=$(git rev-parse --show-toplevel 2>/dev/null) || {
+    echo "Not inside a git repository"
+    return 1
+  }
+  cd "$root"
+}
+
 # get full path
 alias FP='readlink -f'
 
