@@ -259,12 +259,12 @@ function CDBP() {
 }
 
 function CDG() {
-	local root
-	root=$(git rev-parse --show-toplevel 2>/dev/null) || {
+	local git_root
+	git_root=$(git rev-parse --show-toplevel 2>/dev/null) || {
 		echo "Not inside a git repository"
 		return 1
 	}
-	cd "$root"
+	cd "$git_root"
 }
 
 # get full path
