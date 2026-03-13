@@ -21,6 +21,10 @@ grep -qF 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/core.lua"))' ~/.conf
     cat ~/.config/nvim/init.lua
     printf '%s\n' 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/core.lua"))'
 )" >~/.config/nvim/init.lua
+grep -qF 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/nvim.lua"))' ~/.config/nvim/init.lua || echo "$(
+    cat ~/.config/nvim/init.lua
+    printf '%s\n' 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/nvim.lua"))'
+)" >~/.config/nvim/init.lua
 
 #  %% -------- [lazyvim] ----------:
 

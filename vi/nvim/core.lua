@@ -62,8 +62,6 @@ vim.keymap.set("n", "m<c-n>", "g<C-g>")
 
 -- %% -------- [highlight, color, search, jump, find, and replace] ----------:
 
-vim.cmd('colorscheme koehler')
-
 function JumpToPattern(count, pattern, flags, center)
 	for _ = 1, count do
 		vim.fn.search(pattern, flags)
