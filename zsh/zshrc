@@ -847,8 +847,18 @@ function TCBP() {
 
 alias KK="kiro-cli chat --trust-all-tools"
 alias KKR="kiro-cli chat --trust-all-tools --resume"
-alias KKE="cd ~/empty && kiro-cli chat --trust-all-tools"
-alias KKER="cd ~/empty && kiro-cli chat --trust-all-tools --resume"
+
+function KKE() {
+    local original_dir="$PWD"
+    cd ~/empty && kiro-cli chat --trust-all-tools
+    cd "$original_dir"
+}
+
+function KKER() {
+    local original_dir="$PWD"
+    cd ~/empty && kiro-cli chat --trust-all-tools --resume
+    cd "$original_dir"
+}
 
 #  %% -------- [sleep management caff decaff] ----------:
 
