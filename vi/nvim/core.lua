@@ -14,6 +14,7 @@ vim.opt.autoread = true
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
 vim.opt.updatetime = 200
+vim.opt_local.conceallevel = 0
 
 -- %% -------- [leader stuff] ----------:
 
