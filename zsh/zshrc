@@ -35,7 +35,7 @@ function CREATE_TIMESTAMPED_DIR_AND_CD() {
     shift
     local raw_folder_name="${*:-$(GENERATE_8_PRONOUNCEABLE_RANDOM_CHARS 8)}"
     local cleaned_folder_name=$(CLEAN_FILENAME "$raw_folder_name")
-    local dir="${base_dir:+$base_dir/}${cleaned_folder_name}_$(date +%F_%H-%M-%S)"
+    local dir="${base_dir:+$base_dir/}${cleaned_folder_name}-$(date +%Y_%m_%d-%H_%M_%S)"
     mkdir -p "$dir" && cd "$dir"
 }
 
@@ -281,7 +281,7 @@ alias LLD="LLR ~/Downloads"
 alias LLT="LLR ~/trash"
 
 function CLEAN_FILENAME() {
-    echo -n "$1" | tr -d '*?[]|&;<>$`!"'"'"'(){}^~#\\' | tr ' \t\n' '___'
+    echo -n "$1" | perl -CSD -pe 's/[\s\x{00a0}\x{202f}\x{2007}\x{2009}\x{200a}\x{205f}\x{3000}]/-/g' | tr -d '*?[]|&;<>$`!"'"'"'(){}^~#\\'
 }
 
 function PROCESS_DOWNLOAD_FILES_PATHS() {
@@ -375,25 +375,13 @@ function UTOR() {
 
 # download from remote (remote filesystem to local Downloads)
 function DFROMR() {
-    local REMOTE_PATH
-    if [ "$#" -ne 1 ]; then
-        echo "Usage: DFR <remote_path>"
-        return 1
-    fi
-    REMOTE_PATH=$1
-    if [ -z "$REMOTE" ]; then
-        echo "Error: REMOTE environment variable must be set"
-        return 1
-    fi
-    local hostname=$(echo "$REMOTE" | cut -d'@' -f2 | cut -d'.' -f1)
-    MKD "$hostname"
-    if rsync -avz "$REMOTE:$REMOTE_PATH" ./; then
-        chmod -R u+w .
-        echo "✅ Downloaded to: $PWD"
-        cd -
+    [[ "$#" -ne 1 ]] && { echo "Usage: DFROMR <remote_path>"; return 1; }
+    [[ -z "$REMOTE" ]] && { echo "Error: REMOTE environment variable must be set"; return 1; }
+    if rsync -avz "$REMOTE:$1" ~/Downloads/; then
+        chmod -R u+w ~/Downloads/"$(basename "$1")"
+        echo "✅ Downloaded to: ~/Downloads/$(basename "$1")"
     else
-        echo "❌ rsync failed for $REMOTE:$REMOTE_PATH"
-        cd -
+        echo "❌ rsync failed for $REMOTE:$1"
         return 1
     fi
 }
