@@ -304,8 +304,8 @@ function PROCESS_DOWNLOAD_FILES_PATHS() {
 }
 
 # cp folders from local filesystem to local Downloads
-function CPTOD() {
-    [[ $# -eq 0 ]] && { echo "Usage: <command> <path>..."; return 1; }
+function CPD() {
+    [[ $# -eq 0 ]] && { echo "Usage: CPD <path>..."; return 1; }
     mkdir -p ~/Downloads
     for item in "$@"; do
         local resolved_path=$(readlink -f "$item")
@@ -314,20 +314,22 @@ function CPTOD() {
     done
 }
 
-# mv folders from local filesystem to local Downloads
-function MVTOD() {
-    [[ $# -eq 0 ]] && { echo "Usage: <command> <path>..."; return 1; }
+# mv folders from local filesystem to local Downloads and touch timestamp
+# so it appears at top of list
+function MVD() {
+    [[ $# -eq 0 ]] && { echo "Usage: MVD <path>..."; return 1; }
     mkdir -p ~/Downloads
     for item in "$@"; do
         local resolved_path=$(readlink -f "$item")
         local cleaned_filename=$(CLEAN_FILENAME "$(basename "$resolved_path")")
         mv -v "$item" ~/Downloads/"$cleaned_filename"
+        touch ~/Downloads/"$cleaned_filename"
     done
 }
 
 # mv folders from local filesystem to trash
-function MVTOT() {
-    [[ $# -eq 0 ]] && { echo "Usage: <command> <path>..."; return 1; }
+function MVT() {
+    [[ $# -eq 0 ]] && { echo "Usage: MVT <path>..."; return 1; }
     mkdir -p ~/trash
     for item in "$@"; do
         local resolved_path=$(readlink -f "$item")
@@ -352,17 +354,17 @@ function MV() {
 
 # upload Downloads content to remote
 # (from local Downloads to remote Downloads)
-function UDTOR() {
+function UD() {
     ssh "$REMOTE" "mkdir -p ~/Downloads"
     PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r source dest; do
-        [ -f "$source" ] && rsync -avz "$source" "$REMOTE:~/Downloads/$dest"
+        [ -e "$source" ] && rsync -avz "$source" "$REMOTE:~/Downloads/$dest"
     done
 }
 
 # upload local filesystem content to remote Downloads
-function UTOR() {
+function U() {
     if [ $# -eq 0 ]; then
-        echo "Usage: UTOR <path> [path2 ...]"
+        echo "Usage: U <path>..."
         return 1
     fi
     ssh "$REMOTE" "mkdir -p ~/Downloads"
@@ -374,21 +376,22 @@ function UTOR() {
 }
 
 # download from remote (remote filesystem to local Downloads)
-function DFROMR() {
-    [[ "$#" -ne 1 ]] && { echo "Usage: DFROMR <remote_path>"; return 1; }
+function D() {
+    [[ $# -eq 0 ]] && { echo "Usage: D <remote_path>..."; return 1; }
     [[ -z "$REMOTE" ]] && { echo "Error: REMOTE environment variable must be set"; return 1; }
-    if rsync -avz "$REMOTE:$1" ~/Downloads/; then
-        chmod -R u+w ~/Downloads/"$(basename "$1")"
-        echo "✅ Downloaded to: ~/Downloads/$(basename "$1")"
-    else
-        echo "❌ rsync failed for $REMOTE:$1"
-        return 1
-    fi
+    for remote_path in "$@"; do
+        if rsync -avz "$REMOTE:$remote_path" ~/Downloads/; then
+            chmod -R u+w ~/Downloads/"$(basename "$remote_path")"
+            echo "✅ Downloaded to: ~/Downloads/$(basename "$remote_path")"
+        else
+            echo "❌ rsync failed for $REMOTE:$remote_path"
+        fi
+    done
 }
 
 # download from Remote's Downloads
 # (remote Downloads to local Downloads)
-function DFROMD() {
+function DD() {
     if [ -z "$REMOTE" ]; then
         echo "Error: REMOTE environment variable must be set"
         return 1
@@ -863,7 +866,6 @@ function DOCK(){
 function DOCKCWD(){
     sudo docker run -it -v $(pwd):$(pwd) -v $HOME/doc/config/config:/home/ubuntu/doc/config/config -w $(pwd) $@ main
 }
-alias D="docker"
 alias DB="docker build"
 alias DR="docker run"
 alias DC="docker container"
@@ -895,7 +897,7 @@ function ADA() {
     local account_number=$1
     if [ -z "$account_number" ]; then
         echo "Error: Please provide an account number"
-        echo "Usage: ada_creds <account_number>"
+        echo "Usage: ADA <account_number>"
         return 1
     fi
     ada credentials update --account="$account_number" --provider=conduit --role=IibsAdminAccess-DO-NOT-DELETE --once
@@ -904,7 +906,7 @@ function ADAL() {
     local account_number=$1
     if [ -z "$account_number" ]; then
         echo "Error: Please provide an account number"
-        echo "Usage: ada_creds <account_number>"
+        echo "Usage: ADAL <account_number>"
         return 1
     fi
     ada credentials update --account="$account_number" --provider=conduit --role=IibsAdminAccess-DO-NOT-DELETE
