@@ -1012,3 +1012,4 @@ export zle_highlight=("paste:bg=${HIGHLIGHT_COLOR_ZSH},fg=${TEXT_COLOR_IF_COLORE
 alias H="history 0"
 # Bind Ctrl-space to clear-screen
 bindkey '^@' clear-screen
+alias DU="du -sh"
