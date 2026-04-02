@@ -819,7 +819,6 @@ function TOBP() {
         target_pane_id=$(tmux new-window -P -F '#{pane_id}')
         tmux send-keys -t "$target_pane_id" 'CDBP' Enter
         tmux send-keys -t "$target_pane_id" 'TTAR' Enter
-        tmux split-window -h -t "$target_pane_id"
     done
 }
 
