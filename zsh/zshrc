@@ -888,6 +888,7 @@ alias BBC='brazil-build clean'
 alias BWC='brazil ws clean'
 alias BBR='brazil-build release'
 alias BBDEPLOY="brazil-build cdk deploy --require-approval never"
+alias BSYNC="brazil ws sync && brazil ws sync --md && brazil ws sync && brazil ws sync --md"
 
 alias MW="mwinit -o && q whoami"
 alias KI="kinit -f"
