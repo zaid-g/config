@@ -752,53 +752,53 @@ function TMUX_RENAME_WINDOW() {
 # the nested tmux commands execute) unless the downstream calls
 # know how to target the right panes.
 function TS() {
-    local spawned_tmux_pane_id="$TMUX_PANE"
-    tmux send-keys -t "$spawned_tmux_pane_id" 'TON' Enter
-    spawned_tmux_pane_id=$(tmux new-window -P -F '#{pane_id}')
-    tmux send-keys -t "$spawned_tmux_pane_id" 'TOJ' Enter
-    spawned_tmux_pane_id=$(tmux new-window -P -F '#{pane_id}')
-    tmux send-keys -t "$spawned_tmux_pane_id" 'TOAI' Enter
-    spawned_tmux_pane_id=$(tmux new-window -P -F '#{pane_id}')
-    tmux send-keys -t "$spawned_tmux_pane_id" 'TOC' Enter
+    local target_pane_id="$TMUX_PANE"
+    tmux send-keys -t "$target_pane_id" 'TON' Enter
+    target_pane_id=$(tmux new-window -P -F '#{pane_id}')
+    tmux send-keys -t "$target_pane_id" 'TOJ' Enter
+    target_pane_id=$(tmux new-window -P -F '#{pane_id}')
+    tmux send-keys -t "$target_pane_id" 'TOAI' Enter
+    target_pane_id=$(tmux new-window -P -F '#{pane_id}')
+    tmux send-keys -t "$target_pane_id" 'TOC' Enter
 }
 
 function TON() {
-    local spawned_tmux_pane_id="$TMUX_PANE"
-    tmux send-keys -t "$spawned_tmux_pane_id" 'CD' Enter
-    tmux send-keys -t "$spawned_tmux_pane_id" 'TTAR' Enter
-    tmux send-keys -t "$spawned_tmux_pane_id" 'KKR' Enter
-    spawned_tmux_pane_id=$(tmux split-window -h -t "$spawned_tmux_pane_id" -P -F '#{pane_id}')
-    tmux send-keys -t "$spawned_tmux_pane_id" 'CD' Enter
-    tmux send-keys -t "$spawned_tmux_pane_id" 'VNOTES' Enter
+    local target_pane_id="$TMUX_PANE"
+    tmux send-keys -t "$target_pane_id" 'CD' Enter
+    tmux send-keys -t "$target_pane_id" 'TTAR' Enter
+    tmux send-keys -t "$target_pane_id" 'KKR' Enter
+    target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
+    tmux send-keys -t "$target_pane_id" 'CD' Enter
+    tmux send-keys -t "$target_pane_id" 'VNOTES' Enter
 }
 
 function TOJ() {
-    local spawned_tmux_pane_id="$TMUX_PANE"
-    tmux send-keys -t "$spawned_tmux_pane_id" 'CD' Enter
-    tmux send-keys -t "$spawned_tmux_pane_id" 'TTAR' Enter
-    tmux send-keys -t "$spawned_tmux_pane_id" 'KKR' Enter
-    spawned_tmux_pane_id=$(tmux split-window -h -t "$spawned_tmux_pane_id" -P -F '#{pane_id}')
-    tmux send-keys -t "$spawned_tmux_pane_id" 'CD' Enter
-    tmux send-keys -t "$spawned_tmux_pane_id" 'VJUNK' Enter
+    local target_pane_id="$TMUX_PANE"
+    tmux send-keys -t "$target_pane_id" 'CD' Enter
+    tmux send-keys -t "$target_pane_id" 'TTAR' Enter
+    tmux send-keys -t "$target_pane_id" 'KKR' Enter
+    target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
+    tmux send-keys -t "$target_pane_id" 'CD' Enter
+    tmux send-keys -t "$target_pane_id" 'VJUNK' Enter
 }
 
 function TOAI() {
-    local spawned_tmux_pane_id="$TMUX_PANE"
-    tmux send-keys -t "$spawned_tmux_pane_id" 'CD' Enter
-    tmux send-keys -t "$spawned_tmux_pane_id" 'TTAR' Enter
-    tmux send-keys -t "$spawned_tmux_pane_id" 'KKR' Enter
-    spawned_tmux_pane_id=$(tmux split-window -h -t "$spawned_tmux_pane_id" -P -F '#{pane_id}')
-    tmux send-keys -t "$spawned_tmux_pane_id" 'CD' Enter
-    tmux send-keys -t "$spawned_tmux_pane_id" 'VAI' Enter
+    local target_pane_id="$TMUX_PANE"
+    tmux send-keys -t "$target_pane_id" 'CD' Enter
+    tmux send-keys -t "$target_pane_id" 'TTAR' Enter
+    tmux send-keys -t "$target_pane_id" 'KKR' Enter
+    target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
+    tmux send-keys -t "$target_pane_id" 'CD' Enter
+    tmux send-keys -t "$target_pane_id" 'VAI' Enter
 }
 
 function TOC() {
-    local spawned_tmux_pane_id="$TMUX_PANE"
-    tmux send-keys -t "$spawned_tmux_pane_id" 'CDC' Enter
-    tmux send-keys -t "$spawned_tmux_pane_id" 'TTAR' Enter
-    tmux send-keys -t "$spawned_tmux_pane_id" 'KKR' Enter
-    spawned_tmux_pane_id=$(tmux split-window -h -t "$spawned_tmux_pane_id" -P -F '#{pane_id}')
-    tmux send-keys -t "$spawned_tmux_pane_id" 'CDCC' Enter
+    local target_pane_id="$TMUX_PANE"
+    tmux send-keys -t "$target_pane_id" 'CDC' Enter
+    tmux send-keys -t "$target_pane_id" 'TTAR' Enter
+    tmux send-keys -t "$target_pane_id" 'KKR' Enter
+    target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
+    tmux send-keys -t "$target_pane_id" 'CDCC' Enter
 }
 
 # tmux open brain parent
@@ -808,30 +808,37 @@ function TOBP() {
         return 1
     fi
     CDBP || return 1
-    local spawned_tmux_pane_id="$TMUX_PANE"
-    tmux send-keys -t "$spawned_tmux_pane_id" 'TTAR' Enter
-    tmux send-keys -t "$spawned_tmux_pane_id" 'KKR' Enter
-    spawned_tmux_pane_id=$(tmux split-window -h -t "$spawned_tmux_pane_id" -P -F '#{pane_id}')
-    tmux send-keys -t "$spawned_tmux_pane_id" 'VB' Enter
-    tmux split-window -v -t "$spawned_tmux_pane_id"
+    local target_pane_id="$TMUX_PANE"
+    tmux send-keys -t "$target_pane_id" 'TTAR' Enter
+    tmux send-keys -t "$target_pane_id" 'KKR' Enter
+    target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
+    tmux send-keys -t "$target_pane_id" 'VB' Enter
+    tmux split-window -v -t "$target_pane_id"
     local count=${1:-1}
     for ((i = 2; i <= count; i++)); do
-        spawned_tmux_pane_id=$(tmux new-window -P -F '#{pane_id}')
-        tmux send-keys -t "$spawned_tmux_pane_id" 'CDBP' Enter
-        tmux send-keys -t "$spawned_tmux_pane_id" 'TTAR' Enter
-        tmux split-window -h -t "$spawned_tmux_pane_id"
+        target_pane_id=$(tmux new-window -P -F '#{pane_id}')
+        tmux send-keys -t "$target_pane_id" 'CDBP' Enter
+        tmux send-keys -t "$target_pane_id" 'TTAR' Enter
+        tmux split-window -h -t "$target_pane_id"
     done
 }
 
 # tmux create brain parent
 function TCBP() {
-    local spawned_tmux_pane_id
-    spawned_tmux_pane_id=$(tmux new-window -P -F '#{pane_id}')
-    tmux send-keys -t "$spawned_tmux_pane_id" "MKJ $*" Enter
-    tmux send-keys -t "$spawned_tmux_pane_id" "TB" Enter
-    [[ "$IS_DEV_MACHINE" == "true" ]] && tmux send-keys -t "$spawned_tmux_pane_id" "TH" Enter
-    tmux send-keys -t "$spawned_tmux_pane_id" "GI" Enter
-    tmux send-keys -t "$spawned_tmux_pane_id" "TOBP" Enter
+    local target_pane_id
+    target_pane_id=$(tmux new-window -P -F '#{pane_id}')
+    tmux send-keys -t "$target_pane_id" "MKJ $*" Enter
+    tmux send-keys -t "$target_pane_id" "TB" Enter
+    [[ "$IS_DEV_MACHINE" == "true" ]] && tmux send-keys -t "$target_pane_id" "TH" Enter
+    tmux send-keys -t "$target_pane_id" "GI" Enter
+    tmux send-keys -t "$target_pane_id" "TOBP" Enter
+}
+
+function TO3() {
+    local target_pane_id="$TMUX_PANE"
+    tmux split-window -h -t "$target_pane_id"
+    tmux split-window -v -t "$target_pane_id"
+    tmux select-pane -t "$target_pane_id"
 }
 
 #  %% -------- [AI] ----------:
