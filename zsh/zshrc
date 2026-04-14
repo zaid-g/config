@@ -551,7 +551,9 @@ function VB() {
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
     local original_dir="$PWD"
     cd "$brain_parent_path"
-    NVIM_APPNAME=nvim $NEOVIM_EDITOR -p3 -c "lua vim.api.nvim_create_autocmd('CursorHold', {callback = function() vim.cmd('silent! wall') end})" brain/**/notes.txt brain/**/junk.txt brain/**/ai.txt brain/**/*.txt
+    local files=(brain/**/notes.txt brain/**/junk.txt brain/**/ai.txt brain/**/*.txt)
+    [[ -f brain/command_history.txt ]] && files+=(brain/command_history.txt)
+    NVIM_APPNAME=nvim $NEOVIM_EDITOR -p3 -c "lua vim.api.nvim_create_autocmd('CursorHold', {callback = function() vim.cmd('silent! wall') end})" "${files[@]}"
     cd "$original_dir"
 }
 
@@ -584,34 +586,165 @@ function VD() {
 
 # %% -------- [git] ----------:
 
-alias G="git"
-alias GS="git status --untracked-files=all"
 alias GR="git restore"
-alias GD="git diff"
-alias GDNO="git diff --name-only"
 alias GA="git add"
-alias GC="git commit -m"
-alias GCH="git checkout"
 alias GM="git merge"
 alias GF="git fetch"
 alias GFO="git fetch origin"
-alias GB="git branch --sort=-committerdate"
-alias GPUSH="git push -u origin HEAD"
-alias GPULL='git pull --rebase origin $(git rev-parse --abbrev-ref HEAD)'
 
-function GAMEND() {
-    git commit --amend -m "$*"
+function GCH() {
+    local branch
+    read "branch?Branch: "
+    [[ -z "$branch" ]] && { echo "Branch required"; return 1; }
+    if [[ $# -eq 0 ]]; then
+        git checkout "$branch"
+    else
+        for file_path in "$@"; do
+            PRINT_AS_HEADER "$file_path"
+            git -C "$file_path" checkout "$branch"
+        done
+    fi
 }
 
-function GL () {
-	echo "\n\n" && git log --graph --decorate --oneline
+function GC() {
+    local msg
+    read "msg?Commit message: "
+    [[ -z "$msg" ]] && { echo "Message required"; return 1; }
+    if [[ $# -eq 0 ]]; then
+        git commit -m "$msg"
+    else
+        for file_path in "$@"; do
+            PRINT_AS_HEADER "$file_path"
+            git -C "$file_path" commit -m "$msg"
+        done
+    fi
+}
+
+function GB() {
+    if [[ $# -eq 0 ]]; then
+        git branch --sort=-committerdate
+    else
+        for file_path in "$@"; do
+            PRINT_AS_HEADER "$file_path"
+            git -C "$file_path" branch --sort=-committerdate
+        done
+    fi
+}
+
+function GPUSH() {
+    if [[ $# -eq 0 ]]; then
+        git push -u origin HEAD
+    else
+        for file_path in "$@"; do
+            PRINT_AS_HEADER "$file_path"
+            git -C "$file_path" push -u origin HEAD
+        done
+    fi
+}
+
+function GPULL() {
+    if [[ $# -eq 0 ]]; then
+        git pull --rebase origin $(git rev-parse --abbrev-ref HEAD)
+    else
+        for file_path in "$@"; do
+            PRINT_AS_HEADER "$file_path"
+            git -C "$file_path" pull --rebase origin $(git -C "$file_path" rev-parse --abbrev-ref HEAD)
+        done
+    fi
+}
+
+function GPULLMAINLINE() {
+    if [[ $# -eq 0 ]]; then
+        git pull --rebase origin mainline
+    else
+        for file_path in "$@"; do
+            PRINT_AS_HEADER "$file_path"
+            git -C "$file_path" pull --rebase origin mainline
+        done
+    fi
+}
+
+function GPULLMAIN() {
+    if [[ $# -eq 0 ]]; then
+        git pull --rebase origin main
+    else
+        for file_path in "$@"; do
+            PRINT_AS_HEADER "$file_path"
+            git -C "$file_path" pull --rebase origin main
+        done
+    fi
+}
+
+function GD() {
+    if [[ $# -eq 0 ]]; then
+        git diff
+    else
+        for file_path in "$@"; do
+            echo "\n\033[1;33m=== $file_path ===\033[0m"
+            git -C "$file_path" diff
+        done
+    fi
+}
+
+function GDNO() {
+    if [[ $# -eq 0 ]]; then
+        git diff --name-only
+    else
+        for file_path in "$@"; do
+            PRINT_AS_HEADER "$file_path"
+            git -C "$file_path" diff --name-only
+        done
+    fi
+}
+
+function GS() {
+    if [[ $# -eq 0 ]]; then
+        git status --untracked-files=all
+    else
+        for file_path in "$@"; do
+            PRINT_AS_HEADER "$file_path"
+            git -C "$file_path" status --untracked-files=all
+        done
+    fi
+}
+
+function GAMEND() {
+    local msg
+    read "msg?Amend message: "
+    [[ -z "$msg" ]] && { echo "Message required"; return 1; }
+    if [[ $# -eq 0 ]]; then
+        git commit --amend -m "$msg"
+    else
+        for file_path in "$@"; do
+            PRINT_AS_HEADER "$file_path"
+            git -C "$file_path" commit --amend -m "$msg"
+        done
+    fi
+}
+
+function GL() {
+    if [[ $# -eq 0 ]]; then
+        echo "\n\n" && git --no-pager log --graph --decorate --oneline -8
+    else
+        for file_path in "$@"; do
+            PRINT_AS_HEADER "$file_path"
+            git -C "$file_path" --no-pager log --graph --decorate --oneline -8
+        done
+    fi
 }
 
 function GI() {
-    if [[ ! -d .git ]]; then
-        git init
+    if [[ $# -eq 0 ]]; then
+        if [[ ! -d .git ]]; then
+            git init
+        else
+            echo "Git repository already exists"
+        fi
     else
-        echo "Git repository already exists"
+        for file_path in "$@"; do
+            PRINT_AS_HEADER "$file_path"
+            git -C "$file_path" init
+        done
     fi
 }
 
@@ -623,7 +756,17 @@ function GIG() {
 }
 
 function GCN() {
-  git add . && git commit -m "${1:-$(date '+%Y-%m-%d %H:%M:%S')}"
+    local msg
+    read "msg?Commit message (enter for timestamp): "
+    [[ -z "$msg" ]] && msg="$(date '+%Y-%m-%d %H:%M:%S')"
+    if [[ $# -eq 0 ]]; then
+        git add . && git commit -m "$msg"
+    else
+        for file_path in "$@"; do
+            PRINT_AS_HEADER "$file_path"
+            git -C "$file_path" add . && git -C "$file_path" commit -m "$msg"
+        done
+    fi
 }
 
 function GDBP() {
@@ -857,12 +1000,18 @@ function KKER() {
     cd "$original_dir"
 }
 
-#  %% -------- [sleep management caff decaff] ----------:
+#  %% -------- [sleep management caff decaff driving mode] ----------:
 
 alias CAFF='caffeinate -dimsu &'
-alias DECAFF='pkill caffeinate && echo "Killed caffeinate process" || echo "No caffeinate process found"'
+alias DECAFF='pgrep caffeinate | while read pid; do kill $pid && echo "Killed caffeinate $pid"; done || echo "No caffeinate process found"'
 alias LIDCAFF='sudo pmset -a disablesleep 1'
 alias LIDDECAFF='sudo pmset -a disablesleep 0'
+
+# driving mode os x. Need:
+# export BT_HEADSET=""
+# export HOTSPOT_SSID=""
+alias DM='LIDCAFF && blueutil --connect $BT_HEADSET && networksetup -setairportpower en0 on && networksetup -setairportnetwork en0 "$HOTSPOT_SSID" "$(security find-generic-password -a "$HOTSPOT_SSID" -w)"'
+alias NDM='networksetup -removepreferredwirelessnetwork en0 "$HOTSPOT_SSID" && networksetup -setairportpower en0 off && sleep 1 && networksetup -setairportpower en0 on && LIDDECAFF'
 
 # %% -------- [docker] ----------:
 
@@ -881,24 +1030,27 @@ alias DI="docker image"
 #  %% -------- [amazon brazil ADA] ----------:
 
 # brazil
-alias BB=brazil-build
+alias BB='brazil-build'
 alias BRC='brazil-recursive-cmd'
 alias BRCAP="brazil ws clean && brazil-recursive-cmd --allPackages brazil-build"
 alias BWS="brazil ws --sync --md"
 alias BW='brazil ws'
 alias BWU='brazil ws use -p'
 alias BWR='brazil ws remove -p'
-alias BWC='brazil ws create --root'
+alias BWCR='brazil ws create --root'
 alias BBCR='brazil ws clean && brazil-build clean && brazil-build release'
 alias BBC='brazil-build clean'
 alias BWC='brazil ws clean'
 alias BBR='brazil-build release'
 alias BBDEPLOY="brazil-build cdk deploy --require-approval never"
 alias BSYNC="brazil ws sync && brazil ws sync --md && brazil ws sync && brazil ws sync --md"
+alias BSHOW="brazil ws show"
 
 alias MW="mwinit -o && q whoami"
 alias KI="kinit -f"
 alias CL="card local --runtimePort 8082"
+
+alias CRPULL="cr-pull -w"
 
 function ADA() {
     local account_number=$1
@@ -974,7 +1126,9 @@ zstyle ':completion:*' matcher-list '' \
     'r:[^[:alpha:]]||[[:alpha:]]=** r:|=* m:{a-z\-}={A-Z\_}' \
     'r:|?=** m:{a-z\-}={A-Z\_}'
 
-# %% ---------- [colors and prompt display color DISPLAY_COLOR] ----------:
+# %% ---------- [colors and prompt display color DISPLAY_COLOR echo] ----------:
+
+function PRINT_AS_HEADER() { echo "\n\033[1;33m============================================================\n$1\n============================================================\033[0m"; }
 
 # 256 color codes:
 # 0   = black
