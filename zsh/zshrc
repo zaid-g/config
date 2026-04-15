@@ -73,6 +73,7 @@ FIND_BRAIN_PARENT_NAME() {
 function TB() {
     mkdir -p brain/junk brain/logs brain/ai
     touch brain/notes.txt brain/junk/junk.txt brain/related.txt brain/ai/ai.txt brain/tags.txt
+    GI
 }
 
 function TH() {
@@ -551,9 +552,10 @@ function VB() {
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
     local original_dir="$PWD"
     cd "$brain_parent_path"
-    local files=(brain/**/notes.txt brain/**/junk.txt brain/**/ai.txt brain/**/*.txt)
-    [[ -f brain/command_history.txt ]] && files+=(brain/command_history.txt)
-    NVIM_APPNAME=nvim $NEOVIM_EDITOR -p3 -c "lua vim.api.nvim_create_autocmd('CursorHold', {callback = function() vim.cmd('silent! wall') end})" "${files[@]}"
+    local files=(brain/**/notes.txt brain/**/junk.txt brain/**/ai.txt)
+    [[ -f "$brain_parent_path/brain/command_history.txt" ]] && files+=(brain/command_history.txt)
+    files+=(brain/**/*.txt)
+    NVIM_APPNAME=nvim $NEOVIM_EDITOR -p4 -c "lua vim.api.nvim_create_autocmd('CursorHold', {callback = function() vim.cmd('silent! wall') end})" "${files[@]}"
     cd "$original_dir"
 }
 
@@ -676,12 +678,14 @@ function GPULLMAIN() {
 }
 
 function GD() {
+    local ref
+    read "ref?Diff against (enter for working tree): "
     if [[ $# -eq 0 ]]; then
-        git diff
+        git --no-pager diff $ref
     else
         for file_path in "$@"; do
-            echo "\n\033[1;33m=== $file_path ===\033[0m"
-            git -C "$file_path" diff
+            PRINT_AS_HEADER "$file_path"
+            git -C "$file_path" --no-pager diff $ref
         done
     fi
 }
@@ -896,7 +900,7 @@ function TMUX_RENAME_WINDOW() {
 # (the send keys is asynchronous and tmux changes state before
 # the nested tmux commands execute) unless the downstream calls
 # know how to target the right panes.
-function TS() {
+function TOD() {
     local target_pane_id="$TMUX_PANE"
     tmux send-keys -t "$target_pane_id" 'TON' Enter
     target_pane_id=$(tmux new-window -P -F '#{pane_id}')
@@ -974,7 +978,6 @@ function TCBP() {
     tmux send-keys -t "$target_pane_id" "MKJ $*" Enter
     tmux send-keys -t "$target_pane_id" "TB" Enter
     [[ "$IS_DEV_MACHINE" == "true" ]] && tmux send-keys -t "$target_pane_id" "TH" Enter
-    tmux send-keys -t "$target_pane_id" "GI" Enter
     tmux send-keys -t "$target_pane_id" "TOBP" Enter
 }
 
