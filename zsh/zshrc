@@ -947,12 +947,14 @@ function TOT() {
     local target_pane_id="$TMUX_PANE"
     tmux send-keys -t "$target_pane_id" 'CDJ' Enter
     tmux send-keys -t "$target_pane_id" 'TDAR' Enter
+    tmux send-keys -t "$target_pane_id" 'tmux rename-window -t $TMUX_PANE term' Enter
 }
 
 function TON() {
     local target_pane_id="$TMUX_PANE"
     tmux send-keys -t "$target_pane_id" 'CD' Enter
     tmux send-keys -t "$target_pane_id" 'TDAR' Enter
+    tmux send-keys -t "$target_pane_id" 'tmux rename-window -t $TMUX_PANE notes' Enter
     tmux send-keys -t "$target_pane_id" 'KKR' Enter
     target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
     tmux send-keys -t "$target_pane_id" 'CD' Enter
@@ -963,6 +965,7 @@ function TOJ() {
     local target_pane_id="$TMUX_PANE"
     tmux send-keys -t "$target_pane_id" 'CD' Enter
     tmux send-keys -t "$target_pane_id" 'TDAR' Enter
+    tmux send-keys -t "$target_pane_id" 'tmux rename-window -t $TMUX_PANE junk' Enter
     tmux send-keys -t "$target_pane_id" 'KKR' Enter
     target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
     tmux send-keys -t "$target_pane_id" 'CD' Enter
@@ -973,6 +976,7 @@ function TOAI() {
     local target_pane_id="$TMUX_PANE"
     tmux send-keys -t "$target_pane_id" 'CD' Enter
     tmux send-keys -t "$target_pane_id" 'TDAR' Enter
+    tmux send-keys -t "$target_pane_id" 'tmux rename-window -t $TMUX_PANE ai' Enter
     tmux send-keys -t "$target_pane_id" 'KKR' Enter
     target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
     tmux send-keys -t "$target_pane_id" 'CD' Enter
