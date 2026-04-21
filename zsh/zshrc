@@ -899,6 +899,16 @@ function PVENV(){
 
 # %% -------- [tmux] ----------:
 
+# """ Note:
+# tmux commands continue in new(ly focused) splits/windows
+# but shell commands continue in calling pane
+# the trick is to never send keys to trigger a function
+# that calls tmux commands and later trigger tmux commands
+# (the send keys is asynchronous and tmux changes state before
+# the nested tmux commands execute) unless the downstream calls
+# know how to target the right panes.
+# """
+
 alias T='DISPLAY_COLOR=$DISPLAY_COLOR TEXT_COLOR_IF_COLORED_BACKGROUND=$TEXT_COLOR_IF_COLORED_BACKGROUND HIGHLIGHT_COLOR_TMUX=$HIGHLIGHT_COLOR_TMUX ACTIVE_INDICATOR_COLOR_TMUX=$ACTIVE_INDICATOR_COLOR_TMUX tmux -2'
 alias TLS="tmux ls"
 alias TAS="tmux attach-session -t"
@@ -906,7 +916,7 @@ alias TKS="tmux kill-session -t"
 alias TKAS="tmux kill-server"
 alias TLV="tmux show-window-options"
 
-function TTAR(){
+function TDAR(){
     tmux set-window-option -t $TMUX_PANE @AUTORENAME 0
 }
 
@@ -918,16 +928,11 @@ function TMUX_RENAME_WINDOW() {
     tmux rename-window -t "$TMUX_PANE" "$window_name"
 }
 
-# tmux commands continue in new(ly focused) splits/windows
-# but shell commands continue in calling pane
-# the trick is to never send keys to trigger a function
-# that calls tmux commands and later trigger tmux commands
-# (the send keys is asynchronous and tmux changes state before
-# the nested tmux commands execute) unless the downstream calls
-# know how to target the right panes.
+# Tmux open defaults
 function TOD() {
+    CDJ
     local target_pane_id="$TMUX_PANE"
-    tmux send-keys -t "$target_pane_id" 'CDJ' Enter
+    tmux send-keys -t "$target_pane_id" 'TOT' Enter
     target_pane_id=$(tmux new-window -P -F '#{pane_id}')
     tmux send-keys -t "$target_pane_id" 'TON' Enter
     target_pane_id=$(tmux new-window -P -F '#{pane_id}')
@@ -938,10 +943,16 @@ function TOD() {
     tmux send-keys -t "$target_pane_id" 'TOC' Enter
 }
 
+function TOT() {
+    local target_pane_id="$TMUX_PANE"
+    tmux send-keys -t "$target_pane_id" 'CDJ' Enter
+    tmux send-keys -t "$target_pane_id" 'TDAR' Enter
+}
+
 function TON() {
     local target_pane_id="$TMUX_PANE"
     tmux send-keys -t "$target_pane_id" 'CD' Enter
-    tmux send-keys -t "$target_pane_id" 'TTAR' Enter
+    tmux send-keys -t "$target_pane_id" 'TDAR' Enter
     tmux send-keys -t "$target_pane_id" 'KKR' Enter
     target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
     tmux send-keys -t "$target_pane_id" 'CD' Enter
@@ -951,7 +962,7 @@ function TON() {
 function TOJ() {
     local target_pane_id="$TMUX_PANE"
     tmux send-keys -t "$target_pane_id" 'CD' Enter
-    tmux send-keys -t "$target_pane_id" 'TTAR' Enter
+    tmux send-keys -t "$target_pane_id" 'TDAR' Enter
     tmux send-keys -t "$target_pane_id" 'KKR' Enter
     target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
     tmux send-keys -t "$target_pane_id" 'CD' Enter
@@ -961,7 +972,7 @@ function TOJ() {
 function TOAI() {
     local target_pane_id="$TMUX_PANE"
     tmux send-keys -t "$target_pane_id" 'CD' Enter
-    tmux send-keys -t "$target_pane_id" 'TTAR' Enter
+    tmux send-keys -t "$target_pane_id" 'TDAR' Enter
     tmux send-keys -t "$target_pane_id" 'KKR' Enter
     target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
     tmux send-keys -t "$target_pane_id" 'CD' Enter
@@ -971,7 +982,7 @@ function TOAI() {
 function TOC() {
     local target_pane_id="$TMUX_PANE"
     tmux send-keys -t "$target_pane_id" 'CDC' Enter
-    tmux send-keys -t "$target_pane_id" 'TTAR' Enter
+    tmux send-keys -t "$target_pane_id" 'TDAR' Enter
     tmux send-keys -t "$target_pane_id" 'KKR' Enter
     target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
     tmux send-keys -t "$target_pane_id" 'CDCC' Enter
@@ -985,7 +996,7 @@ function TOBP() {
     fi
     CDBP || return 1
     local target_pane_id="$TMUX_PANE"
-    tmux send-keys -t "$target_pane_id" 'TTAR' Enter
+    tmux send-keys -t "$target_pane_id" 'TDAR' Enter
     tmux send-keys -t "$target_pane_id" 'KKR' Enter
     target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
     tmux send-keys -t "$target_pane_id" 'VB' Enter
@@ -994,7 +1005,7 @@ function TOBP() {
     for ((i = 2; i <= count; i++)); do
         target_pane_id=$(tmux new-window -P -F '#{pane_id}')
         tmux send-keys -t "$target_pane_id" 'CDBP' Enter
-        tmux send-keys -t "$target_pane_id" 'TTAR' Enter
+        tmux send-keys -t "$target_pane_id" 'TDAR' Enter
     done
 }
 
