@@ -190,7 +190,8 @@ preexec() {
     local brain_parent_path=$(FIND_BRAIN_PARENT_PATH 2>/dev/null) || return
     local command_history_file_path="$brain_parent_path/brain/command_history.txt"
     [[ -f "$command_history_file_path" ]] || return
-    local new_command_cleaned=$(echo "$3" | tr '\n\r' ' ')
+    local new_command_cleaned="${3//$'\r'/}"
+    new_command_cleaned="${new_command_cleaned//$'\n'/; }"
     local new_entries=()
     local datetime="" command_="" command_path=""
     while IFS= read -r line; do
@@ -204,8 +205,6 @@ preexec() {
                 new_entries+=("$datetime" "$command_path" "$command_" "")
             fi
             datetime="" command_="" command_path=""
-        elif [[ -z "$line" ]]; then
-            continue
         fi
     done < "$command_history_file_path"
     new_entries+=("$(date '+%Y-%m-%d %H:%M:%S')" "$PWD" "$new_command_cleaned" "")
