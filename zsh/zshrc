@@ -1063,15 +1063,12 @@ alias DI="docker image"
 
 # brazil
 alias BB='brazil-build'
-alias BRC='brazil-recursive-cmd'
 alias BRCAP="brazil ws clean && brazil-recursive-cmd --allPackages brazil-build"
-alias BW='brazil ws'
 alias BWU='brazil ws use -p'
 alias BWR='brazil ws remove -p'
-alias BWCR='brazil ws create --root'
+alias BWC='brazil ws create --root'
 alias BBCR='brazil ws clean && brazil-build clean && brazil-build release'
 alias BBC='brazil-build clean'
-alias BWC='brazil ws clean'
 alias BBR='brazil-build release'
 alias BBDEPLOY="brazil-build cdk deploy --require-approval never"
 alias BWSYNC="brazil ws sync && brazil ws sync --md && brazil ws sync && brazil ws sync --md"
