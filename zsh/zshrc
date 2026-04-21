@@ -536,6 +536,10 @@ function VP() {
     fi
 }
 
+function BEMOL() {
+    bemol --verbose --watch
+}
+
 function VBEMOL() {
     bemol --verbose --watch > /tmp/bemol.log 2>&1 &
     local bemol_pid=$!
