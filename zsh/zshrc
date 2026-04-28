@@ -2,6 +2,7 @@
 # 1. All variables declared inside functions must be local
 # 2. internal function and alias names must always be uppercase and using underscore
 # 3. shorthand functions/aliases must always be uppercase
+# 4. All function and alias names are uppercase to avoid conflicts with system/installed tools
 
 
 
@@ -12,19 +13,19 @@ export IS_DEV_MACHINE=false
 
 # %% -------- [project creation and management brain] ----------:
 
-function GENERATE_8_PRONOUNCEABLE_RANDOM_CHARS() {
-    local length=${1:-8}
-    local consonants="bcdfghjklmnpqrstvwxyz"
-    local vowels="aeiou"
+function GENERATE_PRONOUNCEABLE_STRING() {
+    local string_target_length=${1:-8}
+    local consonant_pool="bcdfghjklmnpqrstvwxyz"
+    local vowel_pool="aeiou"
     local result=""
     local i
-    # Seed RANDOM with current time to ensure uniqueness
-    local RANDOM=$(date +%s%N | cut -b10-19)
-    for ((i=0; i<length; i++)); do
-        if ((i % 2 == 0)); then
-            result+=${consonants:$((RANDOM % ${#consonants})):1}
+    local byte
+    for ((i=0; i<string_target_length; i++)); do
+        byte=$(od -An -tu1 -N1 /dev/urandom)
+        if (( i % 2 == 0 )); then
+            result+=${consonant_pool:$((byte % ${#consonant_pool})):1}
         else
-            result+=${vowels:$((RANDOM % ${#vowels})):1}
+            result+=${vowel_pool:$((byte % ${#vowel_pool})):1}
         fi
     done
     echo "$result"
@@ -33,7 +34,7 @@ function GENERATE_8_PRONOUNCEABLE_RANDOM_CHARS() {
 function CREATE_TIMESTAMPED_DIR_AND_CD() {
     local base_dir="$1"
     shift
-    local raw_folder_name="${*:-$(GENERATE_8_PRONOUNCEABLE_RANDOM_CHARS 8)}"
+    local raw_folder_name="${*:-$(GENERATE_PRONOUNCEABLE_STRING 8)}"
     local cleaned_folder_name=$(CLEAN_FILENAME "$raw_folder_name")
     local dir="${base_dir:+$base_dir/}${cleaned_folder_name}-$(date +%Y_%m_%d-%H_%M_%S)"
     mkdir -p "$dir" && cd "$dir"
@@ -185,56 +186,35 @@ function ARE() {
 #  %% -------- [zsh hooks] ----------:
 
 preexec() {
-    CMD_START_EPOCH=$(date +%s)
-    CMD_START_TIME=$(date '+%Y-%m-%d %H:%M:%S')
-    local brain_parent_path=$(FIND_BRAIN_PARENT_PATH 2>/dev/null) || return
-    local command_history_file_path="$brain_parent_path/brain/command_history.txt"
-    [[ -f "$command_history_file_path" ]] || return
-    local new_command_cleaned="${3//$'\r'/}"
-    new_command_cleaned="${new_command_cleaned//$'\n'/; }"
-    local new_entries=()
-    local datetime="" command_="" command_path=""
-    while IFS= read -r line; do
-        if [[ -z "$datetime" ]]; then
-            datetime="$line"
-        elif [[ -z "$command_path" ]]; then
-            command_path="$line"
-        elif [[ -z "$command_" ]]; then
-            command_="$line"
-            if [[ "$command_" != "$new_command_cleaned" || "$command_path" != "$PWD" ]]; then
-                new_entries+=("$datetime" "$command_path" "$command_" "")
-            fi
-            datetime="" command_="" command_path=""
-        fi
-    done < "$command_history_file_path"
-    new_entries+=("$(date '+%Y-%m-%d %H:%M:%S')" "$PWD" "$new_command_cleaned" "")
-    printf '%s\n' "${new_entries[@]}" > "$command_history_file_path"
+    COMMAND_START_EPOCH_SECONDS=$(date +%s)
+    COMMAND_START_DATETIME=$(date '+%Y-%m-%d %H:%M:%S')
+    COMMAND="${3//$'\r'/}"
+    COMMAND="${COMMAND//$'\n'/; }"
+    COMMAND_PATH="$PWD"
 }
 
 precmd() {
-    if [[ -n $CMD_START_EPOCH ]]; then
-        local end_epoch=$(date +%s)
-        local delta=$((end_epoch - CMD_START_EPOCH))
-        if [[ $delta -ge 10 ]]; then
-            local end_time=$(date '+%Y-%m-%d %H:%M:%S')
-            local duration=""
-            if [[ $delta -ge 3600 ]]; then
-                local hours=$((delta / 3600))
-                local mins=$(((delta % 3600) / 60))
-                local secs=$((delta % 60))
-                duration="${hours}h ${mins}m ${secs}s"
-            elif [[ $delta -ge 60 ]]; then
-                local mins=$((delta / 60))
-                local secs=$((delta % 60))
-                duration="${mins}m ${secs}s"
-            else
-                duration="${delta}s"
-            fi
-            echo "\n - Time: $duration ($CMD_START_TIME → $end_time)\n"
+    [[ -z $COMMAND_START_EPOCH_SECONDS ]] && return
+    local end_epoch_seconds=$(date +%s)
+    local end_datetime=$(date '+%Y-%m-%d %H:%M:%S')
+    local time_delta_in_seconds=$(( end_epoch_seconds - COMMAND_START_EPOCH_SECONDS ))
+    local formatted_time_delta=$(printf '%02d:%02d:%02d' \
+        $(( time_delta_in_seconds / 3600 )) $(( time_delta_in_seconds % 3600 / 60 )) $(( time_delta_in_seconds % 60 )))
+    (( time_delta_in_seconds >= 10 )) && echo "\n - Time: $formatted_time_delta ($COMMAND_START_DATETIME → $end_datetime)\n"
+    local brain_parent_path=$(FIND_BRAIN_PARENT_PATH 2>/dev/null)
+    local history_file="$brain_parent_path/brain/command_history.txt"
+    if [[ -n $brain_parent_path && -f $history_file && -n $COMMAND ]]; then
+        if (( time_delta_in_seconds <= 2 )); then
+            awk -v cmd="$COMMAND" -v path="$COMMAND_PATH" '
+                BEGIN { RS=""; ORS="\n\n" }
+                { split($0, lines, "\n"); if (!(lines[1] == cmd && lines[2] == path)) print }
+            ' "$history_file" > "$history_file.tmp" && mv "$history_file.tmp" "$history_file"
         fi
-        unset CMD_START_EPOCH
-        unset CMD_START_TIME
+        printf '%s\n%s\n%s\n%s\n%s\n\n' \
+            "$COMMAND" "$COMMAND_PATH" "$COMMAND_START_DATETIME" "$end_datetime" "$formatted_time_delta" \
+            >> "$history_file"
     fi
+    unset COMMAND_START_EPOCH_SECONDS COMMAND_START_DATETIME COMMAND COMMAND_PATH
 }
 
 function chpwd() {
@@ -256,20 +236,20 @@ alias CDC="cd ~/doc/config"
 alias CDCC="cd ~/doc/config/config"
 alias CDA="cd ~/doc"
 alias CDD="cd ~/Downloads"
-alias CD="cd ~/doc"
+alias CDDOC="cd ~/doc"
 alias CDJ="cd ~/doc/junk"
 alias CDT="cd ~/trash"
+
+function CD() {
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    cd "$brain_parent_path"
+}
 
 function CDB() {
     local brain_parent_path
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
     cd "$brain_parent_path/brain"
-}
-
-function CDBP() {
-    local brain_parent_path
-    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
-    cd "$brain_parent_path"
 }
 
 function CDG() {
@@ -780,11 +760,15 @@ function GI() {
 }
 
 function GIG() {
-    [[ -z "$1" ]] && { echo "Usage: GIG <path>"; return 1; }
-    [[ ! -d .git ]] && { echo "Not a git repository"; return 1; }
-    [[ ! -f .gitignore ]] && touch .gitignore
-    grep -Fxq "$1" .gitignore || echo "$1" >> .gitignore
+    [[ -z "$1" ]] && { echo "Usage: GIG <pattern>"; return 1; }
+    local root=$(git rev-parse --show-toplevel 2>/dev/null) || { echo "Not a git repository"; return 1; }
+    [[ ! -f "$root/.gitignore" ]] && touch "$root/.gitignore"
+    for pattern in "$@"; do
+        grep -Fxq "$pattern" "$root/.gitignore" || echo "$pattern" >> "$root/.gitignore"
+    done
 }
+alias GIG='noglob GIG'
+
 
 function GAC() {
     local msg
@@ -827,7 +811,7 @@ function GDIFF() {
             git diff --no-index /dev/null "$file" >> "$tmpfile"
         done
     fi
-    cat "$tmpfile" | delta --side-by-side --line-numbers
+    delta --side-by-side --line-numbers < "$tmpfile"
     rm "$tmpfile"
 }
 
@@ -920,6 +904,17 @@ function TDAR(){
     tmux set-window-option -t $TMUX_PANE @AUTORENAME 0
 }
 
+function TMUX_SWAP_WINDOW_PREV() {
+    local current_window_index=$(tmux display-message -p '#{window_index}')
+    [[ "$current_window_index" -gt 0 ]] && tmux swap-window -t -1 \; select-window -t -1
+}
+
+function TMUX_SWAP_WINDOW_NEXT() {
+    local current_window_index=$(tmux display-message -p '#{window_index}')
+    local last_window_index=$(tmux list-windows -F '#{window_index}' | tail -1)
+    [[ "$current_window_index" -lt "$last_window_index" ]] && tmux swap-window -t +1 \; select-window -t +1
+}
+
 function TMUX_RENAME_WINDOW() {
     [[ "$PWD" == "/" ]] && return
     local window_name
@@ -952,34 +947,34 @@ function TOT() {
 
 function TON() {
     local target_pane_id="$TMUX_PANE"
-    tmux send-keys -t "$target_pane_id" 'CD' Enter
+    tmux send-keys -t "$target_pane_id" 'CDDOC' Enter
     tmux send-keys -t "$target_pane_id" 'TDAR' Enter
     tmux send-keys -t "$target_pane_id" 'tmux rename-window -t $TMUX_PANE notes' Enter
     tmux send-keys -t "$target_pane_id" 'KKR' Enter
     target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
-    tmux send-keys -t "$target_pane_id" 'CD' Enter
+    tmux send-keys -t "$target_pane_id" 'CDDOC' Enter
     tmux send-keys -t "$target_pane_id" 'VNOTES' Enter
 }
 
 function TOJ() {
     local target_pane_id="$TMUX_PANE"
-    tmux send-keys -t "$target_pane_id" 'CD' Enter
+    tmux send-keys -t "$target_pane_id" 'CDDOC' Enter
     tmux send-keys -t "$target_pane_id" 'TDAR' Enter
     tmux send-keys -t "$target_pane_id" 'tmux rename-window -t $TMUX_PANE junk' Enter
     tmux send-keys -t "$target_pane_id" 'KKR' Enter
     target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
-    tmux send-keys -t "$target_pane_id" 'CD' Enter
+    tmux send-keys -t "$target_pane_id" 'CDDOC' Enter
     tmux send-keys -t "$target_pane_id" 'VJUNK' Enter
 }
 
 function TOAI() {
     local target_pane_id="$TMUX_PANE"
-    tmux send-keys -t "$target_pane_id" 'CD' Enter
+    tmux send-keys -t "$target_pane_id" 'CDDOC' Enter
     tmux send-keys -t "$target_pane_id" 'TDAR' Enter
     tmux send-keys -t "$target_pane_id" 'tmux rename-window -t $TMUX_PANE ai' Enter
     tmux send-keys -t "$target_pane_id" 'KKR' Enter
     target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
-    tmux send-keys -t "$target_pane_id" 'CD' Enter
+    tmux send-keys -t "$target_pane_id" 'CDDOC' Enter
     tmux send-keys -t "$target_pane_id" 'VAI' Enter
 }
 
@@ -998,7 +993,7 @@ function TOBP() {
         echo "Usage: TOBP [1-4]" >&2
         return 1
     fi
-    CDBP || return 1
+    CD || return 1
     local target_pane_id="$TMUX_PANE"
     tmux send-keys -t "$target_pane_id" 'TDAR' Enter
     tmux send-keys -t "$target_pane_id" 'KKR' Enter
@@ -1007,8 +1002,8 @@ function TOBP() {
     tmux split-window -v -t "$target_pane_id"
     local count=${1:-1}
     for ((i = 2; i <= count; i++)); do
-        target_pane_id=$(tmux new-window -P -F '#{pane_id}')
-        tmux send-keys -t "$target_pane_id" 'CDBP' Enter
+        target_pane_id=$(tmux new-window -a -P -F '#{pane_id}')
+        tmux send-keys -t "$target_pane_id" 'CD' Enter
         tmux send-keys -t "$target_pane_id" 'TDAR' Enter
     done
 }
