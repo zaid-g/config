@@ -896,10 +896,42 @@ function PVENV(){
 
 alias T='DISPLAY_COLOR=$DISPLAY_COLOR TEXT_COLOR_IF_COLORED_BACKGROUND=$TEXT_COLOR_IF_COLORED_BACKGROUND HIGHLIGHT_COLOR_TMUX=$HIGHLIGHT_COLOR_TMUX ACTIVE_INDICATOR_COLOR_TMUX=$ACTIVE_INDICATOR_COLOR_TMUX tmux -2'
 alias TLS="tmux ls"
-alias TAS="tmux attach-session -t"
-alias TKS="tmux kill-session -t"
 alias TKAS="tmux kill-server"
 alias TLV="tmux show-window-options"
+
+function TAS() {
+    if [[ -n "$1" ]]; then
+        tmux attach-session -t "$1"
+        return
+    fi
+    local tmux_session_count=$(tmux list-sessions 2>/dev/null | wc -l | tr -d ' ')
+    if [[ "$tmux_session_count" -eq 1 ]]; then
+        tmux attach-session
+    elif [[ "$tmux_session_count" -gt 1 ]]; then
+        echo "Specify session:"
+        tmux list-sessions
+        return 1
+    else
+        echo "No tmux sessions"
+    fi
+}
+
+function TKS() {
+    if [[ -n "$1" ]]; then
+        tmux kill-session -t "$1"
+        return
+    fi
+    local tmux_session_count=$(tmux list-sessions 2>/dev/null | wc -l | tr -d ' ')
+    if [[ "$tmux_session_count" -eq 1 ]]; then
+        tmux kill-session
+    elif [[ "$tmux_session_count" -gt 1 ]]; then
+        echo "Specify session:"
+        tmux list-sessions
+        return 1
+    else
+        echo "No tmux sessions"
+    fi
+}
 
 function TDAR(){
     tmux set-window-option -t $TMUX_PANE @AUTORENAME 0
