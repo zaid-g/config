@@ -769,13 +769,14 @@ function GIG() {
 }
 alias GIG='noglob GIG'
 
-
 function GAC() {
     local msg
     read "msg?Commit message (enter for timestamp): "
     [[ -z "$msg" ]] && msg="$(date '+%Y-%m-%d %H:%M:%S')"
     if [[ $# -eq 0 ]]; then
-        git add . && git commit -m "$msg"
+        local repo_root
+        repo_root=$(git rev-parse --show-toplevel 2>/dev/null) || return 1
+        git -C "$repo_root" add . && git -C "$repo_root" commit -m "$msg"
     else
         for file_path in "$@"; do
             PRINT_AS_HEADER "$file_path"
@@ -906,13 +907,13 @@ function TDAR(){
 
 function TMUX_SWAP_WINDOW_PREV() {
     local current_window_index=$(tmux display-message -p '#{window_index}')
-    [[ "$current_window_index" -gt 0 ]] && tmux swap-window -t -1 \; select-window -t -1
+    [[ "$current_window_index" -gt 0 ]] && tmux swap-window -t -1 \; select-window -t -1 || true
 }
 
 function TMUX_SWAP_WINDOW_NEXT() {
     local current_window_index=$(tmux display-message -p '#{window_index}')
     local last_window_index=$(tmux list-windows -F '#{window_index}' | tail -1)
-    [[ "$current_window_index" -lt "$last_window_index" ]] && tmux swap-window -t +1 \; select-window -t +1
+    [[ "$current_window_index" -lt "$last_window_index" ]] && tmux swap-window -t +1 \; select-window -t +1 || true
 }
 
 function TMUX_RENAME_WINDOW() {
