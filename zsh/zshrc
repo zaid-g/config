@@ -204,6 +204,8 @@ precmd() {
     local brain_parent_path=$(FIND_BRAIN_PARENT_PATH 2>/dev/null)
     local history_file="$brain_parent_path/brain/command_history.txt"
     if [[ -n $brain_parent_path && -f $history_file && -n $COMMAND ]]; then
+        local lock_file="$history_file.lock"
+        while ! mkdir "$lock_file" 2>/dev/null; do sleep 0.1; done
         if (( time_delta_in_seconds <= 2 )); then
             awk -v cmd="$COMMAND" -v path="$COMMAND_PATH" '
                 BEGIN { RS=""; ORS="\n\n" }
@@ -213,6 +215,7 @@ precmd() {
         printf '%s\n%s\n%s\n%s\n%s\n\n' \
             "$COMMAND" "$COMMAND_PATH" "$COMMAND_START_DATETIME" "$end_datetime" "$formatted_time_delta" \
             >> "$history_file"
+        rmdir "$lock_file"
     fi
     unset COMMAND_START_EPOCH_SECONDS COMMAND_START_DATETIME COMMAND COMMAND_PATH
 }
