@@ -936,8 +936,12 @@ function TKS() {
     fi
 }
 
-function TDAR(){
+function NOTAR(){
     tmux set-window-option -t $TMUX_PANE @AUTORENAME 0
+}
+
+function TAR(){
+    tmux set-window-option -u -t $TMUX_PANE @AUTORENAME
 }
 
 function TMUX_SWAP_WINDOW_PREV() {
@@ -977,14 +981,14 @@ function TOD() {
 function TOT() {
     local target_pane_id="$TMUX_PANE"
     tmux send-keys -t "$target_pane_id" 'CDJ' Enter
-    tmux send-keys -t "$target_pane_id" 'TDAR' Enter
+    tmux send-keys -t "$target_pane_id" 'NOTAR' Enter
     tmux send-keys -t "$target_pane_id" 'tmux rename-window -t $TMUX_PANE term' Enter
 }
 
 function TON() {
     local target_pane_id="$TMUX_PANE"
     tmux send-keys -t "$target_pane_id" 'CDDOC' Enter
-    tmux send-keys -t "$target_pane_id" 'TDAR' Enter
+    tmux send-keys -t "$target_pane_id" 'NOTAR' Enter
     tmux send-keys -t "$target_pane_id" 'tmux rename-window -t $TMUX_PANE notes' Enter
     tmux send-keys -t "$target_pane_id" 'KKR' Enter
     target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
@@ -995,7 +999,7 @@ function TON() {
 function TOJ() {
     local target_pane_id="$TMUX_PANE"
     tmux send-keys -t "$target_pane_id" 'CDDOC' Enter
-    tmux send-keys -t "$target_pane_id" 'TDAR' Enter
+    tmux send-keys -t "$target_pane_id" 'NOTAR' Enter
     tmux send-keys -t "$target_pane_id" 'tmux rename-window -t $TMUX_PANE junk' Enter
     tmux send-keys -t "$target_pane_id" 'KKR' Enter
     target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
@@ -1006,7 +1010,7 @@ function TOJ() {
 function TOAI() {
     local target_pane_id="$TMUX_PANE"
     tmux send-keys -t "$target_pane_id" 'CDDOC' Enter
-    tmux send-keys -t "$target_pane_id" 'TDAR' Enter
+    tmux send-keys -t "$target_pane_id" 'NOTAR' Enter
     tmux send-keys -t "$target_pane_id" 'tmux rename-window -t $TMUX_PANE ai' Enter
     tmux send-keys -t "$target_pane_id" 'KKR' Enter
     target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
@@ -1017,7 +1021,7 @@ function TOAI() {
 function TOC() {
     local target_pane_id="$TMUX_PANE"
     tmux send-keys -t "$target_pane_id" 'CDC' Enter
-    tmux send-keys -t "$target_pane_id" 'TDAR' Enter
+    tmux send-keys -t "$target_pane_id" 'NOTAR' Enter
     tmux send-keys -t "$target_pane_id" 'KKR' Enter
     target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
     tmux send-keys -t "$target_pane_id" 'CDCC' Enter
@@ -1031,7 +1035,7 @@ function TOBP() {
     fi
     CD || return 1
     local target_pane_id="$TMUX_PANE"
-    tmux send-keys -t "$target_pane_id" 'TDAR' Enter
+    tmux send-keys -t "$target_pane_id" 'NOTAR' Enter
     tmux send-keys -t "$target_pane_id" 'KKR' Enter
     target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
     tmux send-keys -t "$target_pane_id" 'VB' Enter
@@ -1040,7 +1044,7 @@ function TOBP() {
     for ((i = 2; i <= count; i++)); do
         target_pane_id=$(tmux new-window -a -P -F '#{pane_id}')
         tmux send-keys -t "$target_pane_id" 'CD' Enter
-        tmux send-keys -t "$target_pane_id" 'TDAR' Enter
+        tmux send-keys -t "$target_pane_id" 'NOTAR' Enter
     done
 }
 
@@ -1078,18 +1082,18 @@ function KKER() {
     cd "$original_dir"
 }
 
-#  %% -------- [sleep management caff decaff driving mode] ----------:
+#  %% -------- [sleep management caff nocaff driving mode] ----------:
 
 alias CAFF='caffeinate -dimsu &'
-alias DECAFF='pgrep caffeinate | while read pid; do kill $pid && echo "Killed caffeinate $pid"; done || echo "No caffeinate process found"'
+alias NOCAFF='pgrep caffeinate | while read pid; do kill $pid && echo "Killed caffeinate $pid"; done || echo "No caffeinate process found"'
 alias LIDCAFF='sudo pmset -a disablesleep 1'
-alias LIDDECAFF='sudo pmset -a disablesleep 0'
+alias NOLIDCAFF='sudo pmset -a disablesleep 0'
 
 # driving mode os x. Need:
 # export BT_HEADSET=""
 # export HOTSPOT_SSID=""
 alias DM='LIDCAFF && blueutil --connect $BT_HEADSET && networksetup -setairportpower en0 on && networksetup -setairportnetwork en0 "$HOTSPOT_SSID" "$(security find-generic-password -a "$HOTSPOT_SSID" -w)"'
-alias NDM='networksetup -removepreferredwirelessnetwork en0 "$HOTSPOT_SSID" && networksetup -setairportpower en0 off && sleep 1 && networksetup -setairportpower en0 on && LIDDECAFF'
+alias NODM='networksetup -removepreferredwirelessnetwork en0 "$HOTSPOT_SSID" && networksetup -setairportpower en0 off && sleep 1 && networksetup -setairportpower en0 on && NOLIDCAFF'
 
 # %% -------- [docker] ----------:
 
