@@ -77,14 +77,14 @@ function TB() {
     GI
 }
 
-function TH() {
+function TCH() {
     local brain_parent_path
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
     mkdir -p "$brain_parent_path/brain"
     touch "$brain_parent_path/brain/command_history.txt"
 }
 
-function RH() {
+function RCH() {
     local brain_parent_path
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
     rm -f "$brain_parent_path/brain/command_history.txt"
@@ -96,7 +96,7 @@ function WB() {
     echo "$brain_parent_path/brain"
 }
 
-function WH() {
+function WCH() {
     local brain_parent_path
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
     echo "$brain_parent_path/brain/command_history.txt"
@@ -126,7 +126,7 @@ function WR() {
     echo "$brain_parent_path/brain/related.txt"
 }
 
-function CH() {
+function CCH() {
     local brain_parent_path
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
     cat "$brain_parent_path/brain/command_history.txt"
@@ -202,19 +202,19 @@ precmd() {
         $(( time_delta_in_seconds / 3600 )) $(( time_delta_in_seconds % 3600 / 60 )) $(( time_delta_in_seconds % 60 )))
     (( time_delta_in_seconds >= 10 )) && echo "\n - Time: $formatted_time_delta ($COMMAND_START_DATETIME → $end_datetime)\n"
     local brain_parent_path=$(FIND_BRAIN_PARENT_PATH 2>/dev/null)
-    local history_file="$brain_parent_path/brain/command_history.txt"
-    if [[ -n $brain_parent_path && -f $history_file && -n $COMMAND ]]; then
-        local lock_file="$history_file.lock"
+    local command_history_file_path="$brain_parent_path/brain/command_history.txt"
+    if [[ -n $brain_parent_path && -f $command_history_file_path && -n $COMMAND ]]; then
+        local lock_file="$command_history_file_path.lock"
         while ! mkdir "$lock_file" 2>/dev/null; do sleep 0.1; done
         if (( time_delta_in_seconds <= 2 )); then
             awk -v cmd="$COMMAND" -v path="$COMMAND_PATH" '
                 BEGIN { RS=""; ORS="\n\n" }
                 { split($0, lines, "\n"); if (!(lines[1] == cmd && lines[2] == path)) print }
-            ' "$history_file" > "$history_file.tmp" && mv "$history_file.tmp" "$history_file"
+            ' "$command_history_file_path" > "$command_history_file_path.tmp" && mv "$command_history_file_path.tmp" "$command_history_file_path"
         fi
         printf '%s\n%s\n%s\n%s\n%s\n\n' \
             "$COMMAND" "$COMMAND_PATH" "$COMMAND_START_DATETIME" "$end_datetime" "$formatted_time_delta" \
-            >> "$history_file"
+            >> "$command_history_file_path"
         rmdir "$lock_file"
     fi
     unset COMMAND_START_EPOCH_SECONDS COMMAND_START_DATETIME COMMAND COMMAND_PATH
@@ -560,9 +560,24 @@ function VB() {
         tab_count=4
     fi
     files+=(brain/**/*.txt)
+    local nvim_brain_settings='
+        vim.api.nvim_create_autocmd("CursorHold", {
+            callback = function() vim.cmd("silent! wall") end
+        })
+        for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+            if vim.api.nvim_buf_get_name(buf):match("command_history%.txt$") then
+                vim.bo[buf].readonly = true
+                vim.bo[buf].modifiable = false
+                vim.bo[buf].autoread = true
+                vim.api.nvim_create_autocmd({"CursorHold", "FocusGained", "BufEnter"}, {
+                    buffer = buf,
+                    command = "silent! checktime"
+                })
+            end
+        end
+    '
     NVIM_APPNAME=nvim $NEOVIM_EDITOR -p"$tab_count" \
-        -c "lua vim.api.nvim_create_autocmd('CursorHold', {callback = function() vim.cmd('silent! wall') end})" \
-        -c "lua for _, buf in ipairs(vim.api.nvim_list_bufs()) do if vim.api.nvim_buf_get_name(buf):match('command_history%.txt$') then vim.bo[buf].readonly = true; vim.bo[buf].modifiable = false end end" \
+        -c "lua $nvim_brain_settings" \
         "${files[@]}"
     cd "$original_dir"
 }
@@ -688,6 +703,7 @@ function GPULLMAIN() {
 function GD() {
     local ref
     read "ref?Diff against (enter for working tree): "
+    PRINT_AS_HEADER "Printing git diff:"
     if [[ $# -eq 0 ]]; then
         git --no-pager diff $ref
     else
@@ -1054,7 +1070,7 @@ function TCBP() {
     target_pane_id=$(tmux new-window -P -F '#{pane_id}')
     tmux send-keys -t "$target_pane_id" "MKJ $*" Enter
     tmux send-keys -t "$target_pane_id" "TB" Enter
-    [[ "$IS_DEV_MACHINE" == "true" ]] && tmux send-keys -t "$target_pane_id" "TH" Enter
+    [[ "$IS_DEV_MACHINE" == "true" ]] && tmux send-keys -t "$target_pane_id" "TCH" Enter
     tmux send-keys -t "$target_pane_id" "TOBP" Enter
 }
 
