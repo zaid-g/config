@@ -12,6 +12,7 @@ mkdir -p ~/.config/nvim
 mkdir -p ~/.config/sway
 mkdir -p ~/.config/waybar
 mkdir -p ~/.config/alacritty
+mkdir -p ~/.config/kitty
 mkdir -p ~/.ipython/profile_default
 
 # %% -------- [nvim base] ----------:
@@ -71,6 +72,14 @@ grep -qF 'import = ["~/doc/config/config/alacritty/alacritty.toml"]' ~/.config/a
     cat ~/.config/alacritty/alacritty.toml
     printf '%s\n' 'import = ["~/doc/config/config/alacritty/alacritty.toml"]'
 )" >~/.config/alacritty/alacritty.toml
+
+# %% -------- [kitty] ----------:
+
+touch -a ~/.config/kitty/kitty.conf
+grep -qF 'include ~/doc/config/config/kitty/kitty.conf' ~/.config/kitty/kitty.conf || echo "$(
+    cat ~/.config/kitty/kitty.conf
+    printf '%s\n' 'include ~/doc/config/config/kitty/kitty.conf'
+)" >~/.config/kitty/kitty.conf
 
 # %% -------- [git] ----------:
 
