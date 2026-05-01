@@ -1100,8 +1100,17 @@ function KKER() {
 
 #  %% -------- [sleep management caff nocaff driving mode] ----------:
 
-alias CAFF='caffeinate -dimsu &'
-alias NOCAFF='pgrep caffeinate | while read pid; do kill $pid && echo "Killed caffeinate $pid"; done || echo "No caffeinate process found"'
+# Cross-platform caffeine aliases
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS
+    alias CAFF='caffeinate -dimsu &'
+    alias NOCAFF='pgrep caffeinate | while read pid; do kill $pid && echo "Killed caffeinate $pid"; done || echo "No caffeinate process found"'
+else
+    # Linux (Arch)
+    alias CAFF='systemd-inhibit --what=idle:sleep:handle-lid-switch --who="Manual" --why="User requested" --mode=block sleep infinity &>/dev/null & echo "Sleep inhibited (PID: $!)"'
+    alias NOCAFF='pkill -f "systemd-inhibit.*sleep infinity" && echo "Sleep inhibitor killed" || echo "No sleep inhibitor found"'
+fi
+
 alias LIDCAFF='sudo pmset -a disablesleep 1'
 alias NOLIDCAFF='sudo pmset -a disablesleep 0'
 
