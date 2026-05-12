@@ -2,7 +2,12 @@
 # 1. All variables declared inside functions must be local
 # 2. internal function and alias names must always be uppercase and using underscore
 # 3. shorthand functions/aliases must always be uppercase
-# 4. All function and alias names are uppercase to avoid conflicts with system/installed tools. Shorthand declarations e.g. `CDCC` are meant to be invoked. Long form definitions are internal only. For each section, aliases are defined first, followed by long form function definitions, followed by shorthand function definitions.
+# 4. All function and alias names are uppercase to avoid conflicts with system/installed tools. Shorthand declarations e.g. `CDCC` are meant to be invoked. Long form definitions are internal only. 
+# 5. Each section `# %% ---- [<section name>] ----... ` contains configurations defined in the following order:
+# - exports/settings 
+# - aliases 
+# - long form function definitions
+# - shorthand function definitions.
 
 
 
@@ -33,18 +38,18 @@ function FIND_BRAIN_PARENT_NAME() {
 }
 
 function TB() {
-    mkdir -p brain/junk brain/logs brain/ai
+    mkdir -p brain/junk brain/logs brain/ai brain/command_output
     touch brain/notes.txt brain/junk/junk.txt brain/related.txt brain/ai/ai.txt brain/tags.txt
+    [[ "$IS_DEV_MACHINE" == "true" ]] && TCH
     GI
+    git add .
+    git commit -m "init"
 }
 
 function MKBP() {
     MK "$@"
     GIG "$(basename "$PWD")" 2>/dev/null
     TB
-    [[ "$IS_DEV_MACHINE" == "true" ]] && TCH
-    git add .
-    git commit -m "init"
 }
 
 function TCH() {
@@ -52,12 +57,14 @@ function TCH() {
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
     mkdir -p "$brain_parent_path/brain"
     touch "$brain_parent_path/brain/command_history.txt"
+    touch "$brain_parent_path/brain/command_history_full.txt"
 }
 
 function RCH() {
     local brain_parent_path
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
     rm -f "$brain_parent_path/brain/command_history.txt"
+    rm -f "$brain_parent_path/brain/command_history_full.txt"
 }
 
 function WB() {
@@ -87,7 +94,7 @@ function WJ() {
 function WAI() {
     local brain_parent_path
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
-    echo "$brain_parent_path/brain/ai.txt"
+    echo "$brain_parent_path/brain/ai/ai.txt"
 }
 
 function WR() {
@@ -117,7 +124,7 @@ function CJ() {
 function CAI() {
     local brain_parent_path
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
-    cat "$brain_parent_path/brain/ai.txt"
+    cat "$brain_parent_path/brain/ai/ai.txt"
 }
 
 function CRE() {
@@ -155,39 +162,82 @@ function ARE() {
 
 #  %% -------- [zsh hooks] ----------:
 
+export ___COMMAND_DURATION_LOGGING_THRESHOLD=10
+
+function ECHO_PREEXEC_COMMANDS() {
+    echo $___COMMAND_TYPED
+    echo $___COMMAND_ONELINE
+    echo $___COMMAND_MULTILINE
+}
+
+function DEDUP_COMMAND_HISTORY() {
+    local brain_parent_path=$(FIND_BRAIN_PARENT_PATH 2>/dev/null)
+    local file="$brain_parent_path/brain/command_history.txt"
+    [[ -z $brain_parent_path || ! -f $file || ! -s $file ]] && return
+    awk '
+        BEGIN { RS=""; ORS="\n\n" }
+        { blocks[NR] = $0 }
+        END { for (i=NR; i>=1; i--) print blocks[i] }
+    ' "$file" | awk -v threshold="$___COMMAND_DURATION_LOGGING_THRESHOLD" '
+        BEGIN { RS=""; ORS="\n\n" }
+        {
+            split($0, lines, "\n")
+            split(lines[6], t, ":")
+            secs = t[1]*3600 + t[2]*60 + t[3]
+            if (secs > threshold) { print; next }
+            key = lines[1] SUBSEP lines[2]
+            if (!(key in seen)) { seen[key]; print }
+        }
+    ' | awk '
+        BEGIN { RS=""; ORS="\n\n" }
+        { blocks[NR] = $0 }
+        END { for (i=NR; i>=1; i--) print blocks[i] }
+    ' > "$file.tmp" && mv "$file.tmp" "$file"
+}
+
 preexec() {
-    COMMAND_START_EPOCH_SECONDS=$(date +%s)
-    COMMAND_START_DATETIME=$(date '+%Y-%m-%d %H:%M:%S')
-    COMMAND="${3//$'\r'/}"
-    COMMAND="${COMMAND//$'\n'/; }"
-    COMMAND_PATH="$PWD"
+    # dedup command history
+    DEDUP_COMMAND_HISTORY
+    # flag to see if preexec ran
+    ___PREEXEC_RAN_FOR_USER_ENTRY=true
+    # what user inputted and from where
+    ___COMMAND_TYPED="$1"
+    ___COMMAND_ONELINE="$2"
+    ___COMMAND_MULTILINE="$3"
+    ___COMMAND_FORMATTED="${3//$'\r'/}"
+    ___COMMAND_FORMATTED="${___COMMAND_FORMATTED//$'\n'/; }"
+    ___COMMAND_PATH="$PWD"
+    # datetime calculations
+    ___COMMAND_START_EPOCH_SECONDS=$(date +%s)
+    ___COMMAND_START_DATETIME=$(date '+%Y-%m-%d %H:%M:%S')
 }
 
 precmd() {
-    [[ -z $COMMAND_START_EPOCH_SECONDS ]] && return
-    local end_epoch_seconds=$(date +%s)
-    local end_datetime=$(date '+%Y-%m-%d %H:%M:%S')
-    local time_delta_in_seconds=$(( end_epoch_seconds - COMMAND_START_EPOCH_SECONDS ))
-    local formatted_time_delta=$(printf '%02d:%02d:%02d' \
-        $(( time_delta_in_seconds / 3600 )) $(( time_delta_in_seconds % 3600 / 60 )) $(( time_delta_in_seconds % 60 )))
-    (( time_delta_in_seconds >= 10 )) && echo "\n - Time: $formatted_time_delta ($COMMAND_START_DATETIME → $end_datetime)\n"
+    ___COMMAND_EXIT_CODE=$?
+    # break if user entry didn't trigger preexec
+    # e.g. user inputted enter without anything
+    # or pure whitespace
+    [[ -z $___PREEXEC_RAN_FOR_USER_ENTRY ]] && return
+    ___PREEXEC_RAN_FOR_USER_ENTRY=""
+    # compute timings
+    ___COMMAND_END_EPOCH_SECONDS=$(date +%s)
+    ___COMMAND_END_DATETIME=$(date '+%Y-%m-%d %H:%M:%S')
+    ___COMMAND_ELAPSED=$(( ___COMMAND_END_EPOCH_SECONDS - ___COMMAND_START_EPOCH_SECONDS ))
+    ___COMMAND_DURATION=$(printf '%02d:%02d:%02d' $((___COMMAND_ELAPSED/3600)) $((___COMMAND_ELAPSED%3600/60)) $((___COMMAND_ELAPSED%60)))
+    # print execution time
+    (( ___COMMAND_ELAPSED >= ___COMMAND_DURATION_LOGGING_THRESHOLD )) && echo "\n - Time: $___COMMAND_DURATION ($___COMMAND_START_DATETIME → $___COMMAND_END_DATETIME)\n"
+    # log in command history file
     local brain_parent_path=$(FIND_BRAIN_PARENT_PATH 2>/dev/null)
-    local command_history_file_path="$brain_parent_path/brain/command_history.txt"
-    if [[ -n $brain_parent_path && -f $command_history_file_path && -n $COMMAND ]]; then
-        local lock_file="$command_history_file_path.lock"
-        while ! mkdir "$lock_file" 2>/dev/null; do sleep 0.1; done
-        if (( time_delta_in_seconds <= 2 )); then
-            awk -v cmd="$COMMAND" -v path="$COMMAND_PATH" '
-                BEGIN { RS=""; ORS="\n\n" }
-                { split($0, lines, "\n"); if (!(lines[1] == cmd && lines[2] == path)) print }
-            ' "$command_history_file_path" > "$command_history_file_path.tmp" && mv "$command_history_file_path.tmp" "$command_history_file_path"
-        fi
-        printf '%s\n%s\n%s\n%s\n%s\n\n' \
-            "$COMMAND" "$COMMAND_PATH" "$COMMAND_START_DATETIME" "$end_datetime" "$formatted_time_delta" \
-            >> "$command_history_file_path"
-        rmdir "$lock_file"
+    local file="$brain_parent_path/brain/command_history.txt"
+    if [[ -n $brain_parent_path && -f $file && -n $___COMMAND_FORMATTED ]]; then
+        printf '%s\n%s\nexit:%s\n%s\n%s\n%s\n\n' \
+            "$___COMMAND_FORMATTED" "$___COMMAND_PATH" "$___COMMAND_EXIT_CODE" "$___COMMAND_START_DATETIME" "$___COMMAND_END_DATETIME" "$___COMMAND_DURATION" >> "$file"
     fi
-    unset COMMAND_START_EPOCH_SECONDS COMMAND_START_DATETIME COMMAND COMMAND_PATH
+    local full_file="$brain_parent_path/brain/command_history_full.txt"
+    if [[ -n $brain_parent_path && -f $full_file && -n $___COMMAND_FORMATTED ]]; then
+        printf '%s\n%s\nexit:%s\n%s\n%s\n%s\n\n' \
+            "$___COMMAND_FORMATTED" "$___COMMAND_PATH" "$___COMMAND_EXIT_CODE" "$___COMMAND_START_DATETIME" "$___COMMAND_END_DATETIME" "$___COMMAND_DURATION" >> "$full_file"
+    fi
 }
 
 function chpwd() {
@@ -205,12 +255,12 @@ function chpwd() {
 
 #  %% -------- [files folders path management] ----------:
 
-alias CDC="cd ~/doc/config"
-alias CDCC="cd ~/doc/config/config"
 alias CD="cd ~/doc"
 alias CDD="cd ~/Downloads"
 alias CDJ="cd ~/doc/junk"
 alias CDT="cd ~/trash"
+alias CDC="cd ~/doc/config"
+alias CDCC="cd ~/doc/config/config"
 # get full path
 alias FP='readlink -f'
 # verbose mv
@@ -368,6 +418,44 @@ function MV() {
     echo "\nNext: $(PROCESS_DOWNLOAD_FILES_PATHS 1 | cut -d'|' -f1)"
 }
 
+function TARGZ() {
+    local target_path="${1:-.}"
+    local full_path
+    full_path="$(readlink -f "$target_path")"
+
+    [[ ! -e "$full_path" ]] && { echo "Error: '$target_path' does not exist"; return 1; }
+
+    local file_name
+    file_name="$(basename "$full_path")"
+    local tmp_output="$HOME/${file_name}.tar.gz"
+    local final_output="$PWD/${file_name}.tar.gz"
+
+    [[ -e "$final_output" ]] && { echo "Error: '$final_output' already exists"; return 1; }
+    [[ -e "$tmp_output" ]] && { echo "Error: '$tmp_output' already exists"; return 1; }
+
+    tar -czf "$tmp_output" -C "$(dirname "$full_path")" "$file_name" && mv "$tmp_output" "$final_output"
+}
+
+function UNTARGZ() {
+  local archive_path="$1"
+  [[ -z "$archive_path" ]] && { echo "Usage: UNTARGZ <archive.tar.gz>"; return 1; }
+  [[ ! -f "$archive_path" ]] && { echo "Error: '$archive_path' does not exist or is not a file"; return 1; }
+  local full_path
+  full_path="$(readlink -f "$archive_path")"
+  tar -xzf "$full_path" -C "$PWD"
+}
+
+#  %% -------- [remote] ----------:
+
+function SSH() {
+    local forwarded_ports=()
+    for forwarded_port in "$@"; do
+        [[ "$forwarded_port" =~ ^[0-9]+$ ]] || { echo "Usage: SSH [port]..."; return 1; }
+        forwarded_ports+=("-L" "${forwarded_port}:localhost:${forwarded_port}")
+    done
+    ssh "${forwarded_ports[@]}" "$REMOTE"
+}
+
 # upload Downloads content to remote
 # (from local Downloads to remote Downloads)
 function UD() {
@@ -424,33 +512,6 @@ function DD() {
         echo "❌ rsync failed for $REMOTE:~/Downloads/$latest"
         return 1
     fi
-}
-
-TARGZ() {
-    local target_path="${1:-.}"
-    local full_path
-    full_path="$(readlink -f "$target_path")"
-
-    [[ ! -e "$full_path" ]] && { echo "Error: '$target_path' does not exist"; return 1; }
-
-    local file_name
-    file_name="$(basename "$full_path")"
-    local tmp_output="$HOME/${file_name}.tar.gz"
-    local final_output="$PWD/${file_name}.tar.gz"
-
-    [[ -e "$final_output" ]] && { echo "Error: '$final_output' already exists"; return 1; }
-    [[ -e "$tmp_output" ]] && { echo "Error: '$tmp_output' already exists"; return 1; }
-
-    tar -czf "$tmp_output" -C "$(dirname "$full_path")" "$file_name" && mv "$tmp_output" "$final_output"
-}
-
-UNTARGZ() {
-  local archive_path="$1"
-  [[ -z "$archive_path" ]] && { echo "Usage: UNTARGZ <archive.tar.gz>"; return 1; }
-  [[ ! -f "$archive_path" ]] && { echo "Error: '$archive_path' does not exist or is not a file"; return 1; }
-  local full_path
-  full_path="$(readlink -f "$archive_path")"
-  tar -xzf "$full_path" -C "$PWD"
 }
 
 #  %% -------- [find search grep] ----------:
@@ -536,11 +597,10 @@ export NEOVIM_EDITOR="nvim"
 alias V="$NEOVIM_EDITOR"
 
 function VBP() {
-    local brain_parent_path
-    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
-    local file_paths=()
-    for f in "$@"; do file_paths+=("$brain_parent_path/$f"); done
-    $NEOVIM_EDITOR "${file_paths[@]}"
+    local original_dir="$PWD"
+    CDBP || return 1
+    $NEOVIM_EDITOR "$@"
+    cd "$original_dir"
 }
 
 function VB() {
@@ -636,11 +696,20 @@ function VD() {
 
 # %% -------- [git] ----------:
 
+export GIT_LOG_COUNT=4
+
 alias GR="git restore"
 alias GA="git add"
 alias GM="git merge"
 alias GF="git fetch"
 alias GFO="git fetch origin"
+
+function GET_GIT_LOG_COUNT() {
+    local count=$GIT_LOG_COUNT
+    local commits_ahead_of_remote=$(git ${1:+-C "$1"} rev-list --count origin/$(git ${1:+-C "$1"} rev-parse --abbrev-ref HEAD)..HEAD 2>/dev/null)
+    (( commits_ahead_of_remote > count )) && count=$((commits_ahead_of_remote + 1))
+    echo $count
+}
 
 function GDBP() {
     local brain_parent_path
@@ -665,11 +734,11 @@ function GCH() {
     read "branch?Branch: "
     [[ -z "$branch" ]] && { echo "Branch required"; return 1; }
     if [[ $# -eq 0 ]]; then
-        git checkout "$branch"
+        git checkout "$branch" 2>/dev/null || git checkout -b "$branch"
     else
         for file_path in "$@"; do
             PRINT_AS_HEADER "$file_path"
-            git -C "$file_path" checkout "$branch"
+            git -C "$file_path" checkout "$branch" 2>/dev/null || git -C "$file_path" checkout -b "$branch"
         done
     fi
 }
@@ -758,14 +827,7 @@ function GD() {
 }
 
 function GDNO() {
-    if [[ $# -eq 0 ]]; then
-        git diff --name-only
-    else
-        for file_path in "$@"; do
-            PRINT_AS_HEADER "$file_path"
-            git -C "$file_path" diff --name-only
-        done
-    fi
+    git diff --name-only "$@"
 }
 
 function GS() {
@@ -795,11 +857,11 @@ function GAMEND() {
 
 function GL() {
     if [[ $# -eq 0 ]]; then
-        echo "\n\n" && git --no-pager log --graph --decorate --oneline -8
+        echo "\n\n" && git --no-pager log --graph --decorate --oneline -$(GET_GIT_LOG_COUNT)
     else
         for file_path in "$@"; do
             PRINT_AS_HEADER "$file_path"
-            git -C "$file_path" --no-pager log --graph --decorate --oneline -8
+            git -C "$file_path" --no-pager log --graph --decorate --oneline -$(GET_GIT_LOG_COUNT "$file_path")
         done
     fi
 }
@@ -876,8 +938,17 @@ function GSQUASH() {
 }
 
 function GSTASH() {
-    local msg="${*:-"WIP stash"}"
-    git stash push -u -m "$msg"
+    local msg
+    read "msg?Stash message (enter for WIP): "
+    [[ -z "$msg" ]] && msg="WIP stash"
+    if [[ $# -eq 0 ]]; then
+        git stash push -u -m "$msg"
+    else
+        for file_path in "$@"; do
+            PRINT_AS_HEADER "$file_path"
+            git -C "$file_path" stash push -u -m "$msg"
+        done
+    fi
 }
 
 # %% -------- [python] ----------:
@@ -890,10 +961,8 @@ alias BLACK="python3 -m black **/*.py"
 alias PC="pre-commit run -a"
 
 function PIP3(){
-    pip3 install wheel
-    pip3 install ipdb==0.13.11
-    pip3 install ipython==7.31.1
-    pip3 install neovim
+    pip3 install ipdb
+    pip3 install ipython
     pip3 install pandas
     pip3 install black
 }
@@ -919,9 +988,6 @@ function PVENV(){
     touch Dockerfile
     if ! [ -e .git ]; then
         git init
-        wget https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore
-        wget https://raw.githubusercontent.com/pre-commit/pre-commit/main/.pre-commit-config.yaml
-        mv Python.gitignore .gitignore
         echo "\n# vim\n.vim\n.ccls*" >> .gitignore
     fi;
     PIP3 # keep at end
@@ -1031,36 +1097,36 @@ function TOT() {
 # tmux open Notes
 function TON() {
     local target_pane_id="$TMUX_PANE"
-    tmux send-keys -t "$target_pane_id" 'CDDOC' Enter
+    tmux send-keys -t "$target_pane_id" 'CD' Enter
     tmux send-keys -t "$target_pane_id" 'NOTAR' Enter
     tmux send-keys -t "$target_pane_id" 'tmux rename-window -t $TMUX_PANE notes' Enter
     tmux send-keys -t "$target_pane_id" 'KKR' Enter
     target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
-    tmux send-keys -t "$target_pane_id" 'CDDOC' Enter
+    tmux send-keys -t "$target_pane_id" 'CD' Enter
     tmux send-keys -t "$target_pane_id" 'VNOTES' Enter
 }
 
 # tmux open junk
 function TOJ() {
     local target_pane_id="$TMUX_PANE"
-    tmux send-keys -t "$target_pane_id" 'CDDOC' Enter
+    tmux send-keys -t "$target_pane_id" 'CD' Enter
     tmux send-keys -t "$target_pane_id" 'NOTAR' Enter
     tmux send-keys -t "$target_pane_id" 'tmux rename-window -t $TMUX_PANE junk' Enter
     tmux send-keys -t "$target_pane_id" 'KKR' Enter
     target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
-    tmux send-keys -t "$target_pane_id" 'CDDOC' Enter
+    tmux send-keys -t "$target_pane_id" 'CD' Enter
     tmux send-keys -t "$target_pane_id" 'VJUNK' Enter
 }
 
 # tmux open ai
 function TOAI() {
     local target_pane_id="$TMUX_PANE"
-    tmux send-keys -t "$target_pane_id" 'CDDOC' Enter
+    tmux send-keys -t "$target_pane_id" 'CD' Enter
     tmux send-keys -t "$target_pane_id" 'NOTAR' Enter
     tmux send-keys -t "$target_pane_id" 'tmux rename-window -t $TMUX_PANE ai' Enter
     tmux send-keys -t "$target_pane_id" 'KKR' Enter
     target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
-    tmux send-keys -t "$target_pane_id" 'CDDOC' Enter
+    tmux send-keys -t "$target_pane_id" 'CD' Enter
     tmux send-keys -t "$target_pane_id" 'VAI' Enter
 }
 
@@ -1094,9 +1160,8 @@ function TCOBP() {
 }
 
 function TCOBPJ() {
-    cd ~/doc/junk
     local target_pane_id
-    target_pane_id=$(tmux new-window -c "$PWD" -P -F '#{pane_id}')
+    target_pane_id=$(tmux new-window -c ~/doc/junk -P -F '#{pane_id}')
     tmux send-keys -t "$target_pane_id" "MKBP $*" Enter
     tmux send-keys -t "$target_pane_id" "TOBP" Enter
 }
@@ -1154,16 +1219,9 @@ function CAFF() {
 
 function NOCAFF() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        pgrep caffeinate | while read -r pid; do
-            kill "$pid" && echo "Killed caffeinate $pid"
-        done
-        [[ $? -ne 0 ]] && echo "No caffeinate process found"
+        pkill caffeinate && echo "Killed caffeinate" || echo "No caffeinate process found"
     else
-        if pkill -f "systemd-inhibit.*sleep infinity"; then
-            echo "Sleep inhibitor killed"
-        else
-            echo "No sleep inhibitor found"
-        fi
+        pkill -f "systemd-inhibit.*sleep infinity" && echo "Sleep inhibitor killed" || echo "No sleep inhibitor found"
     fi
 }
 
@@ -1201,26 +1259,6 @@ alias MW="mwinit -o"
 alias KI="kinit -f"
 alias CL="card local --runtimePort 8082"
 alias CRPULL="cr-pull -w"
-
-function ADA() {
-    local account_number=$1
-    if [ -z "$account_number" ]; then
-        echo "Error: Please provide an account number"
-        echo "Usage: ADA <account_number>"
-        return 1
-    fi
-    ada credentials update --account="$account_number" --provider=conduit --role=IibsAdminAccess-DO-NOT-DELETE --once
-}
-
-function ADAL() {
-    local account_number=$1
-    if [ -z "$account_number" ]; then
-        echo "Error: Please provide an account number"
-        echo "Usage: ADAL <account_number>"
-        return 1
-    fi
-    ada credentials update --account="$account_number" --provider=conduit --role=IibsAdminAccess-DO-NOT-DELETE
-}
 
 # %% -------- [config management] ----------:
 
