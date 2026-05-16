@@ -1,7 +1,7 @@
 # %% -------- [make dirs] ----------:
 
 echo "***      Creating Dirs         ***"
-mkdir -p ~/doc
+mkdir -p ~/doc/junk
 mkdir -p ~/app/
 mkdir -p ~/dat/
 mkdir -p ~/junk/
