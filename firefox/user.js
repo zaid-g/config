@@ -16,3 +16,7 @@ user_pref("privacy.userContext.ui.enabled", true); // Show container tabs UI
 
 // Advanced
 user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true); // Enable userChrome.css
+
+// Dark theme
+user_pref("ui.systemUsesDarkTheme", 1);
+user_pref("extensions.activeThemeID", "firefox-compact-dark@mozilla.org");

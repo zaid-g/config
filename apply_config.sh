@@ -13,6 +13,7 @@ mkdir -p ~/.config/sway
 mkdir -p ~/.config/waybar
 mkdir -p ~/.config/alacritty
 mkdir -p ~/.config/kitty
+mkdir -p ~/.config/lazyvim/lua/config
 mkdir -p ~/.ipython/profile_default
 
 # %% -------- [nvim base] ----------:
@@ -57,9 +58,11 @@ cp ~/doc/config/config/python/ipython_config.py ~/.ipython/profile_default/
 
 # %% -------- [sway] ----------:
 
-cp ~/doc/config/config/sway/* ~/.config/sway/
-chmod +x ~/.config/sway/clamshell.sh
-chmod +x ~/.config/sway/status.sh
+touch -a ~/.config/sway/config
+grep -qF 'include ~/doc/config/config/sway/config' ~/.config/sway/config || echo "$(
+    printf 'include ~/doc/config/config/sway/config\n'
+    cat ~/.config/sway/config
+)" >~/.config/sway/config
 
 # %% -------- [alacritty] ----------:
 
@@ -95,6 +98,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     PROFILE_DIR="$HOME/Library/Application Support/Firefox/Profiles"
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     PROFILE_DIR="$HOME/.mozilla/firefox"
+    [[ ! -d "$PROFILE_DIR" ]] && PROFILE_DIR="$HOME/.config/mozilla/firefox"
 fi
 
 # Try to find default-release first, then fall back to default
