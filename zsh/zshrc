@@ -41,15 +41,15 @@ function TB() {
     mkdir -p brain/junk brain/logs brain/ai brain/command_output
     touch brain/notes.txt brain/junk/junk.txt brain/related.txt brain/ai/ai.txt brain/tags.txt
     [[ "$IS_DEV_MACHINE" == "true" ]] && TCH
-    GI
-    git add .
-    git commit -m "init"
 }
 
 function MKBP() {
     MK "$@"
     GIG "$(basename "$PWD")" 2>/dev/null
     TB
+    GI
+    git add .
+    git commit -m "init"
 }
 
 function TCH() {
@@ -612,7 +612,8 @@ function VB() {
     local tab_count=3
     if [[ -f "$brain_parent_path/brain/command_history.txt" ]]; then
         file_paths+=(brain/command_history.txt)
-        tab_count=4
+        file_paths+=(brain/command_history_full.txt)
+        tab_count=5
     fi
     file_paths+=(brain/**/*.txt)
     local nvim_brain_settings='
@@ -697,6 +698,7 @@ function VD() {
 # %% -------- [git] ----------:
 
 export GIT_LOG_COUNT=4
+export GIT_STASH_FLAG_FILE="_EMPTY_GIT_STASH_FLAG_FILE"
 
 alias GR="git restore"
 alias GA="git add"
@@ -707,7 +709,7 @@ alias GFO="git fetch origin"
 function GET_GIT_LOG_COUNT() {
     local count=$GIT_LOG_COUNT
     local commits_ahead_of_remote=$(git ${1:+-C "$1"} rev-list --count origin/$(git ${1:+-C "$1"} rev-parse --abbrev-ref HEAD)..HEAD 2>/dev/null)
-    (( commits_ahead_of_remote > count )) && count=$((commits_ahead_of_remote + 1))
+    (( commits_ahead_of_remote >= count )) && count=$((commits_ahead_of_remote + 1))
     echo $count
 }
 
@@ -723,7 +725,7 @@ function GSBP() {
     git -C "$brain_parent_path" status
 }
 
-function GCBP() {
+function GACBP() {
     local brain_parent_path
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
     git -C "$brain_parent_path" add . && git -C "$brain_parent_path" commit -m 'F'
@@ -899,9 +901,9 @@ function GAC() {
     read "msg?Commit message (enter for timestamp): "
     [[ -z "$msg" ]] && msg="$(date '+%Y-%m-%d %H:%M:%S')"
     if [[ $# -eq 0 ]]; then
-        local repo_root
-        repo_root=$(git rev-parse --show-toplevel 2>/dev/null) || return 1
-        git -C "$repo_root" add . && git -C "$repo_root" commit -m "$msg"
+        local git_repo_root_path
+        git_repo_root_path=$(git rev-parse --show-toplevel 2>/dev/null) || return 1
+        git -C "$git_repo_root_path" add . && git -C "$git_repo_root_path" commit -m "$msg"
     else
         for file_path in "$@"; do
             PRINT_AS_HEADER "$file_path"
@@ -937,16 +939,38 @@ function GSQUASH() {
     git reset --soft "$commit_hash" && git commit -m "$commit_message"
 }
 
+# GSTASH creates a marker file before stashing to guarantee a stash entry
+# even on clean repos. This prevents GSTASHPOP from accidentally popping
+# an older unrelated stash when running across multiple packages.
 function GSTASH() {
     local msg
     read "msg?Stash message (enter for WIP): "
     [[ -z "$msg" ]] && msg="WIP stash"
     if [[ $# -eq 0 ]]; then
-        git stash push -u -m "$msg"
+        local git_repo_root_path=$(git rev-parse --show-toplevel)
+        touch "$git_repo_root_path/$GIT_STASH_FLAG_FILE"
+        git stash push -u -m "$msg" || rm -f "$git_repo_root_path/$GIT_STASH_FLAG_FILE"
     else
         for file_path in "$@"; do
             PRINT_AS_HEADER "$file_path"
-            git -C "$file_path" stash push -u -m "$msg"
+            local git_repo_root_path=$(git -C "$file_path" rev-parse --show-toplevel)
+            touch "$git_repo_root_path/$GIT_STASH_FLAG_FILE"
+            git -C "$file_path" stash push -u -m "$msg" || rm -f "$git_repo_root_path/$GIT_STASH_FLAG_FILE"
+        done
+    fi
+}
+
+function GSTASHPOP() {
+    if [[ $# -eq 0 ]]; then
+        git stash pop -q && echo "Popped"
+        local git_repo_root_path=$(git rev-parse --show-toplevel)
+        rm -f "$git_repo_root_path/$GIT_STASH_FLAG_FILE"
+    else
+        for file_path in "$@"; do
+            PRINT_AS_HEADER "$file_path"
+            git -C "$file_path" stash pop -q && echo "Popped"
+            local git_repo_root_path=$(git -C "$file_path" rev-parse --show-toplevel)
+            rm -f "$git_repo_root_path/$GIT_STASH_FLAG_FILE"
         done
     fi
 }
@@ -1248,7 +1272,6 @@ alias BB='brazil-build'
 alias BRCAP="brazil ws clean && brazil-recursive-cmd --allPackages brazil-build"
 alias BWU='brazil ws use -p'
 alias BWR='brazil ws remove -p'
-alias BWC='brazil ws create --root'
 alias BBCR='brazil ws clean && brazil-build clean && brazil-build release'
 alias BBC='brazil-build clean'
 alias BBR='brazil-build release'
@@ -1259,6 +1282,11 @@ alias MW="mwinit -o"
 alias KI="kinit -f"
 alias CL="card local --runtimePort 8082"
 alias CRPULL="cr-pull -w"
+
+function BWC() {
+    brazil ws create --root "$@"
+    GIG "$1" 2>/dev/null
+}
 
 # %% -------- [config management] ----------:
 
