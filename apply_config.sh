@@ -63,6 +63,7 @@ grep -qF 'include ~/doc/config/config/sway/config' ~/.config/sway/config || echo
     printf 'include ~/doc/config/config/sway/config\n'
     cat ~/.config/sway/config
 )" >~/.config/sway/config
+chmod +x ~/doc/config/config/sway/*.sh
 
 # %% -------- [alacritty] ----------:
 
