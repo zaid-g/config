@@ -27,3 +27,6 @@ bindsym $mod+z exec swaylock -f -c 666666
 bar bar-0 {
     status_command ~/.config/sway/status.sh
 }
+
+# disable all touch screens
+input type:touch events disabled
