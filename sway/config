@@ -1,12 +1,23 @@
+#  %% -------- [default config load] ----------:
+
+# Note: can't have empty config in sway. literally nothing works.
+# So i am sourcing the default config and overriding it here.
 include /etc/sway/config
 
-# --- Overrides ---
-
-font pango:monospace 14
+#  %% -------- [terminal] ----------:
 
 set $term alacritty
 unbindsym $mod+Return
 bindsym $mod+Return exec alacritty
+
+#  %% -------- [font] ----------:
+
+font pango:monospace 14
+# font for wmenu
+unbindsym $mod+d
+bindsym $mod+d exec wmenu-run -f "monospace 14"
+
+#  %% -------- [keyboard] ----------:
 
 input "type:keyboard" {
     repeat_rate 50
@@ -14,6 +25,8 @@ input "type:keyboard" {
     xkb_options caps:swapescape
     xkb_numlock enabled
 }
+
+#  %% -------- [lock screen] ----------:
 
 # Idle/lock
 exec swayidle -w \
@@ -24,12 +37,23 @@ exec swayidle -w \
     timeout 1800 'systemctl suspend'
 bindsym $mod+z exec swaylock -f -c 666666
 
-# Mirror all external outputs to laptop screen
-exec_always ~/.config/sway/mirror.sh
+#  %% -------- [status bar] ----------:
 
 bar bar-0 {
     status_command ~/doc/config/config/sway/status.sh
 }
 
+#  %% -------- [laptop disable touch screen] ----------:
+
 # disable all touch screens
 input type:touch events disabled
+
+#  %% -------- [screen mirror screen mirroring] ----------:
+
+# Append the last two lines to ~/.config/sway/config:
+# Mirror all external outputs to laptop screen
+# NOTE: output names and resolutions are machine-specific, update if needed
+# To list outputs and their names: swaymsg -t get_outputs
+# To list available resolutions: swaymsg -t get_outputs | grep current_mode
+# output HDMI-A-1 res 1920x1080@120Hz position 0,0
+# output eDP-1 res 1920x1080 position 0,0
