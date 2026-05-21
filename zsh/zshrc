@@ -621,7 +621,7 @@ function VB() {
             callback = function() vim.cmd("silent! wall") end
         })
         for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-            if vim.api.nvim_buf_get_name(buf):match("command_history%.txt$") then
+            if vim.api.nvim_buf_get_name(buf):match("command_history%.txt$") or vim.api.nvim_buf_get_name(buf):match("command_history_full%.txt$") then
                 vim.bo[buf].readonly = true
                 vim.bo[buf].modifiable = false
                 vim.bo[buf].autoread = true
