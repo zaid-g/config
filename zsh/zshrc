@@ -269,7 +269,12 @@ alias MVV="mv -v"
 alias LL="ls -l --color=auto"
 alias LLA="ls -lA --color=auto"
 alias LLR="ls -ltr --color=auto"
-alias LLD="LLR ~/Downloads"
+function LLD() {
+    local n=${1:-5}
+    local total=$(ls ~/Downloads | wc -l | tr -d ' ')
+    (( total > n )) && echo "..."
+    ls -ltr --color=auto ~/Downloads | tail -n $n
+}
 alias LLT="LLR ~/trash"
 
 function CLEAN_FILENAME() {
@@ -332,6 +337,12 @@ function CDBP() {
     local brain_parent_path
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
     cd "$brain_parent_path"
+}
+
+function FPBP() {
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    readlink -f "$brain_parent_path"
 }
 
 function LLBP() {
@@ -418,6 +429,13 @@ function MV() {
     echo "\nNext: $(PROCESS_DOWNLOAD_FILES_PATHS 1 | cut -d'|' -f1)"
 }
 
+# rm files from local Downloads
+function R() {
+    PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r source dest; do
+        rm -rf "$source" && echo "Removed: $source"
+    done
+}
+
 function TARGZ() {
     local target_path="${1:-.}"
     local full_path
@@ -446,6 +464,8 @@ function UNTARGZ() {
 }
 
 #  %% -------- [remote] ----------:
+
+alias D='noglob D'
 
 function SSH() {
     local forwarded_ports=()
@@ -484,9 +504,10 @@ function D() {
     [[ $# -eq 0 ]] && { echo "Usage: D <remote_path>..."; return 1; }
     [[ -z "$REMOTE" ]] && { echo "Error: REMOTE environment variable must be set"; return 1; }
     for remote_path in "$@"; do
-        if rsync -avz "$REMOTE:$remote_path" ~/Downloads/; then
-            chmod -R u+w ~/Downloads/"$(basename "$remote_path")"
-            echo "✅ Downloaded to: ~/Downloads/$(basename "$remote_path")"
+        if rsync -rvz "$REMOTE:$remote_path" ~/Downloads/; then
+            local base_name=$(basename "$remote_path")
+            chmod -R u+w ~/Downloads/${~base_name}
+            echo "✅ rsync succeeded for $REMOTE:$remote_path"
         else
             echo "❌ rsync failed for $REMOTE:$remote_path"
         fi
@@ -556,14 +577,17 @@ function FIND_FILES_MATCHING_PATTERN() {
 }
 
 function FINDT() {
+    echo
     FIND_NON_IGNORED_FILE_PATHS_MATCHING_TYPES "$@"
 }
 
 function FIND() {
+    echo
     FIND_FILES_MATCHING_PATTERN "$@"
 }
 
 function GREP() {
+    echo
     local file
     if [ "$#" -eq 1 ]; then
         local pattern="$1"
@@ -581,6 +605,7 @@ function GREP() {
 
 # find files matching pattern one layer deep
 function FIND1() {
+    echo
     ls -d --color=always -1 *"$@"* | sort -t_ -k2,3
 }
 
@@ -621,7 +646,7 @@ function VB() {
             callback = function() vim.cmd("silent! wall") end
         })
         for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-            if vim.api.nvim_buf_get_name(buf):match("command_history%.txt$") or vim.api.nvim_buf_get_name(buf):match("command_history_full%.txt$") then
+            if vim.api.nvim_buf_get_name(buf):match("command_history%.txt$") then
                 vim.bo[buf].readonly = true
                 vim.bo[buf].modifiable = false
                 vim.bo[buf].autoread = true
@@ -781,17 +806,6 @@ function GPUSH() {
     fi
 }
 
-function GPUSHMAIN() {
-    if [[ $# -eq 0 ]]; then
-        git push -u origin HEAD:main
-    else
-        for file_path in "$@"; do
-            PRINT_AS_HEADER "$file_path"
-            git -C "$file_path" push -u origin HEAD:main
-        done
-    fi
-}
-
 function GPULL() {
     if [[ $# -eq 0 ]]; then
         git pull --rebase origin $(git rev-parse --abbrev-ref HEAD)
@@ -840,7 +854,16 @@ function GD() {
 }
 
 function GDNO() {
-    git diff --name-only "$@"
+    local ref
+    read "ref?Diff against (enter for working tree): "
+    if [[ $# -eq 0 ]]; then
+        git diff --name-only $ref
+    else
+        for file_path in "$@"; do
+            PRINT_AS_HEADER "$file_path"
+            git -C "$file_path" diff --name-only $ref
+        done
+    fi
 }
 
 function GS() {

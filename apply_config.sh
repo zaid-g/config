@@ -117,6 +117,10 @@ else
     echo "❌ No Firefox profile found"
 fi
 
+# %% -------- [kiro] ----------:
+
+kiro-cli settings chat.disableWrap true
+
 # %% -------- [done] ----------:
 
 echo "***      Done       ***"
