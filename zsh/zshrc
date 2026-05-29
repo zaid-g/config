@@ -806,6 +806,17 @@ function GPUSH() {
     fi
 }
 
+function GPUSHMAIN() {
+    if [[ $# -eq 0 ]]; then
+        git push -u origin main
+    else
+        for file_path in "$@"; do
+            PRINT_AS_HEADER "$file_path"
+            git -C "$file_path" push -u origin main
+        done
+    fi
+}
+
 function GPULL() {
     if [[ $# -eq 0 ]]; then
         git pull --rebase origin $(git rev-parse --abbrev-ref HEAD)
