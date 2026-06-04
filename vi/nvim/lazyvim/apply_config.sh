@@ -11,3 +11,9 @@ find "$SCRIPT_DIR" -type f -name "*.lua" | while read -r file; do
     mkdir -p "$target_dir"
     cp "$file" "$target_file"
 done
+
+touch -a "$TARGET_DIR/lua/config/keymaps.lua"
+grep -qF 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/core.lua"))' "$TARGET_DIR/lua/config/keymaps.lua" || echo "$(
+    cat "$TARGET_DIR/lua/config/keymaps.lua"
+    printf '%s\n' 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/core.lua"))'
+)" >"$TARGET_DIR/lua/config/keymaps.lua"

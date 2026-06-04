@@ -31,7 +31,6 @@ grep -qF 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/nvim/nvim.lua"))' ~/
 #  %% -------- [lazyvim] ----------:
 
 bash ~/doc/config/config/vi/nvim/lazyvim/apply_config.sh
-cp ~/doc/config/config/vi/nvim/core.lua ~/.config/lazyvim/lua/config/keymaps.lua
 
 # %% -------- [zsh] ----------:
 

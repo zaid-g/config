@@ -251,7 +251,7 @@ vim.keymap.set("n", "mks", MakeSessionGit)
 
 -- %% -------- [block abstraction] ----------:
 
--- block abstraction and execution
+-- add block title
 vim.keymap.set("n", "mbl", function()
 	local commentstr = vim.bo.commentstring:gsub("%%s", "") -- Remove %s placeholder
 	if vim.bo.filetype == "markdown" then
@@ -264,6 +264,18 @@ vim.keymap.set("n", "mbl", function()
 	vim.cmd("normal! kk$BBe")
 	vim.cmd("startinsert")
 end, { desc = "Insert block comment" })
+
+-- add header
+vim.keymap.set("n", "mhe", function()
+	local commentstr = vim.bo.commentstring:gsub("%%s", "")
+	if vim.bo.filetype == "markdown" then commentstr = "#" end
+	local line = commentstr .. " %% -- [] --:"
+	vim.api.nvim_put({ line }, "l", true, true)
+	vim.cmd("normal! k$BBe")
+	vim.cmd("startinsert")
+end, { desc = "Insert subheader comment" })
+
+-- search in block title
 vim.keymap.set("n", "mb/", "/%% -----.*.*<left><left>\\c")
 vim.keymap.set("n", "mb?", "?%% -----.*.*<left><left>\\c")
 

@@ -263,8 +263,6 @@ alias CDC="cd ~/doc/config"
 alias CDCC="cd ~/doc/config/config"
 # get full path
 alias FP='readlink -f'
-# verbose mv
-alias MVV="mv -v"
 # ls
 alias LL="ls -l --color=auto"
 alias LLA="ls -lA --color=auto"
@@ -327,36 +325,7 @@ function CREATE_TIMESTAMPED_DIR_AND_CD() {
     mkdir -p "$dir" && cd "$dir"
 }
 
-function CDB() {
-    local brain_parent_path
-    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
-    cd "$brain_parent_path/brain"
-}
-
-function CDBP() {
-    local brain_parent_path
-    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
-    cd "$brain_parent_path"
-}
-
-function FPBP() {
-    local brain_parent_path
-    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
-    readlink -f "$brain_parent_path"
-}
-
-function LLBP() {
-    local brain_parent_path
-    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
-    LL "$brain_parent_path"
-}
-
-function MVBP() {
-    [[ $# -eq 0 ]] && { echo "Usage: MVBP <path>..."; return 1; }
-    local brain_parent_path
-    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
-    mv -v "$@" "$brain_parent_path/"
-}
+#  %% --- [mkdir] ---:
 
 function MKJ() {
     CREATE_TIMESTAMPED_DIR_AND_CD ~/doc/junk "$@"
@@ -370,6 +339,20 @@ function MKD() {
     CREATE_TIMESTAMPED_DIR_AND_CD ~/Downloads "$@"
 }
 
+#  %% --- [cd] ---:
+
+function CDB() {
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    cd "$brain_parent_path/brain"
+}
+
+function CDBP() {
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    cd "$brain_parent_path"
+}
+
 function CDG() {
 	local git_root
 	git_root=$(git rev-parse --show-toplevel 2>/dev/null) || {
@@ -379,21 +362,56 @@ function CDG() {
 	cd "$git_root"
 }
 
-# cp folders from local filesystem to local Downloads
-function CPD() {
-    [[ $# -eq 0 ]] && { echo "Usage: CPD <path>..."; return 1; }
-    mkdir -p ~/Downloads
-    for item in "$@"; do
-        local resolved_path=$(readlink -f "$item")
-        local cleaned_filename=$(CLEAN_FILENAME "$(basename "$resolved_path")")
-        cp -rv "$item" ~/Downloads/"$cleaned_filename"
+#  %% --- [ls] ---:
+
+function LLBP() {
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    LL "$brain_parent_path"
+}
+
+function LSBP() {
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    ls "$brain_parent_path"
+}
+
+#  %% --- [FP] ---:
+
+function FPBP() {
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    if [[ $# -eq 0 ]]; then
+        readlink -f "$brain_parent_path"
+    else
+        for file_name in "$@"; do
+            readlink -f "$brain_parent_path/$file_name"
+        done
+    fi
+}
+
+#  %% --- [rm] ---:
+
+function RD() {
+    PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r source dest; do
+        rm -rf "$source" && echo "Removed: $source"
     done
+}
+
+#  %% --- [mv] ---:
+
+# mv folders from local Downloads to cwd in filesystem
+function MVFD() {
+    PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r source dest; do
+        mv "$source" "$dest" && printf "%s ->\n%s\n" "$source" "$(readlink -f "$dest")"
+    done
+    echo "\nNext: $(PROCESS_DOWNLOAD_FILES_PATHS 1 | cut -d'|' -f1)"
 }
 
 # mv folders from local filesystem to local Downloads and touch timestamp
 # so it appears at top of list
-function MVD() {
-    [[ $# -eq 0 ]] && { echo "Usage: MVD <path>..."; return 1; }
+function MVTD() {
+    [[ $# -eq 0 ]] && { echo "Usage: <command> <path>..."; return 1; }
     mkdir -p ~/Downloads
     for item in "$@"; do
         local resolved_path=$(readlink -f "$item")
@@ -403,9 +421,22 @@ function MVD() {
     done
 }
 
+function MVTBP() {
+    [[ $# -eq 0 ]] && { echo "Usage: <command> <path>..."; return 1; }
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    mv -v "$@" "$brain_parent_path/"
+}
+
+function MVDTBP() {
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    (cd "$brain_parent_path" && MVFD "$@")
+}
+
 # mv folders from local filesystem to trash
-function MVT() {
-    [[ $# -eq 0 ]] && { echo "Usage: MVT <path>..."; return 1; }
+function MVTT() {
+    [[ $# -eq 0 ]] && { echo "Usage: <command> <path>..."; return 1; }
     mkdir -p ~/trash
     for item in "$@"; do
         local resolved_path=$(readlink -f "$item")
@@ -414,27 +445,40 @@ function MVT() {
     done
 }
 
+#  %% --- [cp] ---:
+
 # cp folders from local Downloads to cwd in filesystem
-function CP() {
+function CPFD() {
     PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r source dest; do
         cp "$source" "$dest" && printf "%s ->\n%s\n" "$source" "$(readlink -f "$dest")"
     done
 }
 
-# mv folders from local Downloads to cwd in filesystem
-function MV() {
-    PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r source dest; do
-        mv "$source" "$dest" && printf "%s ->\n%s\n" "$source" "$(readlink -f "$dest")"
+# cp folders from local filesystem to local Downloads
+function CPTD() {
+    [[ $# -eq 0 ]] && { echo "Usage: <command> <path>..."; return 1; }
+    mkdir -p ~/Downloads
+    for item in "$@"; do
+        local resolved_path=$(readlink -f "$item")
+        local cleaned_filename=$(CLEAN_FILENAME "$(basename "$resolved_path")")
+        cp -rv "$item" ~/Downloads/"$cleaned_filename"
     done
-    echo "\nNext: $(PROCESS_DOWNLOAD_FILES_PATHS 1 | cut -d'|' -f1)"
 }
 
-# rm files from local Downloads
-function R() {
-    PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r source dest; do
-        rm -rf "$source" && echo "Removed: $source"
-    done
+function CPTBP() {
+    [[ $# -eq 0 ]] && { echo "Usage: <command> <path>..."; return 1; }
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    cp -rv "$@" "$brain_parent_path/"
 }
+
+function CPDTBP() {
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    (cd "$brain_parent_path" && CPFD "$@")
+}
+
+#  %% --- [tar] ---:
 
 function TARGZ() {
     local target_path="${1:-.}"
@@ -625,6 +669,7 @@ function VBP() {
     local original_dir="$PWD"
     CDBP || return 1
     $NEOVIM_EDITOR "$@"
+    for file_name in "$@"; do readlink -f "$file_name"; done
     cd "$original_dir"
 }
 
@@ -731,6 +776,35 @@ alias GM="git merge"
 alias GF="git fetch"
 alias GFO="git fetch origin"
 
+function RESOLVE_GIT_BRANCH_OR_COMMIT() {
+    local ref
+    read "ref?Diff against (enter for working tree): "
+    [[ -z "$ref" ]] && { echo ""; return 0; }
+    if git rev-parse --verify "$ref^{commit}" >/dev/null 2>&1; then
+        echo "$ref"; return 0
+    fi
+    local branch_matches=($(git branch --list "*$ref*" --format='%(refname:short)'))
+    local commit_matches=($(git log --all --oneline 2>/dev/null | grep "^$ref" | awk '{print $1}'))
+    local options=()
+    echo "No exact match. Options:" >&2
+    local i=1
+    for b in "${branch_matches[@]}"; do
+        echo "  $i) [branch] $b" >&2
+        options+=("$b")
+        ((i++))
+    done
+    for c in "${commit_matches[@]}"; do
+        echo "  $i) [commit] $c" >&2
+        options+=("$c")
+        ((i++))
+    done
+    [[ ${#options[@]} -eq 0 ]] && { echo "No matches found" >&2; return 1; }
+    local choice
+    read "choice?Select: "
+    [[ -z "$choice" || ! "$choice" =~ ^[0-9]+$ || $choice -lt 1 || $choice -gt ${#options[@]} ]] && return 1
+    echo "${options[$choice]}"
+}
+
 function GET_GIT_LOG_COUNT() {
     local count=$GIT_LOG_COUNT
     local commits_ahead_of_remote=$(git ${1:+-C "$1"} rev-list --count origin/$(git ${1:+-C "$1"} rev-parse --abbrev-ref HEAD)..HEAD 2>/dev/null)
@@ -758,11 +832,44 @@ function GACBP() {
 
 function GCH() {
     local branch
-    read "branch?Branch: "
-    [[ -z "$branch" ]] && { echo "Branch required"; return 1; }
     if [[ $# -eq 0 ]]; then
-        git checkout "$branch" 2>/dev/null || git checkout -b "$branch"
+        read "branch?Branch/Commit: "
+        [[ -z "$branch" ]] && { echo "Branch required"; return 1; }
+        if git show-ref --verify --quiet "refs/heads/$branch"; then
+            git checkout "$branch"
+        elif git rev-parse --verify "$branch^{commit}" >/dev/null 2>&1; then
+            git checkout "$branch"
+        else
+            local branch_matches=($(git branch --list "*$branch*" --format='%(refname:short)'))
+            local commit_matches=($(git log --all --oneline 2>/dev/null | grep "^$branch" | awk '{print $1}'))
+            echo "No exact match. Options:"
+            local i=1
+            local options=()
+            for b in "${branch_matches[@]}"; do
+                echo "  $i) [branch] $b"
+                options+=("branch:$b")
+                ((i++))
+            done
+            for c in "${commit_matches[@]}"; do
+                echo "  $i) [commit] $c"
+                options+=("commit:$c")
+                ((i++))
+            done
+            echo "  $i) [new branch] $branch"
+            options+=("new:$branch")
+            local choice
+            read "choice?Select: "
+            [[ -z "$choice" || ! "$choice" =~ ^[0-9]+$ || $choice -lt 1 || $choice -gt ${#options[@]} ]] && return 1
+            local selected="${options[$choice]}"
+            case "$selected" in
+                branch:*) git checkout "${selected#branch:}" ;;
+                commit:*) git checkout "${selected#commit:}" ;;
+                new:*)    git checkout -b "${selected#new:}" ;;
+            esac
+        fi
     else
+        read "branch?Branch: "
+        [[ -z "$branch" ]] && { echo "Branch required"; return 1; }
         for file_path in "$@"; do
             PRINT_AS_HEADER "$file_path"
             git -C "$file_path" checkout "$branch" 2>/dev/null || git -C "$file_path" checkout -b "$branch"
@@ -852,14 +959,17 @@ function GPULLMAIN() {
 
 function GD() {
     local ref
-    read "ref?Diff against (enter for working tree): "
-    {
-        if [[ $# -eq 0 ]]; then
+    if [[ $# -eq 0 ]]; then
+        ref=$(RESOLVE_GIT_BRANCH_OR_COMMIT) || return 1
+        {
             git --no-pager diff --color=always $ref
             git ls-files --others --exclude-standard | while read -r file; do
                 git diff --color=always --no-index /dev/null "$file" 2>/dev/null
             done
-        else
+        } | less -RXF
+    else
+        read "ref?Diff against (enter for working tree): "
+        {
             for file_path in "$@"; do
                 PRINT_AS_HEADER "$file_path"
                 git -C "$file_path" --no-pager diff --color=always $ref
@@ -867,16 +977,17 @@ function GD() {
                     git -C "$file_path" diff --color=always --no-index /dev/null "$file" 2>/dev/null
                 done
             done
-        fi
-    } | less -RXF
+        } | less -RXF
+    fi
 }
 
 function GDNO() {
     local ref
-    read "ref?Diff against (enter for working tree): "
     if [[ $# -eq 0 ]]; then
+        ref=$(RESOLVE_GIT_BRANCH_OR_COMMIT) || return 1
         git diff --name-only $ref
     else
+        read "ref?Diff against (enter for working tree): "
         for file_path in "$@"; do
             PRINT_AS_HEADER "$file_path"
             git -C "$file_path" diff --name-only $ref
