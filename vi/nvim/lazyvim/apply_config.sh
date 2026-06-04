@@ -14,6 +14,6 @@ done
 
 touch -a "$TARGET_DIR/lua/config/keymaps.lua"
 grep -qF 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/core.lua"))' "$TARGET_DIR/lua/config/keymaps.lua" || echo "$(
-    cat "$TARGET_DIR/lua/config/keymaps.lua"
     printf '%s\n' 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/core.lua"))'
+    cat "$TARGET_DIR/lua/config/keymaps.lua"
 )" >"$TARGET_DIR/lua/config/keymaps.lua"
