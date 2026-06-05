@@ -663,7 +663,10 @@ export NVIM_APPNAME="nvim" # lazyvim
 export NEOVIM_EDITOR="nvim"
 
 # vim, VM taken
-alias V="$NEOVIM_EDITOR"
+function V() {
+    $NEOVIM_EDITOR "$@"
+    for file in "${@:1:3}"; do readlink -f "$file"; done
+}
 
 function VBP() {
     local original_dir="$PWD"
@@ -784,7 +787,7 @@ function RESOLVE_GIT_BRANCH_OR_COMMIT() {
         echo "$ref"; return 0
     fi
     local branch_matches=($(git branch --list "*$ref*" --format='%(refname:short)'))
-    local commit_matches=($(git log --all --oneline 2>/dev/null | grep "^$ref" | awk '{print $1}'))
+    local commit_matches=($(git log --all --oneline 2>/dev/null | awk '{print $1}' | grep "^$ref"))
     local options=()
     echo "No exact match. Options:" >&2
     local i=1
@@ -835,13 +838,14 @@ function GCH() {
     if [[ $# -eq 0 ]]; then
         read "branch?Branch/Commit: "
         [[ -z "$branch" ]] && { echo "Branch required"; return 1; }
+        [[ "$branch" == -* ]] && { echo "Invalid branch name"; return 1; }
         if git show-ref --verify --quiet "refs/heads/$branch"; then
             git checkout "$branch"
         elif git rev-parse --verify "$branch^{commit}" >/dev/null 2>&1; then
             git checkout "$branch"
         else
             local branch_matches=($(git branch --list "*$branch*" --format='%(refname:short)'))
-            local commit_matches=($(git log --all --oneline 2>/dev/null | grep "^$branch" | awk '{print $1}'))
+            local commit_matches=($(git log --all --oneline 2>/dev/null | awk '{print $1}' | grep "^$branch"))
             echo "No exact match. Options:"
             local i=1
             local options=()
@@ -870,9 +874,14 @@ function GCH() {
     else
         read "branch?Branch: "
         [[ -z "$branch" ]] && { echo "Branch required"; return 1; }
+        [[ "$branch" == -* ]] && { echo "Invalid branch name"; return 1; }
         for file_path in "$@"; do
             PRINT_AS_HEADER "$file_path"
-            git -C "$file_path" checkout "$branch" 2>/dev/null || git -C "$file_path" checkout -b "$branch"
+            if git -C "$file_path" show-ref --verify --quiet "refs/heads/$branch"; then
+                git -C "$file_path" checkout "$branch"
+            else
+                git -C "$file_path" checkout -b "$branch"
+            fi
         done
     fi
 }
@@ -926,21 +935,27 @@ function GPUSHMAIN() {
 
 function GPULL() {
     if [[ $# -eq 0 ]]; then
-        git pull --rebase origin $(git rev-parse --abbrev-ref HEAD)
+        local branch=$(git rev-parse --abbrev-ref HEAD)
+        [[ "$branch" == "HEAD" ]] && { echo "Detached HEAD, cannot pull"; return 1; }
+        git pull --rebase origin "$branch"
     else
         for file_path in "$@"; do
             PRINT_AS_HEADER "$file_path"
-            git -C "$file_path" pull --rebase origin $(git -C "$file_path" rev-parse --abbrev-ref HEAD)
+            local branch=$(git -C "$file_path" rev-parse --abbrev-ref HEAD)
+            [[ "$branch" == "HEAD" ]] && { echo "Detached HEAD, skipping"; continue; }
+            git -C "$file_path" pull --rebase origin "$branch"
         done
     fi
 }
 
 function GPULLMAINLINE() {
     if [[ $# -eq 0 ]]; then
+        [[ "$(git rev-parse --abbrev-ref HEAD)" == "HEAD" ]] && { echo "Detached HEAD, cannot pull"; return 1; }
         git pull --rebase origin mainline
     else
         for file_path in "$@"; do
             PRINT_AS_HEADER "$file_path"
+            [[ "$(git -C "$file_path" rev-parse --abbrev-ref HEAD)" == "HEAD" ]] && { echo "Detached HEAD, skipping"; continue; }
             git -C "$file_path" pull --rebase origin mainline
         done
     fi
@@ -948,10 +963,12 @@ function GPULLMAINLINE() {
 
 function GPULLMAIN() {
     if [[ $# -eq 0 ]]; then
+        [[ "$(git rev-parse --abbrev-ref HEAD)" == "HEAD" ]] && { echo "Detached HEAD, cannot pull"; return 1; }
         git pull --rebase origin main
     else
         for file_path in "$@"; do
             PRINT_AS_HEADER "$file_path"
+            [[ "$(git -C "$file_path" rev-parse --abbrev-ref HEAD)" == "HEAD" ]] && { echo "Detached HEAD, skipping"; continue; }
             git -C "$file_path" pull --rebase origin main
         done
     fi
@@ -986,11 +1003,13 @@ function GDNO() {
     if [[ $# -eq 0 ]]; then
         ref=$(RESOLVE_GIT_BRANCH_OR_COMMIT) || return 1
         git diff --name-only $ref
+        git ls-files --others --exclude-standard
     else
         read "ref?Diff against (enter for working tree): "
         for file_path in "$@"; do
             PRINT_AS_HEADER "$file_path"
             git -C "$file_path" diff --name-only $ref
+            git -C "$file_path" ls-files --others --exclude-standard
         done
     fi
 }
@@ -1055,6 +1074,7 @@ function GIG() {
     local git_repo_root_path
     git_repo_root_path=$(git rev-parse --show-toplevel 2>/dev/null) || { echo "Not a git repository"; return 1; }
     [[ ! -f "$git_repo_root_path/.gitignore" ]] && touch "$git_repo_root_path/.gitignore"
+    [[ -s "$git_repo_root_path/.gitignore" && $(tail -c1 "$git_repo_root_path/.gitignore") != "" ]] && echo >> "$git_repo_root_path/.gitignore"
     for pattern in "$@"; do
         grep -Fxq "$pattern" "$git_repo_root_path/.gitignore" || echo "$pattern" >> "$git_repo_root_path/.gitignore"
     done
@@ -1101,6 +1121,10 @@ function GSQUASH() {
         echo "Error: Invalid commit hash"
         return 1
     fi
+    if ! git merge-base --is-ancestor "$commit_hash" HEAD; then
+        echo "Error: $commit_hash is not an ancestor of HEAD"
+        return 1
+    fi
     git reset --soft "$commit_hash" && git commit -m "$commit_message"
 }
 
@@ -1112,14 +1136,16 @@ function GSTASH() {
     read "msg?Stash message (enter for WIP): "
     [[ -z "$msg" ]] && msg="WIP stash"
     if [[ $# -eq 0 ]]; then
-        local git_repo_root_path=$(git rev-parse --show-toplevel)
-        touch "$git_repo_root_path/$GIT_STASH_FLAG_FILE"
+        local git_repo_root_path
+        git_repo_root_path=$(git rev-parse --show-toplevel) || return 1
+        touch "$git_repo_root_path/$GIT_STASH_FLAG_FILE" || { echo "Error: cannot create flag file"; return 1; }
         git stash push -u -m "$msg" || rm -f "$git_repo_root_path/$GIT_STASH_FLAG_FILE"
     else
         for file_path in "$@"; do
             PRINT_AS_HEADER "$file_path"
-            local git_repo_root_path=$(git -C "$file_path" rev-parse --show-toplevel)
-            touch "$git_repo_root_path/$GIT_STASH_FLAG_FILE"
+            local git_repo_root_path
+            git_repo_root_path=$(git -C "$file_path" rev-parse --show-toplevel) || continue
+            touch "$git_repo_root_path/$GIT_STASH_FLAG_FILE" || { echo "Error: cannot create flag file"; continue; }
             git -C "$file_path" stash push -u -m "$msg" || rm -f "$git_repo_root_path/$GIT_STASH_FLAG_FILE"
         done
     fi
@@ -1127,15 +1153,15 @@ function GSTASH() {
 
 function GSTASHPOP() {
     if [[ $# -eq 0 ]]; then
-        git stash pop -q && echo "Popped"
-        local git_repo_root_path=$(git rev-parse --show-toplevel)
-        rm -f "$git_repo_root_path/$GIT_STASH_FLAG_FILE"
+        local git_repo_root_path
+        git_repo_root_path=$(git rev-parse --show-toplevel) || return 1
+        git stash pop -q && { echo "Popped"; rm -f "$git_repo_root_path/$GIT_STASH_FLAG_FILE"; }
     else
         for file_path in "$@"; do
             PRINT_AS_HEADER "$file_path"
-            git -C "$file_path" stash pop -q && echo "Popped"
-            local git_repo_root_path=$(git -C "$file_path" rev-parse --show-toplevel)
-            rm -f "$git_repo_root_path/$GIT_STASH_FLAG_FILE"
+            local git_repo_root_path
+            git_repo_root_path=$(git -C "$file_path" rev-parse --show-toplevel) || continue
+            git -C "$file_path" stash pop -q && { echo "Popped"; rm -f "$git_repo_root_path/$GIT_STASH_FLAG_FILE"; }
         done
     fi
 }
@@ -1364,8 +1390,8 @@ function TO3() {
 
 #  %% -------- [AI] ----------:
 
-alias KK="kiro-cli chat --trust-all-tools"
-alias KKR="kiro-cli chat --trust-all-tools --resume"
+alias KK="kiro-cli chat --classic --trust-all-tools"
+alias KKR="kiro-cli chat --classic --trust-all-tools --resume"
 
 function KKE() {
     local original_dir="$PWD"
@@ -1537,3 +1563,4 @@ alias H="history 0"
 # Bind Ctrl-space to clear-screen
 bindkey '^@' clear-screen
 alias DU="du -sh"
+alias PING="ping google.com"
