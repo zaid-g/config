@@ -1399,8 +1399,8 @@ function TO3() {
 #  %% -------- [AI] ----------:
 
 # claude code
-alias CC="claude"
-alias CCR="claude --resume"
+alias CC="claude --dangerously-skip-permissions"
+alias CCR="claude --resume --dangerously-skip-permissions"
 
 # kiro
 alias KK="kiro-cli chat --classic --trust-all-tools"
