@@ -1322,7 +1322,7 @@ function TON() {
     tmux send-keys -t "$target_pane_id" 'CD' Enter
     tmux send-keys -t "$target_pane_id" 'NOTAR' Enter
     tmux send-keys -t "$target_pane_id" 'tmux rename-window -t $TMUX_PANE notes' Enter
-    tmux send-keys -t "$target_pane_id" 'KKR' Enter
+    tmux send-keys -t "$target_pane_id" 'AIR' Enter
     target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
     tmux send-keys -t "$target_pane_id" 'CD' Enter
     tmux send-keys -t "$target_pane_id" 'VNOTES' Enter
@@ -1334,7 +1334,7 @@ function TOJ() {
     tmux send-keys -t "$target_pane_id" 'CD' Enter
     tmux send-keys -t "$target_pane_id" 'NOTAR' Enter
     tmux send-keys -t "$target_pane_id" 'tmux rename-window -t $TMUX_PANE junk' Enter
-    tmux send-keys -t "$target_pane_id" 'KKR' Enter
+    tmux send-keys -t "$target_pane_id" 'AIR' Enter
     target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
     tmux send-keys -t "$target_pane_id" 'CD' Enter
     tmux send-keys -t "$target_pane_id" 'VJUNK' Enter
@@ -1346,7 +1346,7 @@ function TOAI() {
     tmux send-keys -t "$target_pane_id" 'CD' Enter
     tmux send-keys -t "$target_pane_id" 'NOTAR' Enter
     tmux send-keys -t "$target_pane_id" 'tmux rename-window -t $TMUX_PANE ai' Enter
-    tmux send-keys -t "$target_pane_id" 'KKR' Enter
+    tmux send-keys -t "$target_pane_id" 'AIR' Enter
     target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
     tmux send-keys -t "$target_pane_id" 'CD' Enter
     tmux send-keys -t "$target_pane_id" 'VAI' Enter
@@ -1357,7 +1357,7 @@ function TOC() {
     local target_pane_id="$TMUX_PANE"
     tmux send-keys -t "$target_pane_id" 'CDC' Enter
     tmux send-keys -t "$target_pane_id" 'NOTAR' Enter
-    tmux send-keys -t "$target_pane_id" 'KKR' Enter
+    tmux send-keys -t "$target_pane_id" 'AIR' Enter
     target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
     tmux send-keys -t "$target_pane_id" 'CDCC' Enter
 }
@@ -1367,10 +1367,11 @@ function TOBP() {
     CDBP || return 1
     local target_pane_id="$TMUX_PANE"
     tmux send-keys -t "$target_pane_id" 'NOTAR' Enter
-    tmux send-keys -t "$target_pane_id" 'KKR' Enter
+    tmux send-keys -t "$target_pane_id" 'AIR' Enter
     target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
     tmux send-keys -t "$target_pane_id" 'VB' Enter
     tmux split-window -v -t "$target_pane_id"
+    tmux select-pane -t "$target_pane_id"
 }
 
 # tmux create and open brain parent
@@ -1397,8 +1398,17 @@ function TO3() {
 
 #  %% -------- [AI] ----------:
 
+# claude code
+alias CC="claude"
+alias CCR="claude --resume"
+
+# kiro
 alias KK="kiro-cli chat --classic --trust-all-tools"
 alias KKR="kiro-cli chat --classic --trust-all-tools --resume"
+
+# ai
+alias AI="KK"
+alias AIR="KKR"
 
 function KKE() {
     local original_dir="$PWD"
