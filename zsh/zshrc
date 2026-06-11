@@ -1049,11 +1049,11 @@ function GAMEND() {
 function GL() {
     {
         if [[ $# -eq 0 ]]; then
-            git --no-pager log --graph --decorate --oneline -$(GET_GIT_LOG_COUNT)
+            git --no-pager log --color=always --graph --decorate --oneline -$(GET_GIT_LOG_COUNT)
         else
             for file_path in "$@"; do
                 PRINT_AS_HEADER "$file_path"
-                git -C "$file_path" --no-pager log --graph --decorate --oneline -$(GET_GIT_LOG_COUNT "$file_path")
+                git -C "$file_path" --no-pager log --color=always --graph --decorate --oneline -$(GET_GIT_LOG_COUNT "$file_path")
             done
         fi
     } 2>&1 | less -RXF
@@ -1365,13 +1365,14 @@ function TOC() {
 # tmux open brain parent
 function TOBP() {
     CDBP || return 1
-    local target_pane_id="$TMUX_PANE"
-    tmux send-keys -t "$target_pane_id" 'NOTAR' Enter
-    tmux send-keys -t "$target_pane_id" 'AIR' Enter
-    target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
-    tmux send-keys -t "$target_pane_id" 'VB' Enter
-    tmux split-window -v -t "$target_pane_id"
-    tmux select-pane -t "$target_pane_id"
+    local left_pane_id="$TMUX_PANE"
+    tmux send-keys -t "$left_pane_id" 'NOTAR' Enter
+    tmux send-keys -t "$left_pane_id" 'AIR' Enter
+    local right_pane_id=$(tmux split-window -h -t "$left_pane_id" -P -F '#{pane_id}')
+    tmux send-keys -t "$right_pane_id" 'VB' Enter
+    tmux split-window -v -t "$left_pane_id" -l 8%
+    tmux split-window -v -t "$right_pane_id"
+    tmux select-pane -t "$right_pane_id"
 }
 
 # tmux create and open brain parent
@@ -1400,15 +1401,14 @@ function TO3() {
 
 # claude code
 alias CC="claude --dangerously-skip-permissions"
-alias CCR="claude --resume --dangerously-skip-permissions"
 
 # kiro
-alias KK="kiro-cli chat --classic --trust-all-tools"
-alias KKR="kiro-cli chat --classic --trust-all-tools --resume"
+alias KK="kiro-cli chat --trust-all-tools"
+alias KKR="kiro-cli chat --trust-all-tools --resume"
 
 # ai
-alias AI="KK"
-alias AIR="KKR"
+alias AI="CC"
+alias AIR="CCR"
 
 function KKE() {
     local original_dir="$PWD"
@@ -1420,6 +1420,10 @@ function KKER() {
     local original_dir="$PWD"
     cd ~/empty && kiro-cli chat --trust-all-tools --resume
     cd "$original_dir"
+}
+
+function CCR() {
+    claude --continue --dangerously-skip-permissions || claude --dangerously-skip-permissions
 }
 
 #  %% -------- [sleep management caff nocaff driving mode] ----------:
