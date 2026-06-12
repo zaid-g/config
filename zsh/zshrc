@@ -1,13 +1,12 @@
 # Formatting notes for file
 # 1. All variables declared inside functions must be local
-# 2. internal function and alias names must always be uppercase and using underscore
-# 3. shorthand functions/aliases must always be uppercase
-# 4. All function and alias names are uppercase to avoid conflicts with system/installed tools. Shorthand declarations e.g. `CDCC` are meant to be invoked. Long form definitions are internal only. 
-# 5. Each section `# %% ---- [<section name>] ----... ` contains configurations defined in the following order:
+# 2. All function and alias names are uppercase to avoid conflicts with system/installed tools. Shorthand declarations e.g. `CDCC` are meant to be invoked by user using keyboard so they are very short so user is quick. Long form definitions are for internal use only (called by other methods).
+# 3. Each section `#  %% -------- [<section-name>] ----------:` contains configurations defined in the following order:
 # - exports/settings 
 # - aliases 
 # - long form function definitions
 # - shorthand function definitions.
+# 4. Variable names and internal functions/aliases must be verbose and precise — named for exactly what they hold, not abbreviated. e.g. `file_count` not `n`, `downloads_file_path` not `source`, `prefix_to_add_to_file_name` not `prefix`.
 
 
 
@@ -15,17 +14,20 @@
 #  %% -------- [machine setup/settings/options/configuration] ----------:
 
 export IS_DEV_MACHINE=false
+setopt WARN_CREATE_GLOBAL
+setopt LOCAL_OPTIONS
+setopt PROMPT_SUBST # expands PS1 single quote (for prompt)
 
 # %% -------- [project creation and management brain parent] ----------:
 
 function FIND_BRAIN_PARENT_PATH() {
-    local dir="$PWD"
-    while [[ "$dir" != "/" ]]; do
-        if [[ -d "$dir/brain" ]]; then
-            echo "$dir"
+    local folder_path="$PWD"
+    while [[ "$folder_path" != "/" ]]; do
+        if [[ -d "$folder_path/brain" ]]; then
+            echo "$folder_path"
             return 0
         fi
-        dir="$(dirname "$dir")"
+        folder_path="$(dirname "$folder_path")"
     done
     echo "No 'brain' directory found searching up to filesystem root" >&2
     return 1
@@ -162,7 +164,21 @@ function ARE() {
 
 #  %% -------- [zsh hooks] ----------:
 
+# global var declaration so setopt WARN_CREATE_GLOBAL doesn't complain
 export ___COMMAND_DURATION_LOGGING_THRESHOLD=10
+___PREEXEC_RAN_FOR_USER_ENTRY=""
+___COMMAND_TYPED=""
+___COMMAND_ONELINE=""
+___COMMAND_MULTILINE=""
+___COMMAND_FORMATTED=""
+___COMMAND_PATH=""
+___COMMAND_START_EPOCH_SECONDS=""
+___COMMAND_START_DATETIME=""
+___COMMAND_END_EPOCH_SECONDS=""
+___COMMAND_END_DATETIME=""
+___COMMAND_ELAPSED=""
+___COMMAND_DURATION=""
+___COMMAND_EXIT_CODE=""
 
 function ECHO_PREEXEC_COMMANDS() {
     echo $___COMMAND_TYPED
@@ -172,13 +188,13 @@ function ECHO_PREEXEC_COMMANDS() {
 
 function DEDUP_COMMAND_HISTORY() {
     local brain_parent_path=$(FIND_BRAIN_PARENT_PATH 2>/dev/null)
-    local file="$brain_parent_path/brain/command_history.txt"
-    [[ -z $brain_parent_path || ! -f $file || ! -s $file ]] && return
+    local command_history_file_path="$brain_parent_path/brain/command_history.txt"
+    [[ -z $brain_parent_path || ! -f $command_history_file_path || ! -s $command_history_file_path ]] && return
     awk '
         BEGIN { RS=""; ORS="\n\n" }
         { blocks[NR] = $0 }
         END { for (i=NR; i>=1; i--) print blocks[i] }
-    ' "$file" | awk -v threshold="$___COMMAND_DURATION_LOGGING_THRESHOLD" '
+    ' "$command_history_file_path" | awk -v threshold="$___COMMAND_DURATION_LOGGING_THRESHOLD" '
         BEGIN { RS=""; ORS="\n\n" }
         {
             split($0, lines, "\n")
@@ -192,7 +208,7 @@ function DEDUP_COMMAND_HISTORY() {
         BEGIN { RS=""; ORS="\n\n" }
         { blocks[NR] = $0 }
         END { for (i=NR; i>=1; i--) print blocks[i] }
-    ' > "$file.tmp" && mv "$file.tmp" "$file"
+    ' > "$command_history_file_path.tmp" && mv "$command_history_file_path.tmp" "$command_history_file_path"
 }
 
 preexec() {
@@ -228,25 +244,27 @@ precmd() {
     (( ___COMMAND_ELAPSED >= ___COMMAND_DURATION_LOGGING_THRESHOLD )) && echo "\n - Time: $___COMMAND_DURATION ($___COMMAND_START_DATETIME → $___COMMAND_END_DATETIME)\n"
     # log in command history file
     local brain_parent_path=$(FIND_BRAIN_PARENT_PATH 2>/dev/null)
-    local file="$brain_parent_path/brain/command_history.txt"
-    if [[ -n $brain_parent_path && -f $file && -n $___COMMAND_FORMATTED ]]; then
+    local command_history_file_path="$brain_parent_path/brain/command_history.txt"
+    if [[ -n $brain_parent_path && -f $command_history_file_path && -n $___COMMAND_FORMATTED ]]; then
         printf '%s\n%s\nexit:%s\n%s\n%s\n%s\n\n' \
-            "$___COMMAND_FORMATTED" "$___COMMAND_PATH" "$___COMMAND_EXIT_CODE" "$___COMMAND_START_DATETIME" "$___COMMAND_END_DATETIME" "$___COMMAND_DURATION" >> "$file"
+            "$___COMMAND_FORMATTED" "$___COMMAND_PATH" "$___COMMAND_EXIT_CODE" "$___COMMAND_START_DATETIME" "$___COMMAND_END_DATETIME" "$___COMMAND_DURATION" >> "$command_history_file_path"
     fi
-    local full_file="$brain_parent_path/brain/command_history_full.txt"
-    if [[ -n $brain_parent_path && -f $full_file && -n $___COMMAND_FORMATTED ]]; then
+    local command_history_full_file_path="$brain_parent_path/brain/command_history_full.txt"
+    if [[ -n $brain_parent_path && -f $command_history_full_file_path && -n $___COMMAND_FORMATTED ]]; then
         printf '%s\n%s\nexit:%s\n%s\n%s\n%s\n\n' \
-            "$___COMMAND_FORMATTED" "$___COMMAND_PATH" "$___COMMAND_EXIT_CODE" "$___COMMAND_START_DATETIME" "$___COMMAND_END_DATETIME" "$___COMMAND_DURATION" >> "$full_file"
+            "$___COMMAND_FORMATTED" "$___COMMAND_PATH" "$___COMMAND_EXIT_CODE" "$___COMMAND_START_DATETIME" "$___COMMAND_END_DATETIME" "$___COMMAND_DURATION" >> "$command_history_full_file_path"
     fi
 }
 
 function chpwd() {
-    local leaf="${PWD:t}"
-    [[ -z "$leaf" ]] && return  # Skip if at root or empty
-    local env="$HOME/.virtualenvs/.$leaf"
-    if [[ -d "$env" && "$VIRTUAL_ENV" != "$env" ]]; then
+    local cwd_basename="${PWD:t}"
+    [[ -z "$cwd_basename" ]] && return  # Skip if at root or empty
+    local venv_path="$HOME/.virtualenvs/.$cwd_basename"
+    if [[ -d "$venv_path" && "$VIRTUAL_ENV" != "$venv_path" ]]; then
         [[ -n "$VIRTUAL_ENV" ]] && deactivate
-        source "$env/bin/activate"
+        # activate the associated venv. Keep it active even if leaving
+        # to e.g. subdirectory (intentional)
+        source "$venv_path/bin/activate"
     fi
     if [[ -n "$TMUX" ]] && [[ "$(tmux show-options -w @AUTORENAME 2>/dev/null | grep -o '0$')" != "0" ]]; then
         TMUX_RENAME_WINDOW
@@ -262,16 +280,16 @@ alias CDT="cd ~/trash"
 alias CDC="cd ~/doc/config"
 alias CDCC="cd ~/doc/config/config"
 # get full path
-alias FP='readlink -f'
+alias FP='readlink -f' # this IS available on OS X by default
 # ls
 alias LL="ls -l --color=auto"
 alias LLA="ls -lA --color=auto"
 alias LLR="ls -ltr --color=auto"
 function LLD() {
-    local n=${1:-5}
-    local total=$(ls ~/Downloads | wc -l | tr -d ' ')
-    (( total > n )) && echo "..."
-    ls -ltr --color=auto ~/Downloads | tail -n $n
+    local display_count=${1:-5}
+    local total_file_count=$(ls ~/Downloads | wc -l | tr -d ' ')
+    (( total_file_count > display_count )) && echo "..."
+    ls -ltr --color=auto ~/Downloads | tail -n $display_count
 }
 alias LLT="LLR ~/trash"
 
@@ -280,21 +298,21 @@ function CLEAN_FILENAME() {
 }
 
 function PROCESS_DOWNLOAD_FILES_PATHS() {
-    local prefix="" count=1
+    local prefix_to_add_to_file_name="" file_count=1
     if [[ "$1" =~ ^[0-9]+$ ]] && [[ -n "$2" ]]; then
-        count="$1"; prefix="$2"
+        file_count="$1"; prefix_to_add_to_file_name="$2"
     elif [[ "$1" =~ ^[0-9]+$ ]]; then
-        count="$1"
+        file_count="$1"
     elif [[ -n "$1" ]]; then
-        prefix="$1"
+        prefix_to_add_to_file_name="$1"
     fi
-    local files=$(ls -Art ~/Downloads 2>/dev/null | tail -n $count)
-    [[ -z "$files" ]] && { echo "No files found" >&2; return 1; }
-    echo "$files" | while IFS= read -r f; do
-        local source_path="$HOME/Downloads/$f"
+    local file_names_in_downloads=$(ls -Art ~/Downloads 2>/dev/null | tail -n $file_count)
+    [[ -z "$file_names_in_downloads" ]] && { echo "No files found" >&2; return 1; }
+    echo "$file_names_in_downloads" | while IFS= read -r f; do
+        local downloads_file_path="$HOME/Downloads/$f"
         local clean_filename=$(CLEAN_FILENAME "$f")
-        local dest_filename="${prefix:+${prefix}_}$clean_filename"
-        echo "$source_path|$dest_filename"
+        local destination_filename="${prefix_to_add_to_file_name:+${prefix_to_add_to_file_name}_}$clean_filename"
+        echo "$downloads_file_path|$destination_filename"
     done
 }
 
@@ -303,8 +321,7 @@ function GENERATE_PRONOUNCEABLE_STRING() {
     local consonant_pool="bcdfghjklmnpqrstvwxyz"
     local vowel_pool="aeiou"
     local result=""
-    local i
-    local byte
+    local i byte
     for ((i=0; i<string_target_length; i++)); do
         byte=$(od -An -tu1 -N1 /dev/urandom)
         if (( i % 2 == 0 )); then
@@ -321,8 +338,8 @@ function CREATE_TIMESTAMPED_DIR_AND_CD() {
     shift
     local raw_folder_name="${*:-$(GENERATE_PRONOUNCEABLE_STRING 8)}"
     local cleaned_folder_name=$(CLEAN_FILENAME "$raw_folder_name")
-    local dir="${base_dir:+$base_dir/}${cleaned_folder_name}-$(date +%Y_%m_%d-%H_%M_%S)"
-    mkdir -p "$dir" && cd "$dir"
+    local timestamped_dir_path="${base_dir:+$base_dir/}${cleaned_folder_name}-$(date +%Y_%m_%d-%H_%M_%S)"
+    mkdir -p "$timestamped_dir_path" && cd "$timestamped_dir_path"
 }
 
 #  %% --- [mkdir] ---:
@@ -379,7 +396,7 @@ function LSBP() {
 #  %% --- [FP] ---:
 
 function FPBP() {
-    local brain_parent_path
+    local brain_parent_path file_name
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
     if [[ $# -eq 0 ]]; then
         readlink -f "$brain_parent_path"
@@ -411,12 +428,13 @@ function MVFD() {
 # mv folders from local filesystem to local Downloads and touch timestamp
 # so it appears at top of list
 function MVTD() {
+    local file_path
     [[ $# -eq 0 ]] && { echo "Usage: <command> <path>..."; return 1; }
     mkdir -p ~/Downloads
-    for item in "$@"; do
-        local resolved_path=$(readlink -f "$item")
+    for file_path in "$@"; do
+        local resolved_path=$(readlink -f "$file_path")
         local cleaned_filename=$(CLEAN_FILENAME "$(basename "$resolved_path")")
-        mv -v "$item" ~/Downloads/"$cleaned_filename"
+        mv -v "$file_path" ~/Downloads/"$cleaned_filename"
         touch ~/Downloads/"$cleaned_filename"
     done
 }
@@ -436,12 +454,13 @@ function MVDTBP() {
 
 # mv folders from local filesystem to trash
 function MVTT() {
+    local file_path
     [[ $# -eq 0 ]] && { echo "Usage: <command> <path>..."; return 1; }
     mkdir -p ~/trash
-    for item in "$@"; do
-        local resolved_path=$(readlink -f "$item")
+    for file_path in "$@"; do
+        local resolved_path=$(readlink -f "$file_path")
         local cleaned_filename=$(CLEAN_FILENAME "$(basename "$resolved_path")")
-        mv -v "$item" ~/trash/"$cleaned_filename"
+        mv -v "$file_path" ~/trash/"$cleaned_filename"
     done
 }
 
@@ -456,12 +475,13 @@ function CPFD() {
 
 # cp folders from local filesystem to local Downloads
 function CPTD() {
+    local file_path
     [[ $# -eq 0 ]] && { echo "Usage: <command> <path>..."; return 1; }
     mkdir -p ~/Downloads
-    for item in "$@"; do
-        local resolved_path=$(readlink -f "$item")
+    for file_path in "$@"; do
+        local resolved_path=$(readlink -f "$file_path")
         local cleaned_filename=$(CLEAN_FILENAME "$(basename "$resolved_path")")
-        cp -rv "$item" ~/Downloads/"$cleaned_filename"
+        cp -rv "$file_path" ~/Downloads/"$cleaned_filename"
     done
 }
 
@@ -513,6 +533,7 @@ alias D='noglob D'
 
 function SSH() {
     local forwarded_ports=()
+    local forwarded_port
     for forwarded_port in "$@"; do
         [[ "$forwarded_port" =~ ^[0-9]+$ ]] || { echo "Usage: SSH [port]..."; return 1; }
         forwarded_ports+=("-L" "${forwarded_port}:localhost:${forwarded_port}")
@@ -531,29 +552,31 @@ function UD() {
 
 # upload local filesystem content to remote Downloads
 function U() {
+    local file_path
     if [ $# -eq 0 ]; then
         echo "Usage: U <path>..."
         return 1
     fi
     ssh "$REMOTE" "mkdir -p ~/Downloads"
-    local full_paths=()
-    for filepath in "$@"; do
-        full_paths+=($(readlink -f "$filepath"))
+    local full_file_paths=()
+    for file_path in "$@"; do
+        full_file_paths+=($(readlink -f "$file_path"))
     done
-    rsync -avz "${full_paths[@]}" "$REMOTE:~/Downloads/"
+    rsync -avz "${full_file_paths[@]}" "$REMOTE:~/Downloads/"
 }
 
 # download from remote (remote filesystem to local Downloads)
 function D() {
-    [[ $# -eq 0 ]] && { echo "Usage: D <remote_path>..."; return 1; }
+    local remote_file_path
+    [[ $# -eq 0 ]] && { echo "Usage: D <remote_file_path>..."; return 1; }
     [[ -z "$REMOTE" ]] && { echo "Error: REMOTE environment variable must be set"; return 1; }
-    for remote_path in "$@"; do
-        if rsync -rvz "$REMOTE:$remote_path" ~/Downloads/; then
-            local base_name=$(basename "$remote_path")
-            chmod -R u+w ~/Downloads/${~base_name}
-            echo "✅ rsync succeeded for $REMOTE:$remote_path"
+    for remote_file_path in "$@"; do
+        if rsync -rvz "$REMOTE:$remote_file_path" ~/Downloads/; then
+            local downloaded_file_name=$(basename "$remote_file_path")
+            chmod -R u+w ~/Downloads/${~downloaded_file_name}
+            echo "✅ rsync succeeded for $REMOTE:$remote_file_path"
         else
-            echo "❌ rsync failed for $REMOTE:$remote_path"
+            echo "❌ rsync failed for $REMOTE:$remote_file_path"
         fi
     done
 }
@@ -565,16 +588,16 @@ function DD() {
         echo "Error: REMOTE environment variable must be set"
         return 1
     fi
-    local latest=$(ssh "$REMOTE" "ls -Art ~/Downloads 2>/dev/null | tail -n 1")
-    if [ -z "$latest" ]; then
+    local latest_file_in_remote_downloads=$(ssh "$REMOTE" "ls -Art ~/Downloads 2>/dev/null | tail -n 1")
+    if [ -z "$latest_file_in_remote_downloads" ]; then
         echo "❌ No files found in remote Downloads"
         return 1
     fi
-    if rsync -avz "$REMOTE:~/Downloads/$latest" ~/Downloads/; then
-        chmod -R u+w ~/Downloads/"$latest"
-        echo "✅ Downloaded to: ~/Downloads/$latest"
+    if rsync -avz "$REMOTE:~/Downloads/$latest_file_in_remote_downloads" ~/Downloads/; then
+        chmod -R u+w ~/Downloads/"$latest_file_in_remote_downloads"
+        echo "✅ Downloaded to: ~/Downloads/$latest_file_in_remote_downloads"
     else
-        echo "❌ rsync failed for $REMOTE:~/Downloads/$latest"
+        echo "❌ rsync failed for $REMOTE:~/Downloads/$latest_file_in_remote_downloads"
         return 1
     fi
 }
@@ -582,12 +605,13 @@ function DD() {
 #  %% -------- [find search grep] ----------:
 
 export GNU_FIND=$(which find)
-export GNU_GREP=$(which grep)
+export GNU_GREP=$(which grep) # override this if on OS X
 IGNORED_FOLDERS_PATTERNS=("node_modules" "build" ".*" "bin" "dist")
 
 function FIND_ALL_NON_IGNORED_FILES() {
     local ignored_folder_patterns=("${IGNORED_FOLDERS_PATTERNS[@]}")
     local find_cmd=(find .)
+    local pattern
     for pattern in "${ignored_folder_patterns[@]}"; do
         find_cmd+=(-path "*/$pattern" -prune -o)
     done
@@ -598,25 +622,25 @@ function FIND_ALL_NON_IGNORED_FILES() {
 # Function to find files matching given extensions
 function FIND_NON_IGNORED_FILE_PATHS_MATCHING_TYPES() {
     local extensions=("$@")
-    local files=$(FIND_ALL_NON_IGNORED_FILES)
+    local found_file_paths=$(FIND_ALL_NON_IGNORED_FILES)
     # If extensions are given, filter by them (case-insensitive)
     if [ "${#extensions[@]}" -gt 0 ]; then
         local pattern=$(IFS=\|; echo "${extensions[*]}" | sed 's/ /|/gI')
-        echo "$files" | grep -Eiq "\.(${pattern})$" && echo "$files" | grep -Ei "\.(${pattern})$" | sort || return
+        echo "$found_file_paths" | grep -Eiq "\.(${pattern})$" && echo "$found_file_paths" | grep -Ei "\.(${pattern})$" | sort || return
     else
-        echo "$files" | sort
+        echo "$found_file_paths" | sort
     fi
 }
 
 # Function to find files matching a general pattern
 function FIND_FILES_MATCHING_PATTERN() {
     local pattern="$1"
-    local files=$(FIND_ALL_NON_IGNORED_FILES)
+    local found_file_paths=$(FIND_ALL_NON_IGNORED_FILES)
     # If a pattern is given, filter by it (case-insensitive)
     if [ -n "$pattern" ]; then
-        echo "$files" | grep -Eiq "$pattern" && echo "$files" | grep -Ei "$pattern" | sort || return
+        echo "$found_file_paths" | grep -Eiq "$pattern" && echo "$found_file_paths" | grep -Ei "$pattern" | sort || return
     else
-        echo "$files" | sort
+        echo "$found_file_paths" | sort
     fi
 }
 
@@ -632,25 +656,52 @@ function FIND() {
 
 function GREP() {
     echo
-    local file
+    local file_path
     if [ "$#" -eq 1 ]; then
         local pattern="$1"
-        local files=$(FIND_NON_IGNORED_FILE_PATHS_MATCHING_TYPES)
+        local found_file_paths=$(FIND_NON_IGNORED_FILE_PATHS_MATCHING_TYPES)
     else
         local pattern="${@: -1}"
         local exts=("${@:1:$#-1}")
-        local files=$(FIND_NON_IGNORED_FILE_PATHS_MATCHING_TYPES "${exts[@]}")
+        local found_file_paths=$(FIND_NON_IGNORED_FILE_PATHS_MATCHING_TYPES "${exts[@]}")
     fi
-    [ -z "$files" ] && return
-    while IFS= read -r file; do
-        "$GNU_GREP" -Hni -e "$pattern" "$file"
-    done <<< "$files"
+    [ -z "$found_file_paths" ] && return
+    while IFS= read -r file_path; do
+        "$GNU_GREP" -Hni -e "$pattern" "$file_path"
+    done <<< "$found_file_paths"
 }
 
 # find files matching pattern one layer deep
 function FIND1() {
     echo
     ls -d --color=always -1 *"$@"* | sort -t_ -k2,3
+}
+
+# find files by extension (or all files if no args)
+function FD() {
+    if [ "$#" -eq 0 ]; then
+        fd --type f
+    else
+        local ext ext_flags=()
+        for ext in "$@"; do
+            ext_flags+=("-e" "$ext")
+        done
+        fd "${ext_flags[@]}"
+    fi
+}
+
+# grep in files (last arg is pattern, preceding args are extensions)
+function RG() {
+    if [ "$#" -eq 1 ]; then
+        rg "$1"
+    else
+        local ext pattern="${@: -1}"
+        local type_flags=()
+        for ext in "${@:1:$#-1}"; do
+            type_flags+=("-g" "*.${ext}")
+        done
+        rg "${type_flags[@]}" "$pattern"
+    fi
 }
 
 # %% -------- [vi vim lazyvim neovim nvim vi mode vi-mode] ----------:
@@ -664,12 +715,14 @@ export NEOVIM_EDITOR="nvim"
 
 # vim, VM taken
 function V() {
+    local file_path
     $NEOVIM_EDITOR "$@"
-    for file in "${@:1:3}"; do readlink -f "$file"; done
+    for file_path in "${@:1:3}"; do readlink -f "$file_path"; done
 }
 
 function VBP() {
     local original_dir="$PWD"
+    local file_name
     CDBP || return 1
     $NEOVIM_EDITOR "$@"
     for file_name in "$@"; do readlink -f "$file_name"; done
@@ -764,8 +817,8 @@ function VZ() { NVIM_APPNAME=nvim $NEOVIM_EDITOR ~/.zshrc; }
 function VT() { NVIM_APPNAME=nvim $NEOVIM_EDITOR ~/.tmux.conf; }
 
 function VD() {
-    local files=($(PROCESS_DOWNLOAD_FILES_PATHS "$@" | cut -d'|' -f1))
-    (( ${#files[@]} )) && $NEOVIM_EDITOR "${files[@]}"
+    local file_paths_in_downloads=($(PROCESS_DOWNLOAD_FILES_PATHS "$@" | cut -d'|' -f1))
+    (( ${#file_paths_in_downloads[@]} )) && $NEOVIM_EDITOR "${file_paths_in_downloads[@]}"
 }
 
 # %% -------- [git] ----------:
@@ -780,25 +833,25 @@ alias GF="git fetch"
 alias GFO="git fetch origin"
 
 function RESOLVE_GIT_BRANCH_OR_COMMIT() {
-    local ref
+    local ref branch_name_that_matches commit_hash_that_matches
     read "ref?Diff against (enter for working tree): "
     [[ -z "$ref" ]] && { echo ""; return 0; }
     if git rev-parse --verify "$ref^{commit}" >/dev/null 2>&1; then
         echo "$ref"; return 0
     fi
-    local branch_matches=($(git branch --list "*$ref*" --format='%(refname:short)'))
-    local commit_matches=($(git log --all --oneline 2>/dev/null | awk '{print $1}' | grep "^$ref"))
+    local branch_names_that_match=($(git branch --list "*$ref*" --format='%(refname:short)'))
+    local commit_hashes_that_match=($(git log --all --oneline 2>/dev/null | awk '{print $1}' | grep "^$ref"))
     local options=()
     echo "No exact match. Options:" >&2
     local i=1
-    for b in "${branch_matches[@]}"; do
-        echo "  $i) [branch] $b" >&2
-        options+=("$b")
+    for branch_name_that_matches in "${branch_names_that_match[@]}"; do
+        echo "  $i) [branch] $branch_name_that_matches" >&2
+        options+=("$branch_name_that_matches")
         ((i++))
     done
-    for c in "${commit_matches[@]}"; do
-        echo "  $i) [commit] $c" >&2
-        options+=("$c")
+    for commit_hash_that_matches in "${commit_hashes_that_match[@]}"; do
+        echo "  $i) [commit] $commit_hash_that_matches" >&2
+        options+=("$commit_hash_that_matches")
         ((i++))
     done
     [[ ${#options[@]} -eq 0 ]] && { echo "No matches found" >&2; return 1; }
@@ -809,15 +862,15 @@ function RESOLVE_GIT_BRANCH_OR_COMMIT() {
 }
 
 function GET_GIT_LOG_COUNT() {
-    local count=$GIT_LOG_COUNT
+    local log_display_count=$GIT_LOG_COUNT
     local number_of_commits_ahead_of_remote
     if [[ -n "$1" ]]; then
         number_of_commits_ahead_of_remote=$(git -C "$1" rev-list --count origin/$(git -C "$1" rev-parse --abbrev-ref HEAD)..HEAD 2>/dev/null)
     else
         number_of_commits_ahead_of_remote=$(git rev-list --count origin/$(git rev-parse --abbrev-ref HEAD)..HEAD 2>/dev/null)
     fi
-    (( number_of_commits_ahead_of_remote >= count )) && count=$((number_of_commits_ahead_of_remote + 1))
-    echo $count
+    (( number_of_commits_ahead_of_remote >= log_display_count )) && log_display_count=$((number_of_commits_ahead_of_remote + 1))
+    echo $log_display_count
 }
 
 function GDBP() {
@@ -839,7 +892,7 @@ function GACBP() {
 }
 
 function GCH() {
-    local branch
+    local branch branch_name_that_matches commit_hash_that_matches file_path
     if [[ $# -eq 0 ]]; then
         read "branch?Branch/Commit: "
         [[ -z "$branch" ]] && { echo "Branch required"; return 1; }
@@ -849,19 +902,19 @@ function GCH() {
         elif git rev-parse --verify "$branch^{commit}" >/dev/null 2>&1; then
             git checkout "$branch"
         else
-            local branch_matches=($(git branch --list "*$branch*" --format='%(refname:short)'))
-            local commit_matches=($(git log --all --oneline 2>/dev/null | awk '{print $1}' | grep "^$branch"))
+            local branch_names_that_match=($(git branch --list "*$branch*" --format='%(refname:short)'))
+            local commit_hashes_that_match=($(git log --all --oneline 2>/dev/null | awk '{print $1}' | grep "^$branch"))
             echo "No exact match. Options:"
             local i=1
             local options=()
-            for b in "${branch_matches[@]}"; do
-                echo "  $i) [branch] $b"
-                options+=("branch:$b")
+            for branch_name_that_matches in "${branch_names_that_match[@]}"; do
+                echo "  $i) [branch] $branch_name_that_matches"
+                options+=("branch:$branch_name_that_matches")
                 ((i++))
             done
-            for c in "${commit_matches[@]}"; do
-                echo "  $i) [commit] $c"
-                options+=("commit:$c")
+            for commit_hash_that_matches in "${commit_hashes_that_match[@]}"; do
+                echo "  $i) [commit] $commit_hash_that_matches"
+                options+=("commit:$commit_hash_that_matches")
                 ((i++))
             done
             echo "  $i) [new branch] $branch"
@@ -869,11 +922,11 @@ function GCH() {
             local choice
             read "choice?Select: "
             [[ -z "$choice" || ! "$choice" =~ ^[0-9]+$ || $choice -lt 1 || $choice -gt ${#options[@]} ]] && { echo "Cancelled"; return 1; }
-            local selected="${options[$choice]}"
-            case "$selected" in
-                branch:*) git checkout "${selected#branch:}" ;;
-                commit:*) git checkout "${selected#commit:}" ;;
-                new:*)    git checkout -b "${selected#new:}" ;;
+            local selected_option="${options[$choice]}"
+            case "$selected_option" in
+                branch:*) git checkout "${selected_option#branch:}" ;;
+                commit:*) git checkout "${selected_option#commit:}" ;;
+                new:*)    git checkout -b "${selected_option#new:}" ;;
             esac
         fi
     else
@@ -892,7 +945,7 @@ function GCH() {
 }
 
 function GC() {
-    local msg
+    local msg file_path
     read "msg?Commit message: "
     [[ -z "$msg" ]] && { echo "Message required"; return 1; }
     if [[ $# -eq 0 ]]; then
@@ -906,6 +959,7 @@ function GC() {
 }
 
 function GB() {
+    local file_path
     if [[ $# -eq 0 ]]; then
         git branch --sort=-committerdate
     else
@@ -917,6 +971,7 @@ function GB() {
 }
 
 function GPUSH() {
+    local file_path
     if [[ $# -eq 0 ]]; then
         git push -u origin HEAD
     else
@@ -928,6 +983,7 @@ function GPUSH() {
 }
 
 function GPUSHMAIN() {
+    local file_path
     if [[ $# -eq 0 ]]; then
         git push -u origin main
     else
@@ -939,6 +995,7 @@ function GPUSHMAIN() {
 }
 
 function GPULL() {
+    local file_path
     if [[ $# -eq 0 ]]; then
         local branch=$(git rev-parse --abbrev-ref HEAD)
         [[ "$branch" == "HEAD" ]] && { echo "Detached HEAD, cannot pull"; return 1; }
@@ -954,6 +1011,7 @@ function GPULL() {
 }
 
 function GPULLMAINLINE() {
+    local file_path
     if [[ $# -eq 0 ]]; then
         [[ "$(git rev-parse --abbrev-ref HEAD)" == "HEAD" ]] && { echo "Detached HEAD, cannot pull"; return 1; }
         git pull --rebase origin mainline
@@ -967,6 +1025,7 @@ function GPULLMAINLINE() {
 }
 
 function GPULLMAIN() {
+    local file_path
     if [[ $# -eq 0 ]]; then
         [[ "$(git rev-parse --abbrev-ref HEAD)" == "HEAD" ]] && { echo "Detached HEAD, cannot pull"; return 1; }
         git pull --rebase origin main
@@ -980,7 +1039,7 @@ function GPULLMAIN() {
 }
 
 function GD() {
-    local ref
+    local ref file_path
     if [[ $# -eq 0 ]]; then
         ref=$(RESOLVE_GIT_BRANCH_OR_COMMIT) || return 1
         {
@@ -1004,7 +1063,7 @@ function GD() {
 }
 
 function GDNO() {
-    local ref
+    local ref file_path
     if [[ $# -eq 0 ]]; then
         ref=$(RESOLVE_GIT_BRANCH_OR_COMMIT) || return 1
         git diff --name-only $ref
@@ -1020,6 +1079,7 @@ function GDNO() {
 }
 
 function GS() {
+    local file_path
     {
         if [[ $# -eq 0 ]]; then
             git -c color.status=always status --untracked-files=all
@@ -1033,7 +1093,7 @@ function GS() {
 }
 
 function GAMEND() {
-    local msg
+    local msg file_path
     read "msg?Amend message: "
     [[ -z "$msg" ]] && { echo "Message required"; return 1; }
     if [[ $# -eq 0 ]]; then
@@ -1047,6 +1107,7 @@ function GAMEND() {
 }
 
 function GL() {
+    local file_path
     {
         if [[ $# -eq 0 ]]; then
             git --no-pager log --color=always --graph --decorate --oneline -$(GET_GIT_LOG_COUNT)
@@ -1060,6 +1121,7 @@ function GL() {
 }
 
 function GI() {
+    local file_path
     if [[ $# -eq 0 ]]; then
         if [[ ! -d .git ]]; then
             git init
@@ -1077,6 +1139,7 @@ function GI() {
 }
 
 function GIG() {
+    local pattern
     [[ -z "$1" ]] && { echo "Usage: GIG <pattern>"; return 1; }
     local git_repo_root_path
     git_repo_root_path=$(git rev-parse --show-toplevel 2>/dev/null) || { echo "Not a git repository"; return 1; }
@@ -1089,7 +1152,7 @@ function GIG() {
 alias GIG='noglob GIG'
 
 function GAC() {
-    local msg
+    local msg file_path
     read "msg?Commit message (enter for timestamp): "
     [[ -z "$msg" ]] && msg="$(date '+%Y-%m-%d %H:%M:%S')"
     if [[ $# -eq 0 ]]; then
@@ -1106,15 +1169,15 @@ function GAC() {
 
 function GDIFF() {
     git rev-parse --git-dir >/dev/null 2>&1 || { echo "Not a git repo"; return 1; }
-    local tmpfile=$(mktemp) file
-    git diff "$@" >> "$tmpfile"
+    local temp_file_path=$(mktemp) file_path
+    git diff "$@" >> "$temp_file_path"
     if [[ $# -eq 0 ]]; then
-        git ls-files --others --exclude-standard | while read -r file; do
-            git diff --no-index /dev/null "$file" >> "$tmpfile"
+        git ls-files --others --exclude-standard | while read -r file_path; do
+            git diff --no-index /dev/null "$file_path" >> "$temp_file_path"
         done
     fi
-    delta --side-by-side --line-numbers < "$tmpfile"
-    rm "$tmpfile"
+    delta --side-by-side --line-numbers < "$temp_file_path"
+    rm "$temp_file_path"
 }
 
 function GSQUASH() {
@@ -1139,7 +1202,7 @@ function GSQUASH() {
 # even on clean repos. This prevents GSTASHPOP from accidentally popping
 # an older unrelated stash when running across multiple packages.
 function GSTASH() {
-    local msg
+    local msg file_path
     read "msg?Stash message (enter for WIP): "
     [[ -z "$msg" ]] && msg="WIP stash"
     if [[ $# -eq 0 ]]; then
@@ -1159,6 +1222,7 @@ function GSTASH() {
 }
 
 function GSTASHPOP() {
+    local file_path
     if [[ $# -eq 0 ]]; then
         local git_repo_root_path
         git_repo_root_path=$(git rev-parse --show-toplevel) || return 1
@@ -1182,6 +1246,7 @@ alias PTDB="pytest -sxvv --pdb"
 alias BLACK="python3 -m black **/*.py"
 alias PC="pre-commit run -a"
 
+# install latest of these pkgs
 function PIP3(){
     pip3 install ipdb
     pip3 install ipython
@@ -1558,7 +1623,6 @@ zstyle ':completion:*' matcher-list '' \
 
 # %% ---------- [colors and prompt display color COLOR_THEME echo print] ----------:
 
-setopt PROMPT_SUBST # expands PS1 single quote
 export PS1='%F{$COLOR_THEME}%~ ▶%f '
 export zle_highlight=("paste:bg=${COLOR_HIGHLIGHT_TEXT_ZSH},fg=${COLOR_TEXT_IF_COLORED_BACKGROUND}" "region:bg=${COLOR_HIGHLIGHT_TEXT_ZSH},fg=${COLOR_TEXT_IF_COLORED_BACKGROUND}")
 export COLOR_THEME=28
@@ -1571,6 +1635,7 @@ export COLOR_HEX_ACTIVE_BACKGROUND=350000
 function PRINT_AS_HEADER() { printf '\033[1;33m%s\033[0m\n\033[1;33m%s\033[0m\n\033[1;33m%s\033[0m\n' "============================================================" "$1" "============================================================"; }
 
 function COLORS(){
+    local i
 	for i in {0..255}; do
 		printf "\x1b[38;5;${i}m██ %-5i\x1b[0m" $i
 		(( (i+1) % 8 == 0 )) && echo
