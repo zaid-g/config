@@ -111,7 +111,7 @@ if [[ -n "$DEFAULT_PROFILE" ]]; then
     cp ~/doc/config/config/firefox/user.js "$DEFAULT_PROFILE/user.js"
     mkdir -p "$DEFAULT_PROFILE/chrome"
     cp ~/doc/config/config/firefox/userChrome.css "$DEFAULT_PROFILE/chrome/userChrome.css"
-    echo "✅ Firefox config applied to: $(basename "$DEFAULT_PROFILE")"
+    echo "✅ Firefox config applied to: $DEFAULT_PROFILE"
 else
     echo "❌ No Firefox profile found"
 fi
