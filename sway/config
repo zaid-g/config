@@ -48,12 +48,7 @@ bar bar-0 {
 # disable all touch screens
 input type:touch events disabled
 
-#  %% -------- [screen mirror screen mirroring] ----------:
+#  %% -------- [scale external 4k monitor] ----------:
 
-# Append the last two lines to ~/.config/sway/config:
-# Mirror all external outputs to laptop screen
-# NOTE: output names and resolutions are machine-specific, update if needed
-# To list outputs and their names: swaymsg -t get_outputs
-# To list available resolutions: swaymsg -t get_outputs | grep current_mode
-# output HDMI-A-1 res 1920x1080@120Hz position 0,0
-# output eDP-1 res 1920x1080 position 0,0
+# get correct output if this doesn't work
+output HDMI-A-1 scale 2
