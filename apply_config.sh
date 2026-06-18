@@ -116,6 +116,8 @@ else
     echo "❌ No Firefox profile found"
 fi
 
+echo "For treestyletabs config, load extension settings, preferences tab, expand Development, then import All Configs from file."
+
 # %% -------- [kiro] ----------:
 
 kiro-cli settings chat.disableWrap true
