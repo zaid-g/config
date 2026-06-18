@@ -20,3 +20,8 @@ user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true); // Enabl
 // Dark theme
 user_pref("ui.systemUsesDarkTheme", 1);
 user_pref("extensions.activeThemeID", "firefox-compact-dark@mozilla.org");
+
+// Disable Firefox password manager
+user_pref("signon.rememberSignons", false); // Don't save passwords
+user_pref("services.passwordSavingEnabled", false); // Disable password saving service
+user_pref("signon.autofillForms", false); // Disable autofill of saved logins
