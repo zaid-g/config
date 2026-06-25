@@ -1,6 +1,6 @@
 # %% -------- [make dirs] ----------:
+echo "--- dirs ---"
 
-echo "***      Creating Dirs         ***"
 mkdir -p ~/doc/junk
 mkdir -p ~/app/
 mkdir -p ~/dat/
@@ -17,6 +17,7 @@ mkdir -p ~/.config/lazyvim/lua/config
 mkdir -p ~/.ipython/profile_default
 
 # %% -------- [nvim base] ----------:
+echo "--- nvim base ---"
 
 touch -a ~/.config/nvim/init.lua
 grep -qF 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/core.lua"))' ~/.config/nvim/init.lua || echo "$(
@@ -29,10 +30,26 @@ grep -qF 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/nvim/nvim.lua"))' ~/
 )" >~/.config/nvim/init.lua
 
 #  %% -------- [lazyvim] ----------:
+echo "--- lazyvim ---"
 
-bash ~/doc/config/config/vi/nvim/lazyvim/apply_config.sh
+LAZYVIM_SRC=~/doc/config/config/vi/nvim/lazyvim
+LAZYVIM_TARGET=~/.config/lazyvim
+
+find "$LAZYVIM_SRC" -type f -name "*.lua" | while read -r file; do
+    rel_path="${file#$LAZYVIM_SRC/}"
+    target_file="$LAZYVIM_TARGET/$rel_path"
+    mkdir -p "$(dirname "$target_file")"
+    cp "$file" "$target_file"
+done
+
+touch -a "$LAZYVIM_TARGET/lua/config/keymaps.lua"
+grep -qF 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/core.lua"))' "$LAZYVIM_TARGET/lua/config/keymaps.lua" || echo "$(
+    printf '%s\n' 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/core.lua"))'
+    cat "$LAZYVIM_TARGET/lua/config/keymaps.lua"
+)" >"$LAZYVIM_TARGET/lua/config/keymaps.lua"
 
 # %% -------- [zsh] ----------:
+echo "--- zsh ---"
 
 touch -a ~/.zshrc
 grep -qF '. ~/doc/config/config/zsh/zshrc' ~/.zshrc || echo "$(
@@ -41,6 +58,7 @@ grep -qF '. ~/doc/config/config/zsh/zshrc' ~/.zshrc || echo "$(
 )" >~/.zshrc
 
 # %% -------- [tmux] ----------:
+echo "--- tmux ---"
 
 touch -a ~/.tmux.conf
 grep -qF 'source-file ~/doc/config/config/tmux/tmux.conf' ~/.tmux.conf || echo "$(
@@ -49,13 +67,13 @@ grep -qF 'source-file ~/doc/config/config/tmux/tmux.conf' ~/.tmux.conf || echo "
 )" >~/.tmux.conf
 
 # %% -------- [python] ----------:
+echo "--- python ---"
 
-# pycodestyle
 cp ~/doc/config/config/python/pycodestyle ~/.config/
-# ipython
 cp ~/doc/config/config/python/ipython_config.py ~/.ipython/profile_default/
 
 # %% -------- [sway] ----------:
+echo "--- sway ---"
 
 touch -a ~/.config/sway/config
 grep -qF 'include ~/doc/config/config/sway/config' ~/.config/sway/config || echo "$(
@@ -65,6 +83,7 @@ grep -qF 'include ~/doc/config/config/sway/config' ~/.config/sway/config || echo
 chmod +x ~/doc/config/config/sway/*.sh
 
 # %% -------- [alacritty] ----------:
+echo "--- alacritty ---"
 
 touch -a ~/.config/alacritty/alacritty.toml
 grep -qF '[general]' ~/.config/alacritty/alacritty.toml || echo "$(
@@ -77,6 +96,7 @@ grep -qF 'import = ["~/doc/config/config/alacritty/alacritty.toml"]' ~/.config/a
 )" >~/.config/alacritty/alacritty.toml
 
 # %% -------- [kitty] ----------:
+echo "--- kitty ---"
 
 touch -a ~/.config/kitty/kitty.conf
 grep -qF 'include ~/doc/config/config/kitty/kitty.conf' ~/.config/kitty/kitty.conf || echo "$(
@@ -85,15 +105,30 @@ grep -qF 'include ~/doc/config/config/kitty/kitty.conf' ~/.config/kitty/kitty.co
 )" >~/.config/kitty/kitty.conf
 
 # %% -------- [git] ----------:
+echo "--- git ---"
 
-bash ~/doc/config/config/git/setup.sh
+git config --global delta.minus-style "syntax #990000"
+git config --global delta.plus-style "syntax #004400"
+git config --global delta.line-numbers true
+git config --global delta.line-numbers-left-format "{nm:>4}┊"
+git config --global delta.line-numbers-right-format "{np:>4}│"
+git config --global delta.word-diff-regex "\\w+|[^\\w\\s]+"
+git config --global delta.minus-emph-style "syntax #ff0000"
+git config --global delta.plus-emph-style "syntax #008800"
+git config --global delta.whitespace-error-style "reverse purple"
+git config --global core.excludesfile ~/.gitignore_global
+echo ".local/" >> ~/.gitignore_global
+git config --global init.defaultBranch main
 
 # %% -------- [amazonq] ----------:
+echo "--- amazonq ---"
 
 mkdir -p ~/.aws/amazonq/cli-agents
 cp ~/doc/config/config/aws/amazonq/cli-agents/* ~/.aws/amazonq/cli-agents/
 
 # %% -------- [firefox] ----------:
+echo "--- firefox ---"
+
 if [[ "$OSTYPE" == "darwin"* ]]; then
     PROFILE_DIR="$HOME/Library/Application Support/Firefox/Profiles"
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -101,7 +136,6 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     [[ ! -d "$PROFILE_DIR" ]] && PROFILE_DIR="$HOME/.config/mozilla/firefox"
 fi
 
-# Try to find default-release first, then fall back to default
 DEFAULT_PROFILE=$(find "$PROFILE_DIR" -maxdepth 1 -name "*.default-release" -type d 2>/dev/null | head -1)
 if [[ -z "$DEFAULT_PROFILE" ]]; then
     DEFAULT_PROFILE=$(find "$PROFILE_DIR" -maxdepth 1 -name "*.default" -type d 2>/dev/null | head -1)
@@ -119,9 +153,9 @@ fi
 echo "For treestyletabs config, load extension settings, preferences tab, expand Development, then import All Configs from file."
 
 # %% -------- [kiro] ----------:
+echo "--- kiro ---"
 
 kiro-cli settings chat.disableWrap true
 
 # %% -------- [done] ----------:
-
-echo "***      Done       ***"
+echo "--- done ---"

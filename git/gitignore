@@ -2,6 +2,17 @@
 # OS / General
 ############################
 .DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+.TemporaryItems
+.AppleDB
+.AppleDesktop
+.apdisk
+Icon?
 Thumbs.db
 *.swp
 *.swo
