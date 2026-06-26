@@ -287,13 +287,8 @@ alias FP='readlink -f' # this IS available on OS X by default
 alias LL="ls -l --color=auto"
 alias LLA="ls -lA --color=auto"
 alias LLR="ls -ltr --color=auto"
-function LLD() {
-    local display_count=${1:-5}
-    local total_file_count=$(ls ~/Downloads | wc -l | tr -d ' ')
-    (( total_file_count > display_count )) && echo "..."
-    ls -ltr --color=auto ~/Downloads | tail -n $display_count
-}
 alias LLT="LLR ~/trash"
+alias LSR="ls -tr --color=auto | tr '\n' '\0' | xargs -0 printf '%s    ' && echo"
 
 function CLEAN_FILENAME() {
     echo -n "$1" | perl -CSD -pe 's/[\/:@%,=\s\x{00a0}\x{202f}\x{2007}\x{2009}\x{200a}\x{205f}\x{3000}]/-/g' | tr -d '*?[]|&;<>$`!"'"'"'(){}^~#\\'
@@ -344,6 +339,13 @@ function CREATE_TIMESTAMPED_DIR_AND_CD() {
     local cleaned_folder_name=$(CLEAN_FILENAME "$raw_folder_name")
     local timestamped_dir_path="${parent_folder_path:+$parent_folder_path/}${cleaned_folder_name}-$(date +%Y_%m_%d-%H_%M_%S)"
     mkdir -p "$timestamped_dir_path" && cd "$timestamped_dir_path"
+}
+
+function LLD() {
+    local display_count=${1:-5}
+    local total_file_count=$(ls ~/Downloads | wc -l | tr -d ' ')
+    (( total_file_count > display_count )) && echo "..."
+    ls -ltr --color=auto ~/Downloads | tail -n $display_count
 }
 
 #  %% --- [mkdir] ---:
