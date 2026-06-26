@@ -268,7 +268,7 @@ function chpwd() {
         # to e.g. subdirectory (intentional)
         source "$venv_path/bin/activate"
     fi
-    if [[ -n "$TMUX" ]] && [[ "$(tmux show-options -w @AUTORENAME 2>/dev/null | grep -o '0$')" != "0" ]]; then
+    if [[ -n "$TMUX" ]] && [[ "$(tmux show-options -w -t $TMUX_PANE @AUTORENAME 2>/dev/null | grep -o '0$')" != "0" ]]; then
         TMUX_RENAME_WINDOW
     fi
 }
