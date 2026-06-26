@@ -288,7 +288,7 @@ alias LL="ls -l --color=auto"
 alias LLA="ls -lA --color=auto"
 alias LLR="ls -ltr --color=auto"
 alias LLT="LLR ~/trash"
-alias LSR="ls -tr --color=auto | tr '\n' '\0' | xargs -0 printf '%s    ' && echo"
+alias LSR="ls -tr --color=auto | tr '\n' '\0' | xargs -0 printf \"'%s'    \" && echo"
 
 function CLEAN_FILENAME() {
     echo -n "$1" | perl -CSD -pe 's/[\/:@%,=\s\x{00a0}\x{202f}\x{2007}\x{2009}\x{200a}\x{205f}\x{3000}]/-/g' | tr -d '*?[]|&;<>$`!"'"'"'(){}^~#\\'
