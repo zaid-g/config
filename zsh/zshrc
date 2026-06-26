@@ -296,7 +296,7 @@ function LLD() {
 alias LLT="LLR ~/trash"
 
 function CLEAN_FILENAME() {
-    echo -n "$1" | perl -CSD -pe 's/[\s\x{00a0}\x{202f}\x{2007}\x{2009}\x{200a}\x{205f}\x{3000}]/-/g' | tr -d '*?[]|&;<>$`!"'"'"'(){}^~#\\'
+    echo -n "$1" | perl -CSD -pe 's/[\/:@%,=\s\x{00a0}\x{202f}\x{2007}\x{2009}\x{200a}\x{205f}\x{3000}]/-/g' | tr -d '*?[]|&;<>$`!"'"'"'(){}^~#\\'
 }
 
 function PROCESS_DOWNLOAD_FILES_PATHS() {
@@ -1437,15 +1437,24 @@ function TOC() {
 
 # tmux open brain parent
 function TOBP() {
-    CDBP || return 1
-    local left_pane_id="$TMUX_PANE"
-    tmux send-keys -t "$left_pane_id" 'NOTAR' Enter
-    tmux send-keys -t "$left_pane_id" 'AIR' Enter
-    local right_pane_id=$(tmux split-window -h -t "$left_pane_id" -P -F '#{pane_id}')
-    tmux send-keys -t "$right_pane_id" 'VB' Enter
-    tmux split-window -v -t "$left_pane_id" -l 8%
-    tmux split-window -v -t "$right_pane_id"
-    tmux select-pane -t "$right_pane_id"
+    if [[ $# -eq 0 ]]; then
+        CDBP || return 1
+        local left_pane_id="$TMUX_PANE"
+        tmux send-keys -t "$left_pane_id" 'NOTAR' Enter
+        tmux send-keys -t "$left_pane_id" 'AIR' Enter
+        local right_pane_id=$(tmux split-window -h -t "$left_pane_id" -P -F '#{pane_id}')
+        tmux send-keys -t "$right_pane_id" 'VB' Enter
+        tmux split-window -v -t "$left_pane_id" -l 8%
+        tmux split-window -v -t "$right_pane_id"
+        tmux select-pane -t "$right_pane_id"
+    else
+        local dir
+        for dir in "$@"; do
+            local pane_id=$(tmux new-window -a -d -c "$dir" -P -F '#{pane_id}')
+            tmux set-window-option -t "$pane_id" -u @AUTORENAME
+            tmux send-keys -t "$pane_id" 'TOBP' Enter
+        done
+    fi
 }
 
 # tmux create and open brain parent
@@ -1511,18 +1520,18 @@ alias NODM='networksetup -removepreferredwirelessnetwork en0 "$HOTSPOT_SSID" && 
 
 function CAFF() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        # macOS
-        caffeinate -dimsu &
-        echo "Caffeinate started (PID: $!)"
+        # macOS - 2 hours
+        caffeinate -dimsu -t 7200 &
+        echo "Caffeinate started for 2h (PID: $!)"
     else
-        # Linux (systemd)
+        # Linux (systemd) - 2 hours
         systemd-inhibit \
             --what=idle:sleep:handle-lid-switch \
             --who="Manual" \
             --why="User requested" \
             --mode=block \
-            sleep infinity &>/dev/null &
-        echo "Sleep inhibited (PID: $!)"
+            sleep 7200 &>/dev/null &
+        echo "Sleep inhibited for 2h (PID: $!)"
     fi
 }
 
@@ -1628,6 +1637,13 @@ zstyle ':completion:*' matcher-list '' \
     'm:{a-z\-}={A-Z\_}' \
     'r:[^[:alpha:]]||[[:alpha:]]=** r:|=* m:{a-z\-}={A-Z\_}' \
     'r:|?=** m:{a-z\-}={A-Z\_}'
+
+function BP_AUTOCOMPLETE() {
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH 2>/dev/null) || return
+    compadd -- "$brain_parent_path"/*(N:t)
+}
+compdef BP_AUTOCOMPLETE VBP
 
 # %% ---------- [colors and prompt display color COLOR_THEME echo print] ----------:
 

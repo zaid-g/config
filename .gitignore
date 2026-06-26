@@ -1,5 +1,107 @@
+############################
+# OS / General
+############################
 .DS_Store
-tmp.py
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+.TemporaryItems
+.AppleDB
+.AppleDesktop
+.apdisk
+Icon?
+Thumbs.db
 *.swp
 *.swo
-mine
+*~
+.nfs*
+
+############################
+# IDEs / Editors
+############################
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# VS Code
+.vscode/
+
+############################
+# Java
+############################
+# Compiled class files
+*.class
+
+# Logs
+*.log
+
+# Build tools
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+dependency-reduced-pom.xml
+buildNumber.properties
+
+# Gradle
+.gradle/
+build/
+
+############################
+# Python
+############################
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+nosetests.xml
+coverage.xml
+
+############################
+# Jupyter
+############################
+.ipynb_checkpoints/
+
+############################
+# Environment / Secrets
+############################
+.env
+.env.*
+*.env
+
+############################
+# Misc
+############################
+logs/
+tmp/
