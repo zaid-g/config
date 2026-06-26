@@ -1449,9 +1449,8 @@ function TOBP() {
         tmux select-pane -t "$right_pane_id"
     else
         local dir
-        for dir in "$@"; do
+        for dir in "${(Oa)@}"; do
             local pane_id=$(tmux new-window -a -d -c "$dir" -P -F '#{pane_id}')
-            tmux set-window-option -t "$pane_id" -u @AUTORENAME
             tmux send-keys -t "$pane_id" 'TOBP' Enter
         done
     fi
