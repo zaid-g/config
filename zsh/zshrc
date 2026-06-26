@@ -1540,7 +1540,7 @@ function NOCAFF() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
         pkill caffeinate && echo "Killed caffeinate" || echo "No caffeinate process found"
     else
-        pkill -f "systemd-inhibit.*sleep infinity" && echo "Sleep inhibitor killed" || echo "No sleep inhibitor found"
+        pkill -f "systemd-inhibit.*who=Manual" && echo "Sleep inhibitor killed" || echo "No sleep inhibitor found"
     fi
 }
 
