@@ -1520,20 +1520,14 @@ alias DM='LIDCAFF && blueutil --connect $BT_HEADSET && networksetup -setairportp
 alias NODM='networksetup -removepreferredwirelessnetwork en0 "$HOTSPOT_SSID" && networksetup -setairportpower en0 off && sleep 1 && networksetup -setairportpower en0 on && NOLIDCAFF'
 
 function CAFF() {
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        # macOS - 2 hours
-        caffeinate -dimsu -t 7200 &
-        echo "Caffeinate started for 2h (PID: $!)"
-    else
-        # Linux (systemd) - 2 hours
-        systemd-inhibit \
-            --what=idle:sleep:handle-lid-switch \
-            --who="Manual" \
-            --why="User requested" \
-            --mode=block \
-            sleep 7200 &>/dev/null &
-        echo "Sleep inhibited for 2h (PID: $!)"
-    fi
+	if [[ "$OSTYPE" == "darwin"* ]]
+	then
+		nohup caffeinate -dimsu -t 7200 &> /dev/null &
+		echo "Caffeinate started for 2h (PID: $!)"
+	else
+		nohup systemd-inhibit --what=idle:sleep:handle-lid-switch --who="Manual" --why="User requested" --mode=block sleep 7200 &> /dev/null &
+		echo "Sleep inhibited for 2h (PID: $!)"
+	fi
 }
 
 function NOCAFF() {
