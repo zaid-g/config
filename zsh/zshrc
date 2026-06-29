@@ -721,12 +721,11 @@ bindkey -v
 export KEYTIMEOUT=1
 # override this on dev machine
 export NVIM_APPNAME="nvim" # lazyvim
-export NEOVIM_EDITOR="nvim"
 
 # vim, VM taken
 function V() {
     local file_path
-    $NEOVIM_EDITOR "$@"
+    NVIM_APPNAME=$([[ "$IS_DEV_MACHINE" == "true" ]] && echo lazyvim || echo nvim) nvim "$@"
     for file_path in "${@:1:3}"; do readlink -f "$file_path"; done
 }
 
@@ -734,7 +733,7 @@ function VBP() {
     local original_dir="$PWD"
     local file_name
     CDBP || return 1
-    $NEOVIM_EDITOR "$@"
+    NVIM_APPNAME=$([[ "$IS_DEV_MACHINE" == "true" ]] && echo lazyvim || echo nvim) nvim "$@"
     for file_name in "$@"; do readlink -f "$file_name"; done
     cd "$original_dir"
 }
@@ -768,26 +767,26 @@ function VB() {
             end
         end
     '
-    NVIM_APPNAME=nvim $NEOVIM_EDITOR -p"$tab_count" \
+    NVIM_APPNAME=nvim nvim -p"$tab_count" \
         -c "lua $nvim_brain_settings" \
         "${file_paths[@]}"
     cd "$original_dir"
 }
 
 function VNOTES() {
-    NVIM_APPNAME=nvim $NEOVIM_EDITOR \
+    NVIM_APPNAME=nvim nvim \
         -c "lua vim.api.nvim_create_autocmd('CursorHold', {callback = function() vim.cmd('silent! wall') end})" \
         ~/doc/brain/notes.txt
 }
 
 function VJUNK() {
-    NVIM_APPNAME=nvim $NEOVIM_EDITOR \
+    NVIM_APPNAME=nvim nvim \
         -c "lua vim.api.nvim_create_autocmd('CursorHold', {callback = function() vim.cmd('silent! wall') end})" \
         ~/doc/brain/junk/junk.txt
 }
 
 function VAI() {
-    NVIM_APPNAME=nvim $NEOVIM_EDITOR \
+    NVIM_APPNAME=nvim nvim \
         -c "lua vim.api.nvim_create_autocmd('CursorHold', {callback = function() vim.cmd('silent! wall') end})" \
         ~/doc/brain/ai/ai.txt
 }
@@ -800,7 +799,7 @@ function VP() {
         file_paths=($(FIND_NON_IGNORED_FILE_PATHS_MATCHING_TYPES "$@"))  # Filtered by extensions
     fi
     if (( ${#file_paths[@]} )); then
-        $NEOVIM_EDITOR "${file_paths[@]}"
+        NVIM_APPNAME=$([[ "$IS_DEV_MACHINE" == "true" ]] && echo lazyvim || echo nvim) nvim "${file_paths[@]}"
     else
         echo "No matching file paths found outside forbidden folders."
     fi
@@ -813,22 +812,22 @@ function BEMOL() {
 function VBEMOL() {
     bemol --verbose --watch > /tmp/bemol.log 2>&1 &
     local bemol_pid=$!
-    $NEOVIM_EDITOR "$@"
+    NVIM_APPNAME=$([[ "$IS_DEV_MACHINE" == "true" ]] && echo lazyvim || echo nvim) nvim "$@"
     kill $bemol_pid 2>/dev/null
 }
 
 function VS(){
     local current_git_branch=$(git branch --show-current)
-    $NEOVIM_EDITOR -S .vim/$current_git_branch.vim
+    NVIM_APPNAME=nvim nvim -S .vim/$current_git_branch.vim
 }
 
-function VZ() { NVIM_APPNAME=nvim $NEOVIM_EDITOR ~/.zshrc; }
+function VZ() { NVIM_APPNAME=nvim nvim ~/.zshrc; }
 
-function VT() { NVIM_APPNAME=nvim $NEOVIM_EDITOR ~/.tmux.conf; }
+function VT() { NVIM_APPNAME=nvim nvim ~/.tmux.conf; }
 
 function VD() {
     local file_paths_in_downloads=($(PROCESS_DOWNLOAD_FILES_PATHS "$@" | cut -d'|' -f1))
-    (( ${#file_paths_in_downloads[@]} )) && $NEOVIM_EDITOR "${file_paths_in_downloads[@]}"
+    (( ${#file_paths_in_downloads[@]} )) && NVIM_APPNAME=$([[ "$IS_DEV_MACHINE" == "true" ]] && echo lazyvim || echo nvim) nvim "${file_paths_in_downloads[@]}"
 }
 
 # %% -------- [git] ----------:

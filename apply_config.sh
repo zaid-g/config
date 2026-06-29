@@ -8,17 +8,11 @@ mkdir -p ~/junk/
 mkdir -p ~/trash/
 mkdir -p ~/empty/
 mkdir -p ~/pic/
-mkdir -p ~/.config/nvim
-mkdir -p ~/.config/sway
-mkdir -p ~/.config/waybar
-mkdir -p ~/.config/alacritty
-mkdir -p ~/.config/kitty
-mkdir -p ~/.config/lazyvim/lua/config
-mkdir -p ~/.ipython/profile_default
 
 # %% -------- [nvim base] ----------:
 echo "--- nvim base ---"
 
+mkdir -p ~/.config/nvim
 touch -a ~/.config/nvim/init.lua
 grep -qF 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/core.lua"))' ~/.config/nvim/init.lua || echo "$(
     cat ~/.config/nvim/init.lua
@@ -35,6 +29,10 @@ echo "--- lazyvim ---"
 LAZYVIM_SRC=~/doc/config/config/vi/nvim/lazyvim
 LAZYVIM_TARGET=~/.config/lazyvim
 
+if [[ ! -d "$LAZYVIM_TARGET" ]]; then
+    git clone https://github.com/LazyVim/starter "$LAZYVIM_TARGET"
+fi
+
 find "$LAZYVIM_SRC" -type f -name "*.lua" | while read -r file; do
     rel_path="${file#$LAZYVIM_SRC/}"
     target_file="$LAZYVIM_TARGET/$rel_path"
@@ -42,7 +40,6 @@ find "$LAZYVIM_SRC" -type f -name "*.lua" | while read -r file; do
     cp "$file" "$target_file"
 done
 
-touch -a "$LAZYVIM_TARGET/lua/config/keymaps.lua"
 grep -qF 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/core.lua"))' "$LAZYVIM_TARGET/lua/config/keymaps.lua" || echo "$(
     printf '%s\n' 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/core.lua"))'
     cat "$LAZYVIM_TARGET/lua/config/keymaps.lua"
@@ -69,12 +66,15 @@ grep -qF 'source-file ~/doc/config/config/tmux/tmux.conf' ~/.tmux.conf || echo "
 # %% -------- [python] ----------:
 echo "--- python ---"
 
+mkdir -p ~/.ipython/profile_default
 cp ~/doc/config/config/python/pycodestyle ~/.config/
 cp ~/doc/config/config/python/ipython_config.py ~/.ipython/profile_default/
 
 # %% -------- [sway] ----------:
 echo "--- sway ---"
 
+mkdir -p ~/.config/sway
+mkdir -p ~/.config/waybar
 touch -a ~/.config/sway/config
 grep -qF 'include ~/doc/config/config/sway/config' ~/.config/sway/config || echo "$(
     printf 'include ~/doc/config/config/sway/config\n'
@@ -85,6 +85,7 @@ chmod +x ~/doc/config/config/sway/*.sh
 # %% -------- [alacritty] ----------:
 echo "--- alacritty ---"
 
+mkdir -p ~/.config/alacritty
 touch -a ~/.config/alacritty/alacritty.toml
 grep -qF '[general]' ~/.config/alacritty/alacritty.toml || echo "$(
     cat ~/.config/alacritty/alacritty.toml
@@ -98,6 +99,7 @@ grep -qF 'import = ["~/doc/config/config/alacritty/alacritty.toml"]' ~/.config/a
 # %% -------- [kitty] ----------:
 echo "--- kitty ---"
 
+mkdir -p ~/.config/kitty
 touch -a ~/.config/kitty/kitty.conf
 grep -qF 'include ~/doc/config/config/kitty/kitty.conf' ~/.config/kitty/kitty.conf || echo "$(
     cat ~/.config/kitty/kitty.conf
