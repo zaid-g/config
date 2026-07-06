@@ -620,7 +620,7 @@ alias D='noglob D'
 # (and corresponding file paths)
 
 function GET_GITIGNORE_PATTERNS() {
-    local gitignore_file="/Users/zghar/doc/config/config/git/gitignore"
+    local gitignore_file="$HOME/doc/config/config/git/gitignore"
     if [[ ! -f "$gitignore_file" ]]; then
         echo "Error: gitignore file not found at $gitignore_file" >&2
         return 1
