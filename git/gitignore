@@ -94,6 +94,11 @@ coverage.xml
 .ipynb_checkpoints/
 
 ############################
+# JavaScript / Node
+############################
+node_modules/
+
+############################
 # Environment / Secrets
 ############################
 .env

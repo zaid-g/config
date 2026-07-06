@@ -2,10 +2,10 @@
 # - All variables declared inside functions must be local. WARN_CREATE_GLOBAL is set so will create noise for user if this instruction isn't followed.
 # - All function and alias names are uppercase to avoid conflicts with system/installed tools. Shorthand declarations e.g. `CDCC` are meant to be invoked by user using keyboard so they are very short so user is quick. Long form definitions are for internal use only (called by other methods).
 # - Each section `#  %% -------- [<section-name>] ----------:` contains configurations defined in the following order:
-#     - exports/settings 
-#     - aliases 
 #     - long form function definitions
 #     - shorthand function definitions.
+#     - exports/settings 
+#     - aliases 
 # - Variable names and internal functions/aliases must be verbose and precise — named for exactly what they hold, not abbreviated. e.g. `file_count` not `n`, `downloads_file_path` not `source`, `prefix_to_add_to_file_name` not `prefix`.
 # - Indent needs to be at 4 spaces (never 2)
 
@@ -14,10 +14,10 @@
 
 #  %% -------- [machine setup/settings/options/configuration] ----------:
 
-export IS_DEV_MACHINE=false
 setopt WARN_CREATE_GLOBAL
 setopt LOCAL_OPTIONS
 setopt PROMPT_SUBST # expands PS1 single quote (for prompt)
+export IS_DEV_MACHINE=false
 
 # %% -------- [project creation and management brain parent] ----------:
 
@@ -165,22 +165,6 @@ function ARE() {
 
 #  %% -------- [zsh hooks] ----------:
 
-# global var declaration so setopt WARN_CREATE_GLOBAL doesn't complain
-export ___COMMAND_DURATION_LOGGING_THRESHOLD=10
-___PREEXEC_RAN_FOR_USER_ENTRY=""
-___COMMAND_TYPED=""
-___COMMAND_ONELINE=""
-___COMMAND_MULTILINE=""
-___COMMAND_FORMATTED=""
-___COMMAND_PATH=""
-___COMMAND_START_EPOCH_SECONDS=""
-___COMMAND_START_DATETIME=""
-___COMMAND_END_EPOCH_SECONDS=""
-___COMMAND_END_DATETIME=""
-___COMMAND_ELAPSED=""
-___COMMAND_DURATION=""
-___COMMAND_EXIT_CODE=""
-
 function ECHO_PREEXEC_COMMANDS() {
     echo $___COMMAND_TYPED
     echo $___COMMAND_ONELINE
@@ -212,7 +196,7 @@ function DEDUP_COMMAND_HISTORY() {
     ' > "$command_history_file_path.tmp" && mv "$command_history_file_path.tmp" "$command_history_file_path"
 }
 
-preexec() {
+function preexec() {
     # dedup command history
     DEDUP_COMMAND_HISTORY
     # flag to see if preexec ran
@@ -229,7 +213,7 @@ preexec() {
     ___COMMAND_START_DATETIME=$(date '+%Y-%m-%d %H:%M:%S')
 }
 
-precmd() {
+function precmd() {
     ___COMMAND_EXIT_CODE=$?
     # break if user entry didn't trigger preexec
     # e.g. user inputted enter without anything
@@ -273,22 +257,23 @@ function chpwd() {
     fi
 }
 
-#  %% -------- [files folders path management] ----------:
+# global var declaration so setopt WARN_CREATE_GLOBAL doesn't complain
+export ___COMMAND_DURATION_LOGGING_THRESHOLD=5
+___PREEXEC_RAN_FOR_USER_ENTRY=""
+___COMMAND_TYPED=""
+___COMMAND_ONELINE=""
+___COMMAND_MULTILINE=""
+___COMMAND_FORMATTED=""
+___COMMAND_PATH=""
+___COMMAND_START_EPOCH_SECONDS=""
+___COMMAND_START_DATETIME=""
+___COMMAND_END_EPOCH_SECONDS=""
+___COMMAND_END_DATETIME=""
+___COMMAND_ELAPSED=""
+___COMMAND_DURATION=""
+___COMMAND_EXIT_CODE=""
 
-alias CD="cd ~/doc"
-alias CDD="cd ~/Downloads"
-alias CDJ="cd ~/doc/junk"
-alias CDT="cd ~/trash"
-alias CDC="cd ~/doc/config"
-alias CDCC="cd ~/doc/config/config"
-# get full path
-alias FP='readlink -f' # this IS available on OS X by default
-# ls
-alias LL="ls -l --color=auto"
-alias LLA="ls -lA --color=auto"
-alias LLR="ls -ltr --color=auto"
-alias LLT="LLR ~/trash"
-alias LSR="ls -tr --color=auto | tr '\n' '\0' | xargs -0 printf \"'%s'    \" && echo"
+#  %% -------- [files folders path management] ----------:
 
 function CLEAN_FILENAME() {
     echo -n "$1" | perl -CSD -pe 's/[\/:@%,=\s\x{00a0}\x{202f}\x{2007}\x{2009}\x{200a}\x{205f}\x{3000}]/-/g' | tr -d '*?[]|&;<>$`!"'"'"'(){}^~#\\'
@@ -536,9 +521,22 @@ function UNTARGZ() {
     tar -xzf "$full_file_path" -C "$PWD"
 }
 
-#  %% -------- [remote] ----------:
+alias CD="cd ~/doc"
+alias CDD="cd ~/Downloads"
+alias CDJ="cd ~/doc/junk"
+alias CDT="cd ~/trash"
+alias CDC="cd ~/doc/config"
+alias CDCC="cd ~/doc/config/config"
+# get full path
+alias FP='readlink -f' # this IS available on OS X by default
+# ls
+alias LL="ls -l --color=auto"
+alias LLA="ls -lA --color=auto"
+alias LLR="ls -ltr --color=auto"
+alias LLT="LLR ~/trash"
+alias LSR="ls -tr --color=auto | tr '\n' '\0' | xargs -0 printf \"'%s'    \" && echo"
 
-alias D='noglob D'
+#  %% -------- [remote] ----------:
 
 function SSH() {
     local forwarded_ports=()
@@ -612,14 +610,35 @@ function DD() {
     fi
 }
 
+alias D='noglob D'
+
 #  %% -------- [find search grep] ----------:
 
-export GNU_FIND=$(which find)
-export GNU_GREP=$(which grep) # override this if on OS X
-IGNORED_FOLDERS_PATTERNS=("node_modules" "build" ".*" "bin" "dist")
+# FIND/FD user-called functions: return file paths (even if
+# internally they call grep/rg not find/fd)
+# GREP/RG user-called functions: returns matched content
+# (and corresponding file paths)
+
+function GET_GITIGNORE_PATTERNS() {
+    local gitignore_file="/Users/zghar/doc/config/config/git/gitignore"
+    if [[ ! -f "$gitignore_file" ]]; then
+        echo "Error: gitignore file not found at $gitignore_file" >&2
+        return 1
+    fi
+    local patterns=()
+    local line
+    while IFS= read -r line; do
+        # Skip empty lines and comments
+        [[ -z "$line" || "$line" == \#* ]] && continue
+        # Strip trailing slashes (directory markers)
+        line="${line%/}"
+        patterns+=("$line")
+    done < "$gitignore_file"
+    printf '%s\n' "${patterns[@]}"
+}
 
 function FIND_ALL_NON_IGNORED_FILES() {
-    local ignored_folder_patterns=("${IGNORED_FOLDERS_PATTERNS[@]}")
+    local ignored_folder_patterns=("${GITIGNORE_PATTERNS[@]}")
     local find_cmd=(find .)
     local pattern
     for pattern in "${ignored_folder_patterns[@]}"; do
@@ -714,13 +733,41 @@ function RG() {
     fi
 }
 
-# %% -------- [vi vim lazyvim neovim nvim vi mode vi-mode] ----------:
+function FDBANY() {
+    echo
+    local pattern=$(IFS='|'; echo "$*")
+    local exclude_flags=()
+    local excluded_pattern
+    for excluded_pattern in "${GITIGNORE_PATTERNS[@]}"; do
+        exclude_flags+=("--glob" "!**/$excluded_pattern/**")
+    done
+    rg -l --no-ignore --max-filesize 50M "$pattern" --glob '**/brain/**' "${exclude_flags[@]}" .
+}
 
-# zsh vi mode
-bindkey -v
-export KEYTIMEOUT=1
-# override this on dev machine
-export NVIM_APPNAME="nvim" # lazyvim
+function FDBALL() {
+    echo
+    local exclude_flags=()
+    local excluded_pattern
+    for excluded_pattern in "${GITIGNORE_PATTERNS[@]}"; do
+        exclude_flags+=("--glob" "!**/$excluded_pattern/**")
+    done
+    local file_paths_that_matched_patterns_so_far=$(rg -l --no-ignore --max-filesize 50M "$1" --glob '**/brain/**' "${exclude_flags[@]}" .)
+    shift
+    local pattern
+    for pattern in "$@"; do
+        [ -z "$file_paths_that_matched_patterns_so_far" ] && return
+        file_paths_that_matched_patterns_so_far=$(echo "$file_paths_that_matched_patterns_so_far" | tr '\n' '\0' | xargs -0 rg -l --no-ignore --max-filesize 50M "$pattern")
+    done
+    [ -z "$file_paths_that_matched_patterns_so_far" ] && return
+    echo "$file_paths_that_matched_patterns_so_far"
+}
+
+GNU_FIND=$(command -v find)
+GNU_GREP=$(command -v grep) # override this if on OS X
+GITIGNORE_PATTERNS=("${(@f)$(GET_GITIGNORE_PATTERNS)}")
+alias FDB="FDBANY"
+
+# %% -------- [vi vim lazyvim neovim nvim vi mode vi-mode] ----------:
 
 # vim, VM taken
 function V() {
@@ -830,16 +877,13 @@ function VD() {
     (( ${#file_paths_in_downloads[@]} )) && NVIM_APPNAME=$([[ "$IS_DEV_MACHINE" == "true" ]] && echo lazyvim || echo nvim) nvim "${file_paths_in_downloads[@]}"
 }
 
+# zsh vi mode
+bindkey -v
+export KEYTIMEOUT=1
+# override this on dev machine
+export NVIM_APPNAME="nvim" # lazyvim
+
 # %% -------- [git] ----------:
-
-export GIT_LOG_COUNT=4
-export GIT_STASH_FLAG_FILE="_EMPTY_GIT_STASH_FLAG_FILE"
-
-alias GR="git restore"
-alias GA="git add"
-alias GM="git merge"
-alias GF="git fetch"
-alias GFO="git fetch origin"
 
 function RESOLVE_GIT_BRANCH_OR_COMMIT() {
     local ref branch_name_that_matches commit_hash_that_matches
@@ -1246,14 +1290,15 @@ function GSTASHPOP() {
     fi
 }
 
-# %% -------- [python] ----------:
+export GIT_LOG_COUNT=4
+export GIT_STASH_FLAG_FILE="_EMPTY_GIT_STASH_FLAG_FILE"
+alias GR="git restore"
+alias GA="git add"
+alias GM="git merge"
+alias GF="git fetch"
+alias GFO="git fetch origin"
 
-alias I="python3 -m IPython"
-alias P="python3"
-alias PT="python3 -m pytest -sxvv"
-alias PTDB="pytest -sxvv --pdb"
-alias BLACK="python3 -m black **/*.py"
-alias PC="pre-commit run -a"
+# %% -------- [python] ----------:
 
 # install latest of these pkgs
 function PIP3(){
@@ -1289,6 +1334,13 @@ function PVENV(){
     PIP3 # keep at end
 }
 
+alias I="python3 -m IPython"
+alias P="python3"
+alias PT="python3 -m pytest -sxvv"
+alias PTDB="pytest -sxvv --pdb"
+alias BLACK="python3 -m black **/*.py"
+alias PC="pre-commit run -a"
+
 # %% -------- [tmux] ----------:
 
 # """ Note:
@@ -1300,11 +1352,6 @@ function PVENV(){
 # the nested tmux commands execute) unless the downstream calls
 # know how to target the right panes.
 # """
-
-alias T='COLOR_THEME=$COLOR_THEME COLOR_TEXT_IF_COLORED_BACKGROUND=$COLOR_TEXT_IF_COLORED_BACKGROUND COLOR_HIGHLIGHT_TEXT_TMUX=$COLOR_HIGHLIGHT_TEXT_TMUX COLOR_ACTIVE=$COLOR_ACTIVE COLOR_HEX_ACTIVE_BACKGROUND=$COLOR_HEX_ACTIVE_BACKGROUND tmux -2'
-alias TLS="tmux ls"
-alias TKAS="tmux kill-server"
-alias TLV="tmux show-window-options"
 
 function TAS() {
     if [[ -n "$1" ]]; then
@@ -1479,18 +1526,12 @@ function TO3() {
     tmux select-pane -t "$target_pane_id"
 }
 
+alias T='COLOR_THEME=$COLOR_THEME COLOR_TEXT_IF_COLORED_BACKGROUND=$COLOR_TEXT_IF_COLORED_BACKGROUND COLOR_HIGHLIGHT_TEXT_TMUX=$COLOR_HIGHLIGHT_TEXT_TMUX COLOR_ACTIVE=$COLOR_ACTIVE COLOR_HEX_ACTIVE_BACKGROUND=$COLOR_HEX_ACTIVE_BACKGROUND tmux -2'
+alias TLS="tmux ls"
+alias TKAS="tmux kill-server"
+alias TLV="tmux show-window-options"
+
 #  %% -------- [AI] ----------:
-
-# claude code
-alias CC="claude --dangerously-skip-permissions"
-
-# kiro
-alias KK="kiro-cli chat --trust-all-tools"
-alias KKR="kiro-cli chat --trust-all-tools --resume"
-
-# ai
-alias AI="CC"
-alias AIR="CCR"
 
 function KKE() {
     local original_dir="$PWD"
@@ -1508,15 +1549,18 @@ function CCR() {
     claude --continue --dangerously-skip-permissions || claude --dangerously-skip-permissions
 }
 
-#  %% -------- [sleep management caff nocaff driving mode] ----------:
+# claude code
+alias CC="claude --dangerously-skip-permissions"
 
-alias LIDCAFF='sudo pmset -a disablesleep 1'
-alias NOLIDCAFF='sudo pmset -a disablesleep 0'
-# driving mode os x. Need:
-# export BT_HEADSET=""
-# export HOTSPOT_SSID=""
-alias DM='LIDCAFF && blueutil --connect $BT_HEADSET && networksetup -setairportpower en0 on && networksetup -setairportnetwork en0 "$HOTSPOT_SSID" "$(security find-generic-password -a "$HOTSPOT_SSID" -w)"'
-alias NODM='networksetup -removepreferredwirelessnetwork en0 "$HOTSPOT_SSID" && networksetup -setairportpower en0 off && sleep 1 && networksetup -setairportpower en0 on && NOLIDCAFF'
+# kiro
+alias KK="kiro-cli chat --trust-all-tools"
+alias KKR="kiro-cli chat --trust-all-tools --resume"
+
+# ai
+alias AI="CC"
+alias AIR="CCR"
+
+#  %% -------- [sleep management caff nocaff driving mode] ----------:
 
 function CAFF() {
     if [[ "$OSTYPE" == "darwin"* ]]
@@ -1538,13 +1582,15 @@ function NOCAFF() {
     fi
 }
 
-# %% -------- [docker] ----------:
+alias LIDCAFF='sudo pmset -a disablesleep 1'
+alias NOLIDCAFF='sudo pmset -a disablesleep 0'
+# driving mode os x. Need:
+# export BT_HEADSET=""
+# export HOTSPOT_SSID=""
+alias DM='LIDCAFF && blueutil --connect $BT_HEADSET && networksetup -setairportpower en0 on && networksetup -setairportnetwork en0 "$HOTSPOT_SSID" "$(security find-generic-password -a "$HOTSPOT_SSID" -w)"'
+alias NODM='networksetup -removepreferredwirelessnetwork en0 "$HOTSPOT_SSID" && networksetup -setairportpower en0 off && sleep 1 && networksetup -setairportpower en0 on && NOLIDCAFF'
 
-alias DB="docker build"
-alias DR="docker run"
-alias DC="docker container"
-alias DCE="docker container exec"
-alias DI="docker image"
+# %% -------- [docker] ----------:
 
 function DOCK(){
     sudo docker run -it -v $HOME/doc/config/config:/home/ubuntu/doc/config/config $@ main
@@ -1554,7 +1600,18 @@ function DOCKCWD(){
     sudo docker run -it -v $(pwd):$(pwd) -v $HOME/doc/config/config:/home/ubuntu/doc/config/config -w $(pwd) $@ main
 }
 
+alias DB="docker build"
+alias DR="docker run"
+alias DC="docker container"
+alias DCE="docker container exec"
+alias DI="docker image"
+
 #  %% -------- [amazon brazil ADA] ----------:
+
+function BWC() {
+    brazil ws create --root "$@"
+    GIG "$1" 2>/dev/null
+}
 
 # brazil
 alias BB='brazil-build'
@@ -1572,15 +1629,7 @@ alias KI="kinit -f"
 alias CL="card local --runtimePort 8082"
 alias CRPULL="cr-pull -w"
 
-function BWC() {
-    brazil ws create --root "$@"
-    GIG "$1" 2>/dev/null
-}
-
 # %% -------- [config management] ----------:
-
-alias RS="source ~/.zshrc && cd ."
-alias AC="bash ~/doc/config/config/apply_config.sh"
 
 function FAAC() {
     local was_in_config=false
@@ -1595,7 +1644,18 @@ function FAAC() {
     [[ $was_in_config == true ]] && cd ~/doc/config/config
 }
 
+alias RS="source ~/.zshrc && cd ."
+alias AC="bash ~/doc/config/config/apply_config.sh"
+
 #  %% -------- [unix archlinux linux] ----------:
+
+function GRIM(){
+    if [ "$#" -eq 1 ]; then
+        grim -g "$(slurp)" ~/Downloads/screenshot-"$1"-"$(date +'%Y-%m-%dT%H:%M:%S').png"
+    else
+        grim -g "$(slurp)" ~/Downloads/screenshot"$(date +'%Y-%m-%dT%H:%M:%S').png"
+    fi
+}
 
 alias S="sudo"
 alias PO="systemctl poweroff"
@@ -1606,19 +1666,18 @@ alias DISCORD="snap run discord"
 alias FF="firefox"
 alias CHROME="google-chrome-stable --ozone-platform=wayland"
 
-function GRIM(){
-    if [ "$#" -eq 1 ]; then
-        grim -g "$(slurp)" ~/Downloads/screenshot-"$1"-"$(date +'%Y-%m-%dT%H:%M:%S').png"
-    else
-        grim -g "$(slurp)" ~/Downloads/screenshot"$(date +'%Y-%m-%dT%H:%M:%S').png"
-    fi
-}
-
 # %% ---------- [zsh auto-completion] ----------:
+
+function BP_AUTOCOMPLETE() {
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH 2>/dev/null) || return
+    compadd -- "$brain_parent_path"/*(N:t)
+}
 
 autoload -U compinit
 zmodload zsh/complist
 compinit
+compdef BP_AUTOCOMPLETE VBP
 # Include hidden files
 _comp_options+=(globdots)
 zstyle ':completion:*' menu select
@@ -1633,23 +1692,7 @@ zstyle ':completion:*' matcher-list '' \
     'r:[^[:alpha:]]||[[:alpha:]]=** r:|=* m:{a-z\-}={A-Z\_}' \
     'r:|?=** m:{a-z\-}={A-Z\_}'
 
-function BP_AUTOCOMPLETE() {
-    local brain_parent_path
-    brain_parent_path=$(FIND_BRAIN_PARENT_PATH 2>/dev/null) || return
-    compadd -- "$brain_parent_path"/*(N:t)
-}
-compdef BP_AUTOCOMPLETE VBP
-
 # %% ---------- [colors and prompt display color COLOR_THEME echo print] ----------:
-
-export PS1='%F{$COLOR_THEME}%~ ▶%f '
-export zle_highlight=("paste:bg=${COLOR_HIGHLIGHT_TEXT_ZSH},fg=${COLOR_TEXT_IF_COLORED_BACKGROUND}" "region:bg=${COLOR_HIGHLIGHT_TEXT_ZSH},fg=${COLOR_TEXT_IF_COLORED_BACKGROUND}")
-export COLOR_THEME=28
-export COLOR_TEXT_IF_COLORED_BACKGROUND=0
-export COLOR_HIGHLIGHT_TEXT_ZSH=168
-export COLOR_HIGHLIGHT_TEXT_TMUX=25
-export COLOR_ACTIVE=196
-export COLOR_HEX_ACTIVE_BACKGROUND=350000
 
 function PRINT_AS_HEADER() { printf '\033[1;33m%s\033[0m\n\033[1;33m%s\033[0m\n\033[1;33m%s\033[0m\n' "============================================================" "$1" "============================================================"; }
 
@@ -1660,6 +1703,15 @@ function COLORS(){
         (( (i+1) % 8 == 0 )) && echo
     done
 }
+
+export PS1='%F{$COLOR_THEME}%~ ▶%f '
+export zle_highlight=("paste:bg=${COLOR_HIGHLIGHT_TEXT_ZSH},fg=${COLOR_TEXT_IF_COLORED_BACKGROUND}" "region:bg=${COLOR_HIGHLIGHT_TEXT_ZSH},fg=${COLOR_TEXT_IF_COLORED_BACKGROUND}")
+export COLOR_THEME=28
+export COLOR_TEXT_IF_COLORED_BACKGROUND=0
+export COLOR_HIGHLIGHT_TEXT_ZSH=168
+export COLOR_HIGHLIGHT_TEXT_TMUX=25
+export COLOR_ACTIVE=196
+export COLOR_HEX_ACTIVE_BACKGROUND=350000
 
 # %% -------- [others] ----------:
 
