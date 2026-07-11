@@ -1,5 +1,15 @@
-# %% -------- [make dirs] ----------:
-echo "--- dirs ---"
+
+
+# %% -------- [general] ----------:
+echo "--- general ---"
+
+PREPEND_LINE_IF_NOT_EXISTS() {
+    local file="$1" line="$2"
+    mkdir -p "$(dirname "$file")"
+    touch -a "$file"
+    grep -qFx "$line" "$file" && return
+    echo "$(printf '%s\n' "$line"; cat "$file")" >"$file"
+}
 
 mkdir -p ~/doc/junk
 mkdir -p ~/app/
@@ -9,19 +19,35 @@ mkdir -p ~/trash/
 mkdir -p ~/empty/
 mkdir -p ~/pic/
 
+# %% -------- [wsl windows subsystem for linux] ----------:
+echo "--- wsl ---"
+
+IS_WSL=false
+if [[ -n "$WSL_DISTRO_NAME" ]] && command -v wslpath >/dev/null 2>&1; then
+    WIN_USERPROFILE="$(
+        win_userprofile_raw=$(cmd.exe /c "echo %USERPROFILE%" 2>/dev/null | tr -d '\r')
+        [[ -n "$win_userprofile_raw" ]] || exit 1
+        wslpath "$win_userprofile_raw"
+    )"
+    [[ -n "$WIN_USERPROFILE" ]] && IS_WSL=true
+fi
+
+# Downloads folder
+if [[ "$IS_WSL" == "true" ]]; then
+    WIN_DOWNLOADS_DIR="$WIN_USERPROFILE/Downloads"
+    mkdir -p "$WIN_DOWNLOADS_DIR"
+    rm -rf ~/Downloads
+    ln -s "$WIN_DOWNLOADS_DIR" ~/Downloads
+    echo "✅ ~/Downloads symlinked to Windows Downloads: $WIN_DOWNLOADS_DIR"
+else
+    mkdir -p ~/Downloads
+fi
+
 # %% -------- [nvim base] ----------:
 echo "--- nvim base ---"
 
-mkdir -p ~/.config/nvim
-touch -a ~/.config/nvim/init.lua
-grep -qF 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/core.lua"))' ~/.config/nvim/init.lua || echo "$(
-    cat ~/.config/nvim/init.lua
-    printf '%s\n' 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/core.lua"))'
-)" >~/.config/nvim/init.lua
-grep -qF 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/nvim/nvim.lua"))' ~/.config/nvim/init.lua || echo "$(
-    cat ~/.config/nvim/init.lua
-    printf '%s\n' 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/nvim/nvim.lua"))'
-)" >~/.config/nvim/init.lua
+PREPEND_LINE_IF_NOT_EXISTS ~/.config/nvim/init.lua 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/nvim/nvim.lua"))'
+PREPEND_LINE_IF_NOT_EXISTS ~/.config/nvim/init.lua 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/core.lua"))'
 
 #  %% -------- [lazyvim] ----------:
 echo "--- lazyvim ---"
@@ -40,28 +66,17 @@ find "$LAZYVIM_SRC" -type f -name "*.lua" | while read -r file; do
     cp "$file" "$target_file"
 done
 
-grep -qF 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/core.lua"))' "$LAZYVIM_TARGET/lua/config/keymaps.lua" || echo "$(
-    printf '%s\n' 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/core.lua"))'
-    cat "$LAZYVIM_TARGET/lua/config/keymaps.lua"
-)" >"$LAZYVIM_TARGET/lua/config/keymaps.lua"
+PREPEND_LINE_IF_NOT_EXISTS "$LAZYVIM_TARGET/lua/config/keymaps.lua" 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/core.lua"))'
 
 # %% -------- [zsh] ----------:
 echo "--- zsh ---"
 
-touch -a ~/.zshrc
-grep -qF '. ~/doc/config/config/zsh/zshrc' ~/.zshrc || echo "$(
-    printf '. ~/doc/config/config/zsh/zshrc\n'
-    cat ~/.zshrc
-)" >~/.zshrc
+PREPEND_LINE_IF_NOT_EXISTS ~/.zshrc '. ~/doc/config/config/zsh/zshrc'
 
 # %% -------- [tmux] ----------:
 echo "--- tmux ---"
 
-touch -a ~/.tmux.conf
-grep -qF 'source-file ~/doc/config/config/tmux/tmux.conf' ~/.tmux.conf || echo "$(
-    printf 'source-file ~/doc/config/config/tmux/tmux.conf\n'
-    cat ~/.tmux.conf
-)" >~/.tmux.conf
+PREPEND_LINE_IF_NOT_EXISTS ~/.tmux.conf 'source-file ~/doc/config/config/tmux/tmux.conf'
 
 # %% -------- [python] ----------:
 echo "--- python ---"
@@ -73,38 +88,31 @@ cp ~/doc/config/config/python/ipython_config.py ~/.ipython/profile_default/
 # %% -------- [sway] ----------:
 echo "--- sway ---"
 
-mkdir -p ~/.config/sway
 mkdir -p ~/.config/waybar
-touch -a ~/.config/sway/config
-grep -qF 'include ~/doc/config/config/sway/config' ~/.config/sway/config || echo "$(
-    printf 'include ~/doc/config/config/sway/config\n'
-    cat ~/.config/sway/config
-)" >~/.config/sway/config
+PREPEND_LINE_IF_NOT_EXISTS ~/.config/sway/config 'include ~/doc/config/config/sway/config'
 chmod +x ~/doc/config/config/sway/*.sh
 
 # %% -------- [alacritty] ----------:
 echo "--- alacritty ---"
 
-mkdir -p ~/.config/alacritty
-touch -a ~/.config/alacritty/alacritty.toml
-grep -qF '[general]' ~/.config/alacritty/alacritty.toml || echo "$(
-    cat ~/.config/alacritty/alacritty.toml
-    printf '%s\n' '[general]'
-)" >~/.config/alacritty/alacritty.toml
-grep -qF 'import = ["~/doc/config/config/alacritty/alacritty.toml"]' ~/.config/alacritty/alacritty.toml || echo "$(
-    cat ~/.config/alacritty/alacritty.toml
-    printf '%s\n' 'import = ["~/doc/config/config/alacritty/alacritty.toml"]'
-)" >~/.config/alacritty/alacritty.toml
+PREPEND_LINE_IF_NOT_EXISTS ~/.config/alacritty/alacritty.toml 'import = ["~/doc/config/config/alacritty/alacritty.toml"]'
+PREPEND_LINE_IF_NOT_EXISTS ~/.config/alacritty/alacritty.toml '[general]'
+
+# also apply to Windows-native Alacritty when running under WSL
+if [[ "$IS_WSL" == "true" ]]; then
+    REPO_ALACRITTY_PATH="$HOME/doc/config/config/alacritty/alacritty.toml"
+    WIN_STYLE_PATH="${REPO_ALACRITTY_PATH//\//\\}"
+    UNC_PATH="\\\\wsl.localhost\\$WSL_DISTRO_NAME$WIN_STYLE_PATH"
+    WIN_ALACRITTY_FILE="$WIN_USERPROFILE/AppData/Roaming/alacritty/alacritty.toml"
+    PREPEND_LINE_IF_NOT_EXISTS "$WIN_ALACRITTY_FILE" "import = ['$UNC_PATH']"
+    PREPEND_LINE_IF_NOT_EXISTS "$WIN_ALACRITTY_FILE" '[general]'
+    echo "✅ Alacritty config applied to (Windows): $WIN_ALACRITTY_FILE"
+fi
 
 # %% -------- [kitty] ----------:
 echo "--- kitty ---"
 
-mkdir -p ~/.config/kitty
-touch -a ~/.config/kitty/kitty.conf
-grep -qF 'include ~/doc/config/config/kitty/kitty.conf' ~/.config/kitty/kitty.conf || echo "$(
-    cat ~/.config/kitty/kitty.conf
-    printf '%s\n' 'include ~/doc/config/config/kitty/kitty.conf'
-)" >~/.config/kitty/kitty.conf
+PREPEND_LINE_IF_NOT_EXISTS ~/.config/kitty/kitty.conf 'include ~/doc/config/config/kitty/kitty.conf'
 
 # %% -------- [git] ----------:
 echo "--- git ---"
@@ -121,12 +129,6 @@ git config --global delta.whitespace-error-style "reverse purple"
 git config --global core.excludesfile ~/.gitignore_global
 echo ".local/" >> ~/.gitignore_global
 git config --global init.defaultBranch main
-
-# %% -------- [amazonq] ----------:
-echo "--- amazonq ---"
-
-mkdir -p ~/.aws/amazonq/cli-agents
-cp ~/doc/config/config/aws/amazonq/cli-agents/* ~/.aws/amazonq/cli-agents/
 
 # %% -------- [firefox] ----------:
 echo "--- firefox ---"
@@ -150,6 +152,23 @@ if [[ -n "$DEFAULT_PROFILE" ]]; then
     echo "✅ Firefox config applied to: $DEFAULT_PROFILE"
 else
     echo "❌ No Firefox profile found"
+fi
+
+# also apply to Windows-native Firefox when running under WSL
+if [[ "$IS_WSL" == "true" ]]; then
+    WIN_PROFILE_DIR="$WIN_USERPROFILE/AppData/Roaming/Mozilla/Firefox/Profiles"
+    WIN_DEFAULT_PROFILE=$(find "$WIN_PROFILE_DIR" -maxdepth 1 -name "*.default-release" -type d 2>/dev/null | head -1)
+    if [[ -z "$WIN_DEFAULT_PROFILE" ]]; then
+        WIN_DEFAULT_PROFILE=$(find "$WIN_PROFILE_DIR" -maxdepth 1 -name "*.default" -type d 2>/dev/null | head -1)
+    fi
+    if [[ -n "$WIN_DEFAULT_PROFILE" ]]; then
+        cp ~/doc/config/config/firefox/user.js "$WIN_DEFAULT_PROFILE/user.js"
+        mkdir -p "$WIN_DEFAULT_PROFILE/chrome"
+        cp ~/doc/config/config/firefox/userChrome.css "$WIN_DEFAULT_PROFILE/chrome/userChrome.css"
+        echo "✅ Firefox config applied to (Windows): $WIN_DEFAULT_PROFILE"
+    else
+        echo "❌ No Windows Firefox profile found"
+    fi
 fi
 
 echo "For treestyletabs config, load extension settings, preferences tab, expand Development, then import All Configs from file."

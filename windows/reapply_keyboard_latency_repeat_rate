@@ -1,0 +1,17 @@
+$signature = @'
+[DllImport("user32.dll", SetLastError = true)]
+public static extern bool SystemParametersInfo(uint uiAction, uint uiParam, IntPtr pvParam, uint fWinIni);
+'@
+Add-Type -MemberDefinition $signature -Name "NativeMethods" -Namespace "Win32"
+
+$SPI_SETKEYBOARDSPEED = 0x000B
+$SPI_SETKEYBOARDDELAY = 0x0017
+$SPIF_SENDCHANGE = 0x0002
+
+$speed = (Get-ItemProperty -Path 'HKCU:\Control Panel\Keyboard' -Name KeyboardSpeed -ErrorAction SilentlyContinue).KeyboardSpeed
+$delay = (Get-ItemProperty -Path 'HKCU:\Control Panel\Keyboard' -Name KeyboardDelay -ErrorAction SilentlyContinue).KeyboardDelay
+if (-not $speed) { $speed = 31 }
+if (-not $delay) { $delay = 0 }
+
+[Win32.NativeMethods]::SystemParametersInfo($SPI_SETKEYBOARDSPEED, [uint32]$speed, [IntPtr]::Zero, $SPIF_SENDCHANGE) | Out-Null
+[Win32.NativeMethods]::SystemParametersInfo($SPI_SETKEYBOARDDELAY, [uint32]$delay, [IntPtr]::Zero, $SPIF_SENDCHANGE) | Out-Null

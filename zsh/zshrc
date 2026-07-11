@@ -330,7 +330,7 @@ function LLD() {
     local display_count=${1:-5}
     local total_file_count=$(ls ~/Downloads | wc -l | tr -d ' ')
     (( total_file_count > display_count )) && echo "..."
-    ls -ltr --color=auto ~/Downloads | tail -n $display_count
+    ls -ltr --color=auto ~/Downloads/ | tail -n $display_count
 }
 
 #  %% --- [mkdir] ---:
