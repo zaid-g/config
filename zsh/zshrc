@@ -1533,6 +1533,15 @@ alias TLV="tmux show-window-options"
 
 #  %% -------- [AI] ----------:
 
+function TMUX_KIRO_FORK_VERTICAL_SPLIT() {
+    local orig_pane_id=$(tmux display-message -p '#{pane_id}')
+    local new_pane_id=$(tmux split-window -v -l 50% -t "$orig_pane_id" -P -F '#{pane_id}')
+    tmux send-keys -t "$orig_pane_id" "/chat save /tmp/kiro_fork.txt --force" Enter
+    tmux send-keys -t "$new_pane_id" "KK" Enter
+    sleep 10
+    tmux send-keys -t "$new_pane_id" "/chat load /tmp/kiro_fork.txt" Enter
+}
+
 function KKE() {
     local original_dir="$PWD"
     cd ~/empty && kiro-cli chat --trust-all-tools
