@@ -133,6 +133,19 @@ git config --global init.defaultBranch main
 # %% -------- [firefox] ----------:
 echo "--- firefox ---"
 
+echo "
+### Install firefox plugins:
+- bitwarden
+- Copy as markdown
+- Copy link text
+- Tampermonkey
+- Sidebery:
+    - To configure: Click on Sidebery settings --> Styles Editor --> Tabs 
+        --> Indent --> On with value set at 40px 
+        --> Normal Background --> On with 0, 0, 0
+- Neoweblab
+"
+
 if [[ "$OSTYPE" == "darwin"* ]]; then
     PROFILE_DIR="$HOME/Library/Application Support/Firefox/Profiles"
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
