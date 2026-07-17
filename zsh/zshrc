@@ -41,7 +41,7 @@ function FIND_BRAIN_PARENT_NAME() {
 }
 
 function TB() {
-    mkdir -p brain/junk brain/logs brain/ai brain/command_output
+    mkdir -p brain/junk brain/logs brain/ai brain/command_output brain/venv
     touch brain/notes.txt brain/junk/junk.txt brain/related.txt brain/ai/ai.txt brain/tags.txt
     [[ "$IS_DEV_MACHINE" == "true" ]] && TCH
 }
