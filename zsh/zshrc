@@ -41,7 +41,7 @@ function FIND_BRAIN_PARENT_NAME() {
 }
 
 function TB() {
-    mkdir -p brain/junk brain/logs brain/ai brain/command_output brain/venv
+    mkdir -p brain/junk brain/logs brain/ai brain/command_output
     touch brain/notes.txt brain/junk/junk.txt brain/related.txt brain/ai/ai.txt brain/tags.txt
     [[ "$IS_DEV_MACHINE" == "true" ]] && TCH
 }
@@ -683,6 +683,33 @@ function FIND() {
     FIND_FILES_MATCHING_PATTERN "$@"
 }
 
+# fd-backed equivalent of FINDT: same GITIGNORE_PATTERNS exclude list, extension filter
+function FDT() {
+    echo
+    local ext ext_flags=()
+    for ext in "$@"; do
+        ext_flags+=("-e" "$ext")
+    done
+    local exclude_flags=()
+    local excluded_pattern
+    for excluded_pattern in "${GITIGNORE_PATTERNS[@]}"; do
+        exclude_flags+=("--exclude" "$excluded_pattern")
+    done
+    fd --type f --no-ignore "${exclude_flags[@]}" "${ext_flags[@]}" . | sort
+}
+
+# fd-backed equivalent of FIND: same GITIGNORE_PATTERNS exclude list, full-path pattern match
+function FD() {
+    echo
+    local pattern="$1"
+    local exclude_flags=()
+    local excluded_pattern
+    for excluded_pattern in "${GITIGNORE_PATTERNS[@]}"; do
+        exclude_flags+=("--exclude" "$excluded_pattern")
+    done
+    fd --type f --no-ignore --full-path --ignore-case "${exclude_flags[@]}" "$pattern" . | sort
+}
+
 function GREP() {
     echo
     local file_path
@@ -704,19 +731,6 @@ function GREP() {
 function FIND1() {
     echo
     ls -d --color=always -1 *"$@"* | sort -t_ -k2,3
-}
-
-# find files by extension (or all files if no args)
-function FD() {
-    if [ "$#" -eq 0 ]; then
-        fd --type f
-    else
-        local ext ext_flags=()
-        for ext in "$@"; do
-            ext_flags+=("-e" "$ext")
-        done
-        fd "${ext_flags[@]}"
-    fi
 }
 
 # grep in files (last arg is pattern, preceding args are extensions)
@@ -1555,11 +1569,11 @@ function KKER() {
 }
 
 function CCR() {
-    claude --continue --dangerously-skip-permissions || claude --dangerously-skip-permissions
+    CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1 claude --continue --dangerously-skip-permissions || claude --dangerously-skip-permissions
 }
 
 # claude code
-alias CC="claude --dangerously-skip-permissions"
+alias CC="CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1 claude --dangerously-skip-permissions"
 
 # kiro
 alias KK="kiro-cli chat --trust-all-tools"
