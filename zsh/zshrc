@@ -40,9 +40,10 @@ function FIND_BRAIN_PARENT_NAME() {
     basename "$brain_parent_path"
 }
 
+# brain/junk = unorganized notes/pastes — "junk" means unfiled, NOT disposable
 function TB() {
     mkdir -p brain/junk brain/logs brain/ai brain/command_output brain/tmp
-    touch brain/notes.txt brain/junk/junk.txt brain/related.txt brain/ai/ai.txt brain/tags.txt
+    touch brain/notes.txt brain/junk/junk.txt brain/related.txt brain/ai/ai.txt brain/tags.txt brain/brag.txt
     [[ "$IS_DEV_MACHINE" == "true" ]] && TCH
 }
 
@@ -844,13 +845,12 @@ function VB() {
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
     local original_dir="$PWD"
     cd "$brain_parent_path"
-    local file_paths=(brain/**/notes.txt brain/**/junk.txt brain/**/ai.txt)
-    local tab_count=3
+    local file_paths=(brain/**/notes.txt brain/**/junk.txt brain/**/ai.txt brain/**/brag.txt)
     if [[ -f "$brain_parent_path/brain/command_history.txt" ]]; then
         file_paths+=(brain/command_history.txt)
         file_paths+=(brain/command_history_full.txt)
-        tab_count=5
     fi
+    local tab_count=${#file_paths[@]}
     file_paths+=(brain/**/*.txt)
     local nvim_brain_settings='
         vim.api.nvim_create_autocmd("CursorHold", {
