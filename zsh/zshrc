@@ -41,11 +41,12 @@ function FIND_BRAIN_PARENT_NAME() {
 }
 
 function TB() {
-    mkdir -p brain/junk brain/logs brain/ai brain/command_output
+    mkdir -p brain/junk brain/logs brain/ai brain/command_output brain/tmp
     touch brain/notes.txt brain/junk/junk.txt brain/related.txt brain/ai/ai.txt brain/tags.txt
     [[ "$IS_DEV_MACHINE" == "true" ]] && TCH
 }
 
+# creates a brain parent and also sets it up as a git repository.
 function MKBP() {
     MK "$@"
     GIG "$(basename "$PWD")" 2>/dev/null
@@ -418,6 +419,16 @@ function MVFD() {
     echo "\n\033[2mNext: $(PROCESS_DOWNLOAD_FILES_PATHS 1 | cut -d'|' -f1)\033[0m"
 }
 
+function MVFDTBP() {
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    local downloads_file_path destination_filename
+    PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r downloads_file_path destination_filename; do
+        mv "$downloads_file_path" "$brain_parent_path/$(basename "$destination_filename")" && printf "\033[2m%s ->\033[0m\n\033[32m%s\033[0m\n" "$downloads_file_path" "$(readlink -f "$brain_parent_path/$(basename "$destination_filename")")"
+    done
+    echo "\n\033[2mNext: $(PROCESS_DOWNLOAD_FILES_PATHS 1 | cut -d'|' -f1)\033[0m"
+}
+
 # mv folders from local filesystem to local Downloads and touch timestamp
 # so it appears at top of list
 function MVTD() {
@@ -614,11 +625,9 @@ alias D='noglob D'
 
 #  %% -------- [find search grep] ----------:
 
-# FIND/FD user-called functions: return file paths (even if
-# internally they call grep/rg not find/fd)
-# GREP/RG user-called functions: returns matched content
-# (and corresponding file paths)
-
+# the reason we use the global gitignore is because we don't want to exclude via ripgrep's default
+# behavior which skips locally declared paths in .gitignore. We have nested and gitignored repos
+# that we want to include in search e.g. repo1/repo2/repo3 etc.
 function GET_GITIGNORE_PATTERNS() {
     local gitignore_file="$HOME/doc/config/config/git/gitignore"
     if [[ ! -f "$gitignore_file" ]]; then
@@ -637,94 +646,149 @@ function GET_GITIGNORE_PATTERNS() {
     printf '%s\n' "${patterns[@]}"
 }
 
-function FIND_ALL_NON_IGNORED_FILES() {
-    local ignored_folder_patterns=("${GITIGNORE_PATTERNS[@]}")
-    local find_cmd=(find .)
-    local pattern
-    for pattern in "${ignored_folder_patterns[@]}"; do
-        find_cmd+=(-path "*/$pattern" -prune -o)
+# each CONSTRUCT_* fills the array `constructed_exclude_args`, which the caller must declare local
+function CONSTRUCT_FIND_EXCLUDE_ARGS_FROM_GITIGNORE_PATTERNS() {
+    constructed_exclude_args=()
+    local -a gitignore_patterns
+    gitignore_patterns=("${(@f)$(GET_GITIGNORE_PATTERNS)}") || return 1
+    local excluded_pattern
+    for excluded_pattern in "${gitignore_patterns[@]}"; do
+        constructed_exclude_args+=(-path "*/$excluded_pattern" -prune -o)
     done
-    find_cmd+=(-type f -print)
-    "${find_cmd[@]}"
 }
 
-# Function to find files matching given extensions
-function FIND_NON_IGNORED_FILE_PATHS_MATCHING_TYPES() {
-    local file_extensions=("$@")
-    local found_file_paths=$(FIND_ALL_NON_IGNORED_FILES)
-    # If extensions are given, filter by them (case-insensitive)
-    if [ "${#file_extensions[@]}" -gt 0 ]; then
-        local pattern=$(IFS=\|; echo "${file_extensions[*]}" | sed 's/ /|/gI')
-        echo "$found_file_paths" | grep -Eiq "\.(${pattern})$" && echo "$found_file_paths" | grep -Ei "\.(${pattern})$" | sort || return
+function CONSTRUCT_FD_EXCLUDE_ARGS_FROM_GITIGNORE_PATTERNS() {
+    constructed_exclude_args=()
+    local -a gitignore_patterns
+    gitignore_patterns=("${(@f)$(GET_GITIGNORE_PATTERNS)}") || return 1
+    local excluded_pattern
+    for excluded_pattern in "${gitignore_patterns[@]}"; do
+        constructed_exclude_args+=(--exclude "$excluded_pattern")
+    done
+}
+
+function CONSTRUCT_RG_EXCLUDE_ARGS_FROM_GITIGNORE_PATTERNS() {
+    constructed_exclude_args=()
+    local -a gitignore_patterns
+    gitignore_patterns=("${(@f)$(GET_GITIGNORE_PATTERNS)}") || return 1
+    local excluded_pattern
+    for excluded_pattern in "${gitignore_patterns[@]}"; do
+        constructed_exclude_args+=(--glob "!**/$excluded_pattern/**")
+    done
+}
+
+function _FIND() {
+    local -a constructed_exclude_args
+    CONSTRUCT_FIND_EXCLUDE_ARGS_FROM_GITIGNORE_PATTERNS
+    find . "${constructed_exclude_args[@]}" -type f -print
+}
+
+function _FD() {
+    local -a constructed_exclude_args
+    CONSTRUCT_FD_EXCLUDE_ARGS_FROM_GITIGNORE_PATTERNS
+    fd --type f --no-ignore --hidden "${constructed_exclude_args[@]}" '.' .
+}
+
+function FILTER_FILE_PATHS_FROM_STDIN_BY_EXTENSIONS() {
+    if [ "$#" -eq 0 ]; then
+        cat
     else
-        echo "$found_file_paths" | sort
+        local extensions_pattern=$(IFS='|'; echo "$*")
+        grep -Ei -e "\.(${extensions_pattern})$"
     fi
 }
 
-# Function to find files matching a general pattern
-function FIND_FILES_MATCHING_PATTERN() {
-    local pattern="$1"
-    local found_file_paths=$(FIND_ALL_NON_IGNORED_FILES)
-    # If a pattern is given, filter by it (case-insensitive)
-    if [ -n "$pattern" ]; then
-        echo "$found_file_paths" | grep -Eiq "$pattern" && echo "$found_file_paths" | grep -Ei "$pattern" | sort || return
+function FILTER_FILE_PATHS_FROM_STDIN_BY_PATTERN() {
+    if [ -z "$1" ]; then
+        cat
     else
-        echo "$found_file_paths" | sort
+        grep -Ei -e "$1"
     fi
+}
+
+# need this because `grep` doesn't have file traversal built in properly
+# e.g. even grep -rni **/*.py <pattern>  <---- zsh is creating list here not
+# grep via **/*.py
+function GREP_CONTENTS_OF_FILE_PATHS_FROM_STDIN() {
+    local pattern="$1" file_path
+    local -a file_stat_result
+    while IFS= read -r file_path; do
+        zstat -A file_stat_result +size "$file_path" 2>/dev/null || continue
+        [[ ${file_stat_result[1]} -gt $MAX_SEARCH_FILE_SIZE_BYTES ]] && continue
+        grep -Hni -e "$pattern" "$file_path"
+    done
+}
+
+# grep-backed content search (last arg is pattern, preceding args are extensions)
+function _GREP() {
+    _FIND | FILTER_FILE_PATHS_FROM_STDIN_BY_EXTENSIONS "${@[1,-2]}" | GREP_CONTENTS_OF_FILE_PATHS_FROM_STDIN "${@[-1]}"
+}
+
+# rg-backed content search (last arg is pattern, preceding args are extensions)
+function _RG() {
+    local file_extension pattern="${@[-1]}"
+    local extension_glob_flags=()
+    for file_extension in "${@[1,-2]}"; do
+        extension_glob_flags+=("-g" "*.${file_extension}")
+    done
+    local -a constructed_exclude_args
+    CONSTRUCT_RG_EXCLUDE_ARGS_FROM_GITIGNORE_PATTERNS
+    rg --ignore-case --line-number --no-ignore --hidden --glob-case-insensitive --max-filesize "$MAX_SEARCH_FILE_SIZE" "${constructed_exclude_args[@]}" "${extension_glob_flags[@]}" -e "$pattern"
+}
+
+function RG_BRAIN_FILE_PATHS_MATCHING_ANY_PATTERN() {
+    local pattern=$(IFS='|'; echo "$*")
+    local -a constructed_exclude_args
+    CONSTRUCT_RG_EXCLUDE_ARGS_FROM_GITIGNORE_PATTERNS
+    rg -l --ignore-case --no-ignore --hidden --max-filesize "$MAX_SEARCH_FILE_SIZE" --glob '**/brain/**' "${constructed_exclude_args[@]}" -e "$pattern" .
+}
+
+function RG_BRAIN_FILE_PATHS_MATCHING_ALL_PATTERNS() {
+    local file_paths_matching_all_patterns_so_far=$(RG_BRAIN_FILE_PATHS_MATCHING_ANY_PATTERN "$1")
+    shift
+    local pattern
+    for pattern in "$@"; do
+        [ -z "$file_paths_matching_all_patterns_so_far" ] && return
+        file_paths_matching_all_patterns_so_far=$(echo "$file_paths_matching_all_patterns_so_far" | tr '\n' '\0' | xargs -0 rg -l --ignore-case --max-filesize "$MAX_SEARCH_FILE_SIZE" -e "$pattern")
+    done
+    [ -z "$file_paths_matching_all_patterns_so_far" ] && return
+    echo "$file_paths_matching_all_patterns_so_far"
+}
+
+# lists brain parent paths sorted by their brain/.last_opened timestamp
+function FD_BRAIN_PARENTS_BY_LAST_OPENED() {
+    local last_opened_file_path
+    _FD \
+        | FILTER_FILE_PATHS_FROM_STDIN_BY_PATTERN 'brain/\.last_opened$' \
+        | while read -r last_opened_file_path; do
+            echo "$(cat "$last_opened_file_path") $(dirname "$(dirname "$last_opened_file_path")")"
+        done \
+        | sort \
+        | awk '{print $1 "          " $2}'
 }
 
 function FINDT() {
     echo
-    FIND_NON_IGNORED_FILE_PATHS_MATCHING_TYPES "$@"
+    _FIND | FILTER_FILE_PATHS_FROM_STDIN_BY_EXTENSIONS "$@" | sort
 }
 
 function FIND() {
     echo
-    FIND_FILES_MATCHING_PATTERN "$@"
+    _FIND | FILTER_FILE_PATHS_FROM_STDIN_BY_PATTERN "$1" | sort
 }
 
-# fd-backed equivalent of FINDT: same GITIGNORE_PATTERNS exclude list, extension filter
 function FDT() {
     echo
-    local ext ext_flags=()
-    for ext in "$@"; do
-        ext_flags+=("-e" "$ext")
-    done
-    local exclude_flags=()
-    local excluded_pattern
-    for excluded_pattern in "${GITIGNORE_PATTERNS[@]}"; do
-        exclude_flags+=("--exclude" "$excluded_pattern")
-    done
-    fd --type f --no-ignore "${exclude_flags[@]}" "${ext_flags[@]}" . | sort
+    _FD | FILTER_FILE_PATHS_FROM_STDIN_BY_EXTENSIONS "$@" | sort
 }
 
-# fd-backed equivalent of FIND: same GITIGNORE_PATTERNS exclude list, full-path pattern match
 function FD() {
     echo
-    local pattern="$1"
-    local exclude_flags=()
-    local excluded_pattern
-    for excluded_pattern in "${GITIGNORE_PATTERNS[@]}"; do
-        exclude_flags+=("--exclude" "$excluded_pattern")
-    done
-    fd --type f --no-ignore --full-path --ignore-case "${exclude_flags[@]}" "$pattern" . | sort
+    _FD | FILTER_FILE_PATHS_FROM_STDIN_BY_PATTERN "$1" | sort
 }
 
-function GREP() {
-    echo
-    local file_path
-    if [ "$#" -eq 1 ]; then
-        local pattern="$1"
-        local found_file_paths=$(FIND_NON_IGNORED_FILE_PATHS_MATCHING_TYPES)
-    else
-        local pattern="${@: -1}"
-        local exts=("${@:1:$#-1}")
-        local found_file_paths=$(FIND_NON_IGNORED_FILE_PATHS_MATCHING_TYPES "${exts[@]}")
-    fi
-    [ -z "$found_file_paths" ] && return
-    while IFS= read -r file_path; do
-        "$GNU_GREP" -Hni -e "$pattern" "$file_path"
-    done <<< "$found_file_paths"
+function FDBP() {
+    FD_BRAIN_PARENTS_BY_LAST_OPENED
 }
 
 # find files matching pattern one layer deep
@@ -733,53 +797,29 @@ function FIND1() {
     ls -d --color=always -1 *"$@"* | sort -t_ -k2,3
 }
 
-# grep in files (last arg is pattern, preceding args are extensions)
+function GREP() {
+    echo
+    _GREP "$@"
+}
+
 function RG() {
-    if [ "$#" -eq 1 ]; then
-        rg "$1"
-    else
-        local ext pattern="${@: -1}"
-        local type_flags=()
-        for ext in "${@:1:$#-1}"; do
-            type_flags+=("-g" "*.${ext}")
-        done
-        rg "${type_flags[@]}" "$pattern"
-    fi
+    _RG "$@"
 }
 
-function FDBANY() {
+function RGBANY() {
     echo
-    local pattern=$(IFS='|'; echo "$*")
-    local exclude_flags=()
-    local excluded_pattern
-    for excluded_pattern in "${GITIGNORE_PATTERNS[@]}"; do
-        exclude_flags+=("--glob" "!**/$excluded_pattern/**")
-    done
-    rg -l --no-ignore --max-filesize 50M "$pattern" --glob '**/brain/**' "${exclude_flags[@]}" .
+    RG_BRAIN_FILE_PATHS_MATCHING_ANY_PATTERN "$@"
 }
 
-function FDBALL() {
+function RGBALL() {
     echo
-    local exclude_flags=()
-    local excluded_pattern
-    for excluded_pattern in "${GITIGNORE_PATTERNS[@]}"; do
-        exclude_flags+=("--glob" "!**/$excluded_pattern/**")
-    done
-    local file_paths_that_matched_patterns_so_far=$(rg -l --no-ignore --max-filesize 50M "$1" --glob '**/brain/**' "${exclude_flags[@]}" .)
-    shift
-    local pattern
-    for pattern in "$@"; do
-        [ -z "$file_paths_that_matched_patterns_so_far" ] && return
-        file_paths_that_matched_patterns_so_far=$(echo "$file_paths_that_matched_patterns_so_far" | tr '\n' '\0' | xargs -0 rg -l --no-ignore --max-filesize 50M "$pattern")
-    done
-    [ -z "$file_paths_that_matched_patterns_so_far" ] && return
-    echo "$file_paths_that_matched_patterns_so_far"
+    RG_BRAIN_FILE_PATHS_MATCHING_ALL_PATTERNS "$@"
 }
 
-GNU_FIND=$(command -v find)
-GNU_GREP=$(command -v grep) # override this if on OS X
-GITIGNORE_PATTERNS=("${(@f)$(GET_GITIGNORE_PATTERNS)}")
-alias FDB="FDBANY"
+zmodload -F zsh/stat b:zstat # portable file-size checks (loads only the zstat builtin, system stat untouched)
+MAX_SEARCH_FILE_SIZE="50M"          # flag form for rg
+MAX_SEARCH_FILE_SIZE_BYTES=52428800 # same 50M limit, byte form for stat-based checks
+alias RGB="RGBANY"
 
 # %% -------- [vi vim lazyvim neovim nvim vi mode vi-mode] ----------:
 
@@ -1501,6 +1541,7 @@ function TOC() {
 function TOBP() {
     if [[ $# -eq 0 ]]; then
         CDBP || return 1
+        date +%Y_%m_%d-%H_%M_%S > brain/.last_opened
         local left_pane_id="$TMUX_PANE"
         tmux send-keys -t "$left_pane_id" 'NOTAR' Enter
         tmux send-keys -t "$left_pane_id" 'AIR' Enter
@@ -1636,9 +1677,14 @@ function BWC() {
     GIG "$1" 2>/dev/null
 }
 
+function BRCAP() {
+    local logfile="/tmp/brazil_recursive_build_output_$(date +%Y_%m_%d-%H_%M_%S).log"
+    { brazil ws clean && brazil-recursive-cmd --allPackages brazil-build; } 2>&1 | tee "$logfile"
+    echo "\nbrazil ws clean && brazil-recursive-cmd --allPackages brazil-build log saved to: $logfile"
+}
+
 # brazil
 alias BB='brazil-build'
-alias BRCAP="brazil ws clean && brazil-recursive-cmd --allPackages brazil-build"
 alias BWU='brazil ws use -p'
 alias BWR='brazil ws remove -p'
 alias BBCR='brazil ws clean && brazil-build clean && brazil-build release'

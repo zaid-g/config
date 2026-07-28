@@ -3,6 +3,11 @@
 # %% -------- [general] ----------:
 echo "--- general ---"
 
+# Configs are deployed by prepending a source/include line
+# to the FIRST line of each machine-local file (~/.zshrc,
+# ~/.tmux.conf, ...), never by symlinking/copying: the repo
+# config loads first, so anything written later in the
+# local file acts as a per-machine override.
 PREPEND_LINE_IF_NOT_EXISTS() {
     local file="$1" line="$2"
     mkdir -p "$(dirname "$file")"
@@ -18,6 +23,10 @@ mkdir -p ~/junk/
 mkdir -p ~/trash/
 mkdir -p ~/empty/
 mkdir -p ~/pic/
+
+# ~/doc is the home-level brain parent (VNOTES/VJUNK/VAI depend on it);
+# zsh -i loads ~/.zshrc (just ensured above) so the TB function is defined
+[[ -d ~/doc/brain ]] || (cd ~/doc && zsh -ic 'TB')
 
 # %% -------- [wsl windows subsystem for linux] ----------:
 echo "--- wsl ---"
@@ -126,8 +135,6 @@ git config --global delta.word-diff-regex "\\w+|[^\\w\\s]+"
 git config --global delta.minus-emph-style "syntax #ff0000"
 git config --global delta.plus-emph-style "syntax #008800"
 git config --global delta.whitespace-error-style "reverse purple"
-git config --global core.excludesfile ~/.gitignore_global
-echo ".local/" >> ~/.gitignore_global
 git config --global init.defaultBranch main
 
 # %% -------- [firefox] ----------:
