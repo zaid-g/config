@@ -278,7 +278,7 @@ ___COMMAND_EXIT_CODE=""
 #  %% -------- [files folders path management] ----------:
 
 function CLEAN_FILENAME() {
-    echo -n "$1" | perl -CSD -pe 's/[\/:@%,=\s\x{00a0}\x{202f}\x{2007}\x{2009}\x{200a}\x{205f}\x{3000}]/-/g' | tr -d '*?[]|&;<>$`!"'"'"'(){}^~#\\'
+    echo -n "$1" | perl -CSD -pe 's/[\/:@%,=\s\x{00a0}\x{202f}\x{2007}\x{2009}\x{200a}\x{205f}\x{3000}*?\[\]|&;<>$`!"'"'"'(){}^~#\\]/-/g'
 }
 
 function PROCESS_DOWNLOAD_FILES_PATHS() {
@@ -626,6 +626,13 @@ alias D='noglob D'
 
 #  %% -------- [find search grep] ----------:
 
+# Invariant: each search tool enters this section through exactly one door — find via _FIND,
+# fd via _FD, rg via _RG (grep via GREP_CONTENTS_OF_FILE_PATHS_FROM_STDIN, fed by _FIND since
+# grep cannot traverse). The door applies the house rules: gitignore exclusions, hidden files
+# included, case-insensitive matching, 50MB content cap. Never invoke fd/find/rg/grep raw in
+# a new function — call the door. (Using grep as a plain text filter on stdin, as the FILTER_*
+# functions do on path strings, is not searching files and needs no door.)
+
 # the reason we use the global gitignore is because we don't want to exclude via ripgrep's default
 # behavior which skips locally declared paths in .gitignore. We have nested and gitignored repos
 # that we want to include in search e.g. repo1/repo2/repo3 etc.
@@ -678,16 +685,22 @@ function CONSTRUCT_RG_EXCLUDE_ARGS_FROM_GITIGNORE_PATTERNS() {
     done
 }
 
-function _FIND() {
-    local -a constructed_exclude_args
-    CONSTRUCT_FIND_EXCLUDE_ARGS_FROM_GITIGNORE_PATTERNS
-    find . "${constructed_exclude_args[@]}" -type f -print
-}
-
-function _FD() {
-    local -a constructed_exclude_args
-    CONSTRUCT_FD_EXCLUDE_ARGS_FROM_GITIGNORE_PATTERNS
-    fd --type f --no-ignore --hidden "${constructed_exclude_args[@]}" '.' .
+# need this because `grep` doesn't have file traversal built in properly
+# e.g. even grep -rni **/*.py <pattern>  <---- zsh is creating list here not
+# grep via **/*.py
+# multiple patterns are OR'd (repeated -e flags; BRE has no | alternation)
+function GREP_CONTENTS_OF_FILE_PATHS_FROM_STDIN() {
+    local pattern file_path
+    local -a pattern_flags=()
+    for pattern in "$@"; do
+        pattern_flags+=(-e "$pattern")
+    done
+    local -a file_stat_result
+    while IFS= read -r file_path; do
+        zstat -A file_stat_result +size "$file_path" 2>/dev/null || continue
+        [[ ${file_stat_result[1]} -gt $MAX_SEARCH_FILE_SIZE_BYTES ]] && continue
+        grep -Hni "${pattern_flags[@]}" "$file_path"
+    done
 }
 
 function FILTER_FILE_PATHS_FROM_STDIN_BY_EXTENSIONS() {
@@ -707,57 +720,8 @@ function FILTER_FILE_PATHS_FROM_STDIN_BY_PATTERN() {
     fi
 }
 
-# need this because `grep` doesn't have file traversal built in properly
-# e.g. even grep -rni **/*.py <pattern>  <---- zsh is creating list here not
-# grep via **/*.py
-function GREP_CONTENTS_OF_FILE_PATHS_FROM_STDIN() {
-    local pattern="$1" file_path
-    local -a file_stat_result
-    while IFS= read -r file_path; do
-        zstat -A file_stat_result +size "$file_path" 2>/dev/null || continue
-        [[ ${file_stat_result[1]} -gt $MAX_SEARCH_FILE_SIZE_BYTES ]] && continue
-        grep -Hni -e "$pattern" "$file_path"
-    done
-}
-
-# grep-backed content search (last arg is pattern, preceding args are extensions)
-function _GREP() {
-    _FIND | FILTER_FILE_PATHS_FROM_STDIN_BY_EXTENSIONS "${@[1,-2]}" | GREP_CONTENTS_OF_FILE_PATHS_FROM_STDIN "${@[-1]}"
-}
-
-# rg-backed content search (last arg is pattern, preceding args are extensions)
-function _RG() {
-    local file_extension pattern="${@[-1]}"
-    local extension_glob_flags=()
-    for file_extension in "${@[1,-2]}"; do
-        extension_glob_flags+=("-g" "*.${file_extension}")
-    done
-    local -a constructed_exclude_args
-    CONSTRUCT_RG_EXCLUDE_ARGS_FROM_GITIGNORE_PATTERNS
-    rg --ignore-case --line-number --no-ignore --hidden --glob-case-insensitive --max-filesize "$MAX_SEARCH_FILE_SIZE" "${constructed_exclude_args[@]}" "${extension_glob_flags[@]}" -e "$pattern"
-}
-
-function RG_BRAIN_FILE_PATHS_MATCHING_ANY_PATTERN() {
-    local pattern=$(IFS='|'; echo "$*")
-    local -a constructed_exclude_args
-    CONSTRUCT_RG_EXCLUDE_ARGS_FROM_GITIGNORE_PATTERNS
-    rg -l --ignore-case --no-ignore --hidden --max-filesize "$MAX_SEARCH_FILE_SIZE" --glob '**/brain/**' "${constructed_exclude_args[@]}" -e "$pattern" .
-}
-
-function RG_BRAIN_FILE_PATHS_MATCHING_ALL_PATTERNS() {
-    local file_paths_matching_all_patterns_so_far=$(RG_BRAIN_FILE_PATHS_MATCHING_ANY_PATTERN "$1")
-    shift
-    local pattern
-    for pattern in "$@"; do
-        [ -z "$file_paths_matching_all_patterns_so_far" ] && return
-        file_paths_matching_all_patterns_so_far=$(echo "$file_paths_matching_all_patterns_so_far" | tr '\n' '\0' | xargs -0 rg -l --ignore-case --max-filesize "$MAX_SEARCH_FILE_SIZE" -e "$pattern")
-    done
-    [ -z "$file_paths_matching_all_patterns_so_far" ] && return
-    echo "$file_paths_matching_all_patterns_so_far"
-}
-
 # lists brain parent paths sorted by their brain/.last_opened timestamp
-function FD_BRAIN_PARENTS_BY_LAST_OPENED() {
+function FD_BRAIN_PARENTS_SORT_BY_LAST_OPENED() {
     local last_opened_file_path
     _FD \
         | FILTER_FILE_PATHS_FROM_STDIN_BY_PATTERN 'brain/\.last_opened$' \
@@ -768,9 +732,82 @@ function FD_BRAIN_PARENTS_BY_LAST_OPENED() {
         | awk '{print $1 "          " $2}'
 }
 
-function FINDT() {
-    echo
-    _FIND | FILTER_FILE_PATHS_FROM_STDIN_BY_EXTENSIONS "$@" | sort
+# Usage: _RG --output <lines|file_paths> --match <any|all> [--glob <path_glob>] [--ext <ext>]... -- <pattern>...
+#   --output: what to print from the files that qualify
+#     lines      - their matching lines, as ./path:line:content (for --match all: lines matching any of the patterns)
+#     file_paths - their ./-prefixed paths
+#   --match: which files qualify
+#     any - files mentioning at least one of the patterns
+#     all - files mentioning every pattern
+#   --glob: only search files whose path matches this glob (default: everywhere)
+#   --ext:  only search files with this extension (repeatable)
+#   --  : end of flags; patterns follow (protects patterns that start with a dash)
+# examples:
+#   _RG --output lines --match any -- "foo"                                  - print lines that match foo, from all files
+#   _RG --output lines --match any --ext py --ext js -- "foo"                - print lines that match foo, from .py/.js files only
+#   _RG --output lines --match any --glob "**/brain/**" -- "foo"             - print lines that match foo, from brain files only
+#   _RG --output lines --match any -- "foo" "bar"                            - print lines that match foo or bar
+#   _RG --output lines --match all -- "foo" "bar"                            - print lines matching either foo or bar, from files that mention both
+#   _RG --output lines --match all --ext py --ext txt -- "foo" "bar"         - same, but only from .py/.txt files
+#   _RG --output file_paths --match any -- "foo" "bar"                       - print paths of files that mention foo or bar
+#   _RG --output file_paths --match all -- "foo" "bar"                       - print paths of files that mention both foo and bar
+#   _RG --output file_paths --match all --glob "**/brain/**" -- "foo" "bar"  - print paths of brain files that mention both
+#   _RG --output lines --match any -- "-foo"                                 - dash-leading patterns are safe after --
+function _RG() {
+    local -a output_mode_opts match_mode_opts path_glob_opts extension_opts
+    zparseopts -D -F -- -output:=output_mode_opts -match:=match_mode_opts -glob:=path_glob_opts -ext+:=extension_opts || return 1
+    local output_mode="${output_mode_opts[2]}" match_mode="${match_mode_opts[2]}" scope_glob="${path_glob_opts[2]}"
+    local -a file_extensions=("${(@)extension_opts:#--ext}")
+    [[ "$output_mode" != "lines" && "$output_mode" != "file_paths" ]] && { echo "invalid _RG --output: $output_mode" >&2; return 1 }
+    [[ "$match_mode" != "any" && "$match_mode" != "all" ]] && { echo "invalid _RG --match: $match_mode" >&2; return 1 }
+    local file_extension
+    if [[ "$match_mode" == "all" ]]; then
+        local -a seed_flags=(--output file_paths --match any)
+        [[ -n "$scope_glob" ]] && seed_flags+=(--glob "$scope_glob")
+        for file_extension in "${file_extensions[@]}"; do
+            seed_flags+=(--ext "$file_extension")
+        done
+        local surviving_file_paths=$(_RG "${seed_flags[@]}" -- "$1")
+        local pattern
+        for pattern in "${@[2,-1]}"; do
+            [ -z "$surviving_file_paths" ] && return
+            surviving_file_paths=$(echo "$surviving_file_paths" | tr '\n' '\0' | xargs -0 rg -l --ignore-case -e "$pattern")
+        done
+        [ -z "$surviving_file_paths" ] && return
+        if [[ "$output_mode" == "file_paths" ]]; then
+            echo "$surviving_file_paths"
+        else
+            echo "$surviving_file_paths" | tr '\n' '\0' | xargs -0 rg --with-filename --line-number --ignore-case -e "${(j:|:)@}"
+        fi
+        return
+    fi
+    local pattern="${(j:|:)@}"
+    local -a output_mode_flags
+    case "$output_mode" in
+        lines) output_mode_flags=(--line-number) ;;
+        file_paths) output_mode_flags=(--files-with-matches) ;;
+    esac
+    local extension_glob_flags=()
+    for file_extension in "${file_extensions[@]}"; do
+        extension_glob_flags+=("-g" "*.${file_extension}")
+    done
+    local -a scope_glob_flags=()
+    [[ -n "$scope_glob" ]] && scope_glob_flags=(--glob "$scope_glob")
+    local -a constructed_exclude_args
+    CONSTRUCT_RG_EXCLUDE_ARGS_FROM_GITIGNORE_PATTERNS
+    rg "${output_mode_flags[@]}" --ignore-case --no-ignore --hidden --glob-case-insensitive --max-filesize "$MAX_SEARCH_FILE_SIZE" "${scope_glob_flags[@]}" "${constructed_exclude_args[@]}" "${extension_glob_flags[@]}" -e "$pattern" .
+}
+
+function _FIND() {
+    local -a constructed_exclude_args
+    CONSTRUCT_FIND_EXCLUDE_ARGS_FROM_GITIGNORE_PATTERNS
+    find . "${constructed_exclude_args[@]}" -type f -print
+}
+
+function _FD() {
+    local -a constructed_exclude_args
+    CONSTRUCT_FD_EXCLUDE_ARGS_FROM_GITIGNORE_PATTERNS
+    fd --type f --no-ignore --hidden "${constructed_exclude_args[@]}" '.' .
 }
 
 function FIND() {
@@ -778,9 +815,9 @@ function FIND() {
     _FIND | FILTER_FILE_PATHS_FROM_STDIN_BY_PATTERN "$1" | sort
 }
 
-function FDT() {
+function FINDT() {
     echo
-    _FD | FILTER_FILE_PATHS_FROM_STDIN_BY_EXTENSIONS "$@" | sort
+    _FIND | FILTER_FILE_PATHS_FROM_STDIN_BY_EXTENSIONS "$@" | sort
 }
 
 function FD() {
@@ -788,8 +825,14 @@ function FD() {
     _FD | FILTER_FILE_PATHS_FROM_STDIN_BY_PATTERN "$1" | sort
 }
 
+function FDT() {
+    echo
+    _FD | FILTER_FILE_PATHS_FROM_STDIN_BY_EXTENSIONS "$@" | sort
+}
+
 function FDBP() {
-    FD_BRAIN_PARENTS_BY_LAST_OPENED
+    echo
+    FD_BRAIN_PARENTS_SORT_BY_LAST_OPENED
 }
 
 # find files matching pattern one layer deep
@@ -798,29 +841,68 @@ function FIND1() {
     ls -d --color=always -1 *"$@"* | sort -t_ -k2,3
 }
 
+# Content-search vocabulary is a formula: RG [B] [ANY|ALL] — all args are patterns
+#   B = brain files only; no suffix = print matching lines; ANY/ALL = print file paths
+#   RG / RGB       -> lines matching any of the patterns (path:line:content)
+#   RGANY / RGBANY -> file paths mentioning ANY of the patterns
+#   RGALL / RGBALL -> file paths mentioning ALL of the patterns
+# T variants filter by file type, like FINDT/FDT: last arg is the pattern, preceding args are extensions
+#   RGT py js "foo" -> lines matching foo, in .py/.js files only
+# GREP/GREPT = grep-engine siblings of RG/RGT for when rg isn't installed
 function GREP() {
     echo
-    _GREP "$@"
+    _FIND | GREP_CONTENTS_OF_FILE_PATHS_FROM_STDIN "$@"
+}
+
+function GREPT() {
+    echo
+    _FIND | FILTER_FILE_PATHS_FROM_STDIN_BY_EXTENSIONS "${@[1,-2]}" | GREP_CONTENTS_OF_FILE_PATHS_FROM_STDIN "${@[-1]}"
 }
 
 function RG() {
-    _RG "$@"
+    echo
+    _RG --output lines --match any -- "$@"
+}
+
+function RGT() {
+    echo
+    local file_extension
+    local -a extension_flags=()
+    for file_extension in "${@[1,-2]}"; do
+        extension_flags+=(--ext "$file_extension")
+    done
+    _RG --output lines --match any "${extension_flags[@]}" -- "${@[-1]}"
+}
+
+function RGB() {
+    echo
+    _RG --output lines --match any --glob "**/brain/**" -- "$@"
+}
+
+function RGANY() {
+    echo
+    _RG --output file_paths --match any -- "$@" | sort
 }
 
 function RGBANY() {
     echo
-    RG_BRAIN_FILE_PATHS_MATCHING_ANY_PATTERN "$@"
+    _RG --output file_paths --match any --glob "**/brain/**" -- "$@" | sort
+}
+
+function RGALL() {
+    echo
+    _RG --output file_paths --match all -- "$@" | sort
 }
 
 function RGBALL() {
     echo
-    RG_BRAIN_FILE_PATHS_MATCHING_ALL_PATTERNS "$@"
+    _RG --output file_paths --match all --glob "**/brain/**" -- "$@" | sort
 }
 
 zmodload -F zsh/stat b:zstat # portable file-size checks (loads only the zstat builtin, system stat untouched)
-MAX_SEARCH_FILE_SIZE="50M"          # flag form for rg
-MAX_SEARCH_FILE_SIZE_BYTES=52428800 # same 50M limit, byte form for stat-based checks
-alias RGB="RGBANY"
+MAX_SEARCH_FILE_SIZE_MEGABYTES=50
+MAX_SEARCH_FILE_SIZE="${MAX_SEARCH_FILE_SIZE_MEGABYTES}M"                        # flag form for rg
+MAX_SEARCH_FILE_SIZE_BYTES=$(( MAX_SEARCH_FILE_SIZE_MEGABYTES * 1024 * 1024 )) # byte form for stat-based checks
 
 # %% -------- [vi vim lazyvim neovim nvim vi mode vi-mode] ----------:
 
@@ -1570,7 +1652,7 @@ function KKER() {
 }
 
 function CCR() {
-    CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1 claude --continue --dangerously-skip-permissions || claude --dangerously-skip-permissions
+    CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1 claude --continue --dangerously-skip-permissions || CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1 claude --dangerously-skip-permissions
 }
 
 # claude code
