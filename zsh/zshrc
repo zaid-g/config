@@ -723,12 +723,14 @@ function FILTER_FILE_PATHS_FROM_STDIN_BY_PATTERN() {
 # lists brain parent paths sorted by their brain/.last_opened timestamp
 function FD_BRAIN_PARENTS_SORT_BY_LAST_OPENED() {
     local last_opened_file_path
+    local limit="${1:-0}"
     _FD \
         | FILTER_FILE_PATHS_FROM_STDIN_BY_PATTERN 'brain/\.last_opened$' \
         | while read -r last_opened_file_path; do
             echo "$(cat "$last_opened_file_path") $(dirname "$(dirname "$last_opened_file_path")")"
         done \
         | sort \
+        | if [[ "$limit" -gt 0 ]]; then tail -n "$limit"; else cat; fi \
         | awk '{print $1 "          " $2}'
 }
 
@@ -832,7 +834,7 @@ function FDT() {
 
 function FDBP() {
     echo
-    FD_BRAIN_PARENTS_SORT_BY_LAST_OPENED
+    FD_BRAIN_PARENTS_SORT_BY_LAST_OPENED "$@"
 }
 
 # find files matching pattern one layer deep
@@ -1558,7 +1560,7 @@ function TOD() {
     target_pane_id=$(tmux new-window -P -F '#{pane_id}')
     tmux send-keys -t "$target_pane_id" 'CD && TOBP' Enter
     target_pane_id=$(tmux new-window -P -F '#{pane_id}')
-    tmux send-keys -t "$target_pane_id" 'TOC' Enter
+    tmux send-keys -t "$target_pane_id" 'CDC && TOBP' Enter
 }
 
 # tmux open terminal window
@@ -1569,28 +1571,23 @@ function TOT() {
     tmux send-keys -t "$target_pane_id" 'tmux rename-window -t $TMUX_PANE term' Enter
 }
 
-# tmux open config
-function TOC() {
-    local target_pane_id="$TMUX_PANE"
-    tmux send-keys -t "$target_pane_id" 'CDC' Enter
-    tmux send-keys -t "$target_pane_id" 'NOTAR' Enter
-    tmux send-keys -t "$target_pane_id" 'AIR' Enter
-    target_pane_id=$(tmux split-window -h -t "$target_pane_id" -P -F '#{pane_id}')
-    tmux send-keys -t "$target_pane_id" 'CDCC' Enter
-}
-
 # tmux open brain parent
 function TOBP() {
     if [[ $# -eq 0 ]]; then
         CDBP || return 1
         date +%Y_%m_%d-%H_%M_%S > brain/.last_opened
         local left_pane_id="$TMUX_PANE"
-        tmux send-keys -t "$left_pane_id" 'NOTAR' Enter
+        # Nested tmux sessions with auto-cleanup
+        tmux send-keys -t "$left_pane_id" 'T' Enter
         tmux send-keys -t "$left_pane_id" 'AIR' Enter
+        tmux send-keys -t "$left_pane_id" C-g n C-g n C-g 0
         local right_pane_id=$(tmux split-window -h -t "$left_pane_id" -P -F '#{pane_id}')
+        tmux send-keys -t "$right_pane_id" 'T' Enter
         tmux send-keys -t "$right_pane_id" 'VB' Enter
+        tmux send-keys -t "$right_pane_id" C-g n C-g n C-g 0
         tmux split-window -v -t "$left_pane_id" -l 8%
-        tmux split-window -v -t "$right_pane_id"
+        local bottom_right_pane_id=$(tmux split-window -v -t "$right_pane_id" -P -F '#{pane_id}')
+        tmux send-keys -t "$bottom_right_pane_id" 'NOTAR' Enter
         tmux select-pane -t "$right_pane_id"
     else
         local dir
@@ -1623,20 +1620,37 @@ function TO3() {
     tmux select-pane -t "$target_pane_id"
 }
 
-alias T='COLOR_THEME=$COLOR_THEME COLOR_TEXT_IF_COLORED_BACKGROUND=$COLOR_TEXT_IF_COLORED_BACKGROUND COLOR_HIGHLIGHT_TEXT_TMUX=$COLOR_HIGHLIGHT_TEXT_TMUX COLOR_ACTIVE=$COLOR_ACTIVE COLOR_HEX_ACTIVE_BACKGROUND=$COLOR_HEX_ACTIVE_BACKGROUND tmux -2'
-alias TLS="tmux ls"
-alias TKAS="tmux kill-server"
+function T() {
+    # Nested tmux sessions with auto-cleanup (destroy-unattached when launched from within tmux).
+    # Nested sessions live on a SEPARATE socket (-L nested) so background scripts' implicit
+    # tmux targets can never resolve across nesting levels.
+    if [[ -n "$TMUX" ]]; then
+        TMUX= COLOR_THEME=$COLOR_THEME COLOR_TEXT_IF_COLORED_BACKGROUND=$COLOR_TEXT_IF_COLORED_BACKGROUND COLOR_HIGHLIGHT_TEXT_TMUX=$COLOR_HIGHLIGHT_TEXT_TMUX COLOR_ACTIVE=$COLOR_ACTIVE COLOR_HEX_ACTIVE_BACKGROUND=$COLOR_HEX_ACTIVE_BACKGROUND tmux -2 -L nested new-session "$@" \; set destroy-unattached on
+    else
+        COLOR_THEME=$COLOR_THEME COLOR_TEXT_IF_COLORED_BACKGROUND=$COLOR_TEXT_IF_COLORED_BACKGROUND COLOR_HIGHLIGHT_TEXT_TMUX=$COLOR_HIGHLIGHT_TEXT_TMUX COLOR_ACTIVE=$COLOR_ACTIVE COLOR_HEX_ACTIVE_BACKGROUND=$COLOR_HEX_ACTIVE_BACKGROUND tmux -2 "$@"
+    fi
+}
+function TLS() {
+    echo "default:"
+    tmux ls 2>/dev/null || echo "  (no server)"
+    echo "nested:"
+    tmux -L nested ls 2>/dev/null || echo "  (no server)"
+}
+function TKAS() {
+    tmux -L nested kill-server 2>/dev/null
+    tmux kill-server
+}
 alias TLV="tmux show-window-options"
 
 #  %% -------- [AI] ----------:
 
-function TMUX_KIRO_FORK_VERTICAL_SPLIT() {
+function TMUX_KIRO_FORK_NEW_WINDOW() {
     local orig_pane_id=$(tmux display-message -p '#{pane_id}')
-    local new_pane_id=$(tmux split-window -v -l 50% -t "$orig_pane_id" -P -F '#{pane_id}')
-    tmux send-keys -t "$orig_pane_id" "/chat save /tmp/kiro_fork.txt --force" Enter
-    tmux send-keys -t "$new_pane_id" "KK" Enter
-    sleep 10
-    tmux send-keys -t "$new_pane_id" "/chat load /tmp/kiro_fork.txt" Enter
+    local orig_window_id=$(tmux display-message -p -t "$orig_pane_id" '#{window_id}')
+    local kiro_saved_session_file_path="/tmp/kiro_fork_$(date +%Y_%m_%d-%H_%M_%S).json"
+    local new_pane_id=$(tmux new-window -a -t "$orig_window_id" -c "$PWD" -P -F '#{pane_id}')
+    tmux send-keys -t "$orig_pane_id" "/chat save $kiro_saved_session_file_path --force" Enter
+    tmux send-keys -t "$new_pane_id" "KK '/chat load $kiro_saved_session_file_path'" Enter
 }
 
 function KKE() {
