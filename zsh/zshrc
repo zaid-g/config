@@ -1481,15 +1481,44 @@ alias PC="pre-commit run -a"
 
 # %% -------- [tmux] ----------:
 
-# """ Note:
-# tmux commands continue in new(ly focused) splits/windows
-# but shell commands continue in calling pane
-# the trick is to never send keys to trigger a function
-# that calls tmux commands and later trigger tmux commands
-# (the send keys is asynchronous and tmux changes state before
-# the nested tmux commands execute) unless the downstream calls
-# know how to target the right panes.
-# """
+function FIND_NESTED_TMUX_SERVER_SOCKET_FILE_PATHS() {
+    local tmux_socket_dir="${TMUX_TMPDIR:-/tmp}/tmux-$(id -u)"
+    print -l "$tmux_socket_dir"/nested_*(N)
+}
+
+function DISABLE_TMUX_WINDOW_AUTO_RENAME(){
+    tmux set-window-option -t $TMUX_PANE @AUTORENAME 0
+}
+
+function ENABLE_TMUX_WINDOW_AUTO_RENAME(){
+    tmux set-window-option -u -t $TMUX_PANE @AUTORENAME
+}
+
+function TMUX_SWAP_WINDOW_PREV() {
+    local current_window_index=$(tmux display-message -p '#{window_index}')
+    [[ "$current_window_index" -gt 0 ]] && tmux swap-window -t -1 \; select-window -t -1 || true
+}
+
+function TMUX_SWAP_WINDOW_NEXT() {
+    local current_window_index=$(tmux display-message -p '#{window_index}')
+    local last_window_index=$(tmux list-windows -F '#{window_index}' | tail -1)
+    [[ "$current_window_index" -lt "$last_window_index" ]] && tmux swap-window -t +1 \; select-window -t +1 || true
+}
+
+function COMPUTE_TMUX_WINDOW_NAME_FROM_PWD() {
+    [[ "$PWD" == "/" ]] && return
+    local window_name
+    window_name=$(FIND_BRAIN_PARENT_NAME 2>/dev/null) || window_name=$(basename "$PWD")
+    [[ ${#window_name} -gt 15 ]] && window_name="${window_name:0:12}…"
+    echo "$window_name"
+}
+
+function TMUX_RENAME_WINDOW() {
+    local window_name
+    window_name=$(COMPUTE_TMUX_WINDOW_NAME_FROM_PWD)
+    [[ -z "$window_name" ]] && return
+    tmux rename-window -t "$TMUX_PANE" "$window_name"
+}
 
 function TAS() {
     if [[ -n "$1" ]]; then
@@ -1525,33 +1554,6 @@ function TKS() {
     fi
 }
 
-function NOTAR(){
-    tmux set-window-option -t $TMUX_PANE @AUTORENAME 0
-}
-
-function TAR(){
-    tmux set-window-option -u -t $TMUX_PANE @AUTORENAME
-}
-
-function TMUX_SWAP_WINDOW_PREV() {
-    local current_window_index=$(tmux display-message -p '#{window_index}')
-    [[ "$current_window_index" -gt 0 ]] && tmux swap-window -t -1 \; select-window -t -1 || true
-}
-
-function TMUX_SWAP_WINDOW_NEXT() {
-    local current_window_index=$(tmux display-message -p '#{window_index}')
-    local last_window_index=$(tmux list-windows -F '#{window_index}' | tail -1)
-    [[ "$current_window_index" -lt "$last_window_index" ]] && tmux swap-window -t +1 \; select-window -t +1 || true
-}
-
-function TMUX_RENAME_WINDOW() {
-    [[ "$PWD" == "/" ]] && return
-    local window_name
-    window_name=$(FIND_BRAIN_PARENT_NAME 2>/dev/null) || window_name=$(basename "$PWD")
-    [[ ${#window_name} -gt 15 ]] && window_name="${window_name:0:12}…"
-    tmux rename-window -t "$TMUX_PANE" "$window_name"
-}
-
 # Tmux open defaults
 function TOD() {
     CD # guard, shouldn't do anything
@@ -1567,7 +1569,7 @@ function TOD() {
 function TOT() {
     local target_pane_id="$TMUX_PANE"
     tmux send-keys -t "$target_pane_id" 'CDJ' Enter
-    tmux send-keys -t "$target_pane_id" 'NOTAR' Enter
+    tmux send-keys -t "$target_pane_id" 'DISABLE_TMUX_WINDOW_AUTO_RENAME' Enter
     tmux send-keys -t "$target_pane_id" 'tmux rename-window -t $TMUX_PANE term' Enter
 }
 
@@ -1585,9 +1587,8 @@ function TOBP() {
         tmux send-keys -t "$right_pane_id" 'T' Enter
         tmux send-keys -t "$right_pane_id" 'VB' Enter
         tmux send-keys -t "$right_pane_id" C-g n C-g n C-g 0
-        tmux split-window -v -t "$left_pane_id" -l 8%
         local bottom_right_pane_id=$(tmux split-window -v -t "$right_pane_id" -P -F '#{pane_id}')
-        tmux send-keys -t "$bottom_right_pane_id" 'NOTAR' Enter
+        tmux send-keys -t "$bottom_right_pane_id" 'DISABLE_TMUX_WINDOW_AUTO_RENAME' Enter
         tmux select-pane -t "$right_pane_id"
     else
         local dir
@@ -1621,25 +1622,44 @@ function TO3() {
 }
 
 function T() {
-    # Nested tmux sessions with auto-cleanup (destroy-unattached when launched from within tmux).
-    # Nested sessions live on a SEPARATE socket (-L nested) so background scripts' implicit
-    # tmux targets can never resolve across nesting levels.
     if [[ -n "$TMUX" ]]; then
-        TMUX= COLOR_THEME=$COLOR_THEME COLOR_TEXT_IF_COLORED_BACKGROUND=$COLOR_TEXT_IF_COLORED_BACKGROUND COLOR_HIGHLIGHT_TEXT_TMUX=$COLOR_HIGHLIGHT_TEXT_TMUX COLOR_ACTIVE=$COLOR_ACTIVE COLOR_HEX_ACTIVE_BACKGROUND=$COLOR_HEX_ACTIVE_BACKGROUND tmux -2 -L nested new-session "$@" \; set destroy-unattached on
+        local nested_tmux_server_socket_name="nested_$(date +%Y_%m_%d-%H_%M_%S)_$RANDOM"
+        # name the window at creation: a fresh shell never fires chpwd, so auto-rename wouldn't
+        local window_name=$(COMPUTE_TMUX_WINDOW_NAME_FROM_PWD)
+        local -a window_name_args=()
+        [[ -n "$window_name" ]] && window_name_args=(-n "$window_name")
+        TMUX= COLOR_THEME=$COLOR_THEME COLOR_TEXT_IF_COLORED_BACKGROUND=$COLOR_TEXT_IF_COLORED_BACKGROUND COLOR_HIGHLIGHT_TEXT_TMUX=$COLOR_HIGHLIGHT_TEXT_TMUX COLOR_ACTIVE=$COLOR_ACTIVE COLOR_HEX_ACTIVE_BACKGROUND=$COLOR_HEX_ACTIVE_BACKGROUND tmux -2 -L "$nested_tmux_server_socket_name" new-session "${window_name_args[@]}" "$@" \; set destroy-unattached on
     else
         COLOR_THEME=$COLOR_THEME COLOR_TEXT_IF_COLORED_BACKGROUND=$COLOR_TEXT_IF_COLORED_BACKGROUND COLOR_HIGHLIGHT_TEXT_TMUX=$COLOR_HIGHLIGHT_TEXT_TMUX COLOR_ACTIVE=$COLOR_ACTIVE COLOR_HEX_ACTIVE_BACKGROUND=$COLOR_HEX_ACTIVE_BACKGROUND tmux -2 "$@"
     fi
 }
+
+# -L default is explicit because bare tmux commands run from inside a nested pane would
+# resolve to that pane's nested server via $TMUX
 function TLS() {
     echo "default:"
-    tmux ls 2>/dev/null || echo "  (no server)"
-    echo "nested:"
-    tmux -L nested ls 2>/dev/null || echo "  (no server)"
+    tmux -L default ls 2>/dev/null || echo "  (no server)"
+    local nested_tmux_server_socket_file_path server_listing
+    for nested_tmux_server_socket_file_path in $(FIND_NESTED_TMUX_SERVER_SOCKET_FILE_PATHS); do
+        if server_listing=$(tmux -L "${nested_tmux_server_socket_file_path:t}" ls 2>/dev/null); then
+            echo "${nested_tmux_server_socket_file_path:t}:"
+            echo "$server_listing"
+        else
+            # dead server leaves its socket file behind — clean it up silently
+            rm -f "$nested_tmux_server_socket_file_path"
+        fi
+    done
 }
+
 function TKAS() {
-    tmux -L nested kill-server 2>/dev/null
-    tmux kill-server
+    local nested_tmux_server_socket_file_path
+    for nested_tmux_server_socket_file_path in $(FIND_NESTED_TMUX_SERVER_SOCKET_FILE_PATHS); do
+        tmux -L "${nested_tmux_server_socket_file_path:t}" kill-server 2>/dev/null
+        rm -f "$nested_tmux_server_socket_file_path"
+    done
+    tmux -L default kill-server
 }
+
 alias TLV="tmux show-window-options"
 
 #  %% -------- [AI] ----------:
