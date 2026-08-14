@@ -1843,7 +1843,7 @@ alias CHROME="google-chrome-stable --ozone-platform=wayland"
 function BP_AUTOCOMPLETE() {
     local brain_parent_path
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH 2>/dev/null) || return
-    compadd -- "$brain_parent_path"/*(N:t)
+    _files -W "$brain_parent_path/"
 }
 
 autoload -U compinit
