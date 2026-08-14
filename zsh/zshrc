@@ -40,9 +40,20 @@ function FIND_BRAIN_PARENT_NAME() {
     basename "$brain_parent_path"
 }
 
+function COPY_DEFAULT_TMUX_LAYOUT_FILES_IF_MISSING() {
+    local default_tmux_layout_dir="$HOME/doc/config/config/tmux/tmux_layout"
+    mkdir -p brain/tmux_layout
+    local default_tmux_layout_file_path
+    for default_tmux_layout_file_path in "$default_tmux_layout_dir"/pane_*.txt; do
+        [[ -e "brain/tmux_layout/${default_tmux_layout_file_path:t}" ]] \
+            || cp "$default_tmux_layout_file_path" brain/tmux_layout/
+    done
+}
+
 # brain/junk = unorganized notes/pastes — "junk" means unfiled, NOT disposable
 function TB() {
     mkdir -p brain/junk brain/logs brain/ai brain/command_output brain/tmp
+    COPY_DEFAULT_TMUX_LAYOUT_FILES_IF_MISSING
     touch brain/notes.txt brain/junk/junk.txt brain/related.txt brain/ai/ai.txt brain/tags.txt brain/brag.txt
     [[ "$IS_DEV_MACHINE" == "true" ]] && TCH
 }
@@ -176,6 +187,8 @@ function ECHO_PREEXEC_COMMANDS() {
 function DEDUP_COMMAND_HISTORY() {
     local brain_parent_path=$(FIND_BRAIN_PARENT_PATH 2>/dev/null)
     local command_history_file_path="$brain_parent_path/brain/command_history.txt"
+    # $$ keeps panes in the same brain parent from racing on one shared temp file
+    local command_history_temp_file_path="$command_history_file_path.$$.tmp"
     [[ -z $brain_parent_path || ! -f $command_history_file_path || ! -s $command_history_file_path ]] && return
     awk '
         BEGIN { RS=""; ORS="\n\n" }
@@ -195,7 +208,7 @@ function DEDUP_COMMAND_HISTORY() {
         BEGIN { RS=""; ORS="\n\n" }
         { blocks[NR] = $0 }
         END { for (i=NR; i>=1; i--) print blocks[i] }
-    ' > "$command_history_file_path.tmp" && mv "$command_history_file_path.tmp" "$command_history_file_path"
+    ' > "$command_history_temp_file_path" && mv "$command_history_temp_file_path" "$command_history_file_path" || rm -f "$command_history_temp_file_path"
 }
 
 function preexec() {
@@ -1573,23 +1586,35 @@ function TOT() {
     tmux send-keys -t "$target_pane_id" 'tmux rename-window -t $TMUX_PANE term' Enter
 }
 
+function SEND_TMUX_LAYOUT_KEYS_TO_PANE() {
+    local pane_id="$1"
+    local pane_index=$(tmux display-message -p -t "$pane_id" '#{pane_index}')
+    local tmux_layout_file_path="brain/tmux_layout/pane_$pane_index.txt"
+    [[ -f "$tmux_layout_file_path" ]] || return 0
+    local tmux_layout_line
+    for tmux_layout_line in ${(f)"$(cat "$tmux_layout_file_path")"}; do
+        [[ -z "${tmux_layout_line// /}" || "$tmux_layout_line" == \#* ]] && continue
+        tmux send-keys -t "$pane_id" ${(Q)${(z)tmux_layout_line}}
+    done
+}
+
 # tmux open brain parent
 function TOBP() {
     if [[ $# -eq 0 ]]; then
+        local current_window_pane_count=$(tmux display-message -p -t "$TMUX_PANE" '#{window_panes}')
+        if [[ "$current_window_pane_count" -ne 1 ]]; then
+            echo "TOBP: window has $current_window_pane_count panes, expected 1" >&2
+            return 1
+        fi
         CDBP || return 1
         date +%Y_%m_%d-%H_%M_%S > brain/.last_opened
         local left_pane_id="$TMUX_PANE"
-        # Nested tmux sessions with auto-cleanup
-        tmux send-keys -t "$left_pane_id" 'T' Enter
-        tmux send-keys -t "$left_pane_id" 'AIR' Enter
-        tmux send-keys -t "$left_pane_id" C-g n C-g n C-g 0
-        local right_pane_id=$(tmux split-window -h -t "$left_pane_id" -P -F '#{pane_id}')
-        tmux send-keys -t "$right_pane_id" 'T' Enter
-        tmux send-keys -t "$right_pane_id" 'VB' Enter
-        tmux send-keys -t "$right_pane_id" C-g n C-g n C-g 0
-        local bottom_right_pane_id=$(tmux split-window -v -t "$right_pane_id" -P -F '#{pane_id}')
-        tmux send-keys -t "$bottom_right_pane_id" 'DISABLE_TMUX_WINDOW_AUTO_RENAME' Enter
-        tmux select-pane -t "$right_pane_id"
+        local right_top_pane_id=$(tmux split-window -h -t "$left_pane_id" -P -F '#{pane_id}')
+        local right_bottom_pane_id=$(tmux split-window -v -t "$right_top_pane_id" -P -F '#{pane_id}')
+        SEND_TMUX_LAYOUT_KEYS_TO_PANE "$left_pane_id"
+        SEND_TMUX_LAYOUT_KEYS_TO_PANE "$right_top_pane_id"
+        SEND_TMUX_LAYOUT_KEYS_TO_PANE "$right_bottom_pane_id"
+        tmux select-pane -t "$right_top_pane_id"
     else
         local dir
         for dir in "${(Oa)@}"; do
@@ -1622,15 +1647,17 @@ function TO3() {
 }
 
 function T() {
+    local window_name=$(COMPUTE_TMUX_WINDOW_NAME_FROM_PWD)
+    local -a window_name_args=()
+    [[ -n "$window_name" ]] && window_name_args=(-n "$window_name")
     if [[ -n "$TMUX" ]]; then
         local nested_tmux_server_socket_name="nested_$(date +%Y_%m_%d-%H_%M_%S)_$RANDOM"
-        # name the window at creation: a fresh shell never fires chpwd, so auto-rename wouldn't
-        local window_name=$(COMPUTE_TMUX_WINDOW_NAME_FROM_PWD)
-        local -a window_name_args=()
-        [[ -n "$window_name" ]] && window_name_args=(-n "$window_name")
-        TMUX= COLOR_THEME=$COLOR_THEME COLOR_TEXT_IF_COLORED_BACKGROUND=$COLOR_TEXT_IF_COLORED_BACKGROUND COLOR_HIGHLIGHT_TEXT_TMUX=$COLOR_HIGHLIGHT_TEXT_TMUX COLOR_ACTIVE=$COLOR_ACTIVE COLOR_HEX_ACTIVE_BACKGROUND=$COLOR_HEX_ACTIVE_BACKGROUND tmux -2 -L "$nested_tmux_server_socket_name" new-session "${window_name_args[@]}" "$@" \; set destroy-unattached on
+        TMUX= tmux -L "$nested_tmux_server_socket_name" new-session "${window_name_args[@]}" "$@" \; set destroy-unattached on
+    elif [[ $# -eq 0 ]]; then
+        tmux new-session "${window_name_args[@]}"
     else
-        COLOR_THEME=$COLOR_THEME COLOR_TEXT_IF_COLORED_BACKGROUND=$COLOR_TEXT_IF_COLORED_BACKGROUND COLOR_HIGHLIGHT_TEXT_TMUX=$COLOR_HIGHLIGHT_TEXT_TMUX COLOR_ACTIVE=$COLOR_ACTIVE COLOR_HEX_ACTIVE_BACKGROUND=$COLOR_HEX_ACTIVE_BACKGROUND tmux -2 "$@"
+        # args are an arbitrary tmux subcommand (attach, ls, ...) — nothing to name
+        tmux "$@"
     fi
 }
 
