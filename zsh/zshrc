@@ -1601,12 +1601,12 @@ function SEND_TMUX_LAYOUT_KEYS_TO_PANE() {
 
 # tmux open brain parent
 function TOBP() {
+    local current_window_pane_count=$(tmux display-message -p -t "$TMUX_PANE" '#{window_panes}')
+    if [[ "$current_window_pane_count" -ne 1 ]]; then
+        echo "TOBP: window has $current_window_pane_count panes, expected 1" >&2
+        return 1
+    fi
     if [[ $# -eq 0 ]]; then
-        local current_window_pane_count=$(tmux display-message -p -t "$TMUX_PANE" '#{window_panes}')
-        if [[ "$current_window_pane_count" -ne 1 ]]; then
-            echo "TOBP: window has $current_window_pane_count panes, expected 1" >&2
-            return 1
-        fi
         CDBP || return 1
         date +%Y_%m_%d-%H_%M_%S > brain/.last_opened
         local left_pane_id="$TMUX_PANE"
