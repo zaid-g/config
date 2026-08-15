@@ -1580,21 +1580,11 @@ function TKS() {
 
 # Tmux open defaults
 function TOD() {
-    CD # guard, shouldn't do anything
-    local target_pane_id="$TMUX_PANE"
-    tmux send-keys -t "$target_pane_id" 'TOT' Enter
-    target_pane_id=$(tmux new-window -P -F '#{pane_id}')
-    tmux send-keys -t "$target_pane_id" 'CD && TOBP' Enter
-    target_pane_id=$(tmux new-window -P -F '#{pane_id}')
-    tmux send-keys -t "$target_pane_id" 'CDC && TOBP' Enter
-}
-
-# tmux open terminal window
-function TOT() {
-    local target_pane_id="$TMUX_PANE"
-    tmux send-keys -t "$target_pane_id" 'CDJ' Enter
-    tmux send-keys -t "$target_pane_id" 'DISABLE_TMUX_WINDOW_AUTO_RENAME' Enter
-    tmux send-keys -t "$target_pane_id" 'tmux rename-window -t $TMUX_PANE term' Enter
+    if [[ ${#TMUX_BRAIN_PARENT_PATHS[@]} -eq 0 ]]; then
+        echo "TOD: TMUX_BRAIN_PARENT_PATHS is empty" >&2
+        return 1
+    fi
+    TOBP "${TMUX_BRAIN_PARENT_PATHS[@]}"
 }
 
 function SEND_TMUX_LAYOUT_KEYS_TO_PANE() {
@@ -1625,13 +1615,15 @@ function TOBP() {
         SEND_TMUX_LAYOUT_KEYS_TO_PANE "$left_pane_id"
         SEND_TMUX_LAYOUT_KEYS_TO_PANE "$right_top_pane_id"
         SEND_TMUX_LAYOUT_KEYS_TO_PANE "$right_bottom_pane_id"
-        tmux select-pane -t "$right_top_pane_id"
     else
-        local dir
-        for dir in "${(Oa)@}"; do
-            local pane_id=$(tmux new-window -a -d -c "$dir" -P -F '#{pane_id}')
+        local remaining_brain_parent_paths=("${@[2,-1]}")
+        local brain_parent_path
+        for brain_parent_path in "${(Oa)remaining_brain_parent_paths[@]}"; do
+            local pane_id=$(tmux new-window -a -d -c "$brain_parent_path" -P -F '#{pane_id}')
             tmux send-keys -t "$pane_id" 'TOBP' Enter
         done
+        cd "$1" || return 1
+        TOBP
     fi
 }
 
@@ -1699,6 +1691,11 @@ function TKAS() {
 }
 
 alias TLV="tmux show-window-options"
+TMUX_BRAIN_PARENT_PATHS=(
+    ~/doc/term
+    ~/doc
+    ~/doc/config
+)
 
 #  %% -------- [AI] ----------:
 
