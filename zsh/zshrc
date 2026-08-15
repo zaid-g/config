@@ -185,7 +185,7 @@ function ECHO_PREEXEC_COMMANDS() {
 }
 
 function DEDUP_COMMAND_HISTORY() {
-    local brain_parent_path=$(FIND_BRAIN_PARENT_PATH 2>/dev/null)
+    local brain_parent_path="$1"
     local command_history_file_path="$brain_parent_path/brain/command_history.txt"
     # $$ keeps panes in the same brain parent from racing on one shared temp file
     local command_history_temp_file_path="$command_history_file_path.$$.tmp"
@@ -212,18 +212,19 @@ function DEDUP_COMMAND_HISTORY() {
 }
 
 function preexec() {
-    # dedup command history
-    DEDUP_COMMAND_HISTORY
-    # flag to see if preexec ran
     ___PREEXEC_RAN_FOR_USER_ENTRY=true
-    # what user inputted and from where
     ___COMMAND_TYPED="$1"
     ___COMMAND_ONELINE="$2"
     ___COMMAND_MULTILINE="$3"
-    ___COMMAND_FORMATTED="${3//$'\r'/}"
-    ___COMMAND_FORMATTED="${___COMMAND_FORMATTED//$'\n'/; }"
+    ___COMMAND_FORMATTED="$1"
+    while [[ "$___COMMAND_FORMATTED" == *[$'\n\r'] ]]; do
+        ___COMMAND_FORMATTED="${___COMMAND_FORMATTED[1,-2]}"
+    done
+    if [[ "$___COMMAND_FORMATTED" == *[$'\n\r']* ]]; then
+        ___COMMAND_FORMATTED="eval ${(qqqq)___COMMAND_FORMATTED}"
+    fi
     ___COMMAND_PATH="$PWD"
-    # datetime calculations
+    ___COMMAND_BRAIN_PARENT_PATH=$(FIND_BRAIN_PARENT_PATH 2>/dev/null)
     ___COMMAND_START_EPOCH_SECONDS=$(date +%s)
     ___COMMAND_START_DATETIME=$(date '+%Y-%m-%d %H:%M:%S')
 }
@@ -243,17 +244,24 @@ function precmd() {
     # print execution time
     (( ___COMMAND_ELAPSED >= ___COMMAND_DURATION_LOGGING_THRESHOLD )) && echo "\n - Time: $___COMMAND_DURATION ($___COMMAND_START_DATETIME → $___COMMAND_END_DATETIME)\n"
     # log in command history file
-    local brain_parent_path=$(FIND_BRAIN_PARENT_PATH 2>/dev/null)
+    local brain_parent_path="$___COMMAND_BRAIN_PARENT_PATH"
+    [[ -z $brain_parent_path || -z $___COMMAND_FORMATTED ]] && return
     local command_history_file_path="$brain_parent_path/brain/command_history.txt"
-    if [[ -n $brain_parent_path && -f $command_history_file_path && -n $___COMMAND_FORMATTED ]]; then
+    local command_history_full_file_path="$brain_parent_path/brain/command_history_full.txt"
+    local command_history_lock_file_path="/tmp/.command_history_lock_${brain_parent_path//\//_}"
+    local command_history_lock_fd
+    : >>"$command_history_lock_file_path"
+    zsystem flock -f command_history_lock_fd "$command_history_lock_file_path" || return
+    if [[ -f $command_history_file_path ]]; then
         printf '%s\n%s\nexit:%s\n%s\n%s\n%s\n\n' \
             "$___COMMAND_FORMATTED" "$___COMMAND_PATH" "$___COMMAND_EXIT_CODE" "$___COMMAND_START_DATETIME" "$___COMMAND_END_DATETIME" "$___COMMAND_DURATION" >> "$command_history_file_path"
     fi
-    local command_history_full_file_path="$brain_parent_path/brain/command_history_full.txt"
-    if [[ -n $brain_parent_path && -f $command_history_full_file_path && -n $___COMMAND_FORMATTED ]]; then
+    if [[ -f $command_history_full_file_path ]]; then
         printf '%s\n%s\nexit:%s\n%s\n%s\n%s\n\n' \
             "$___COMMAND_FORMATTED" "$___COMMAND_PATH" "$___COMMAND_EXIT_CODE" "$___COMMAND_START_DATETIME" "$___COMMAND_END_DATETIME" "$___COMMAND_DURATION" >> "$command_history_full_file_path"
     fi
+    DEDUP_COMMAND_HISTORY "$brain_parent_path"
+    zsystem flock -u $command_history_lock_fd
 }
 
 function chpwd() {
@@ -280,6 +288,7 @@ ___COMMAND_ONELINE=""
 ___COMMAND_MULTILINE=""
 ___COMMAND_FORMATTED=""
 ___COMMAND_PATH=""
+___COMMAND_BRAIN_PARENT_PATH=""
 ___COMMAND_START_EPOCH_SECONDS=""
 ___COMMAND_START_DATETIME=""
 ___COMMAND_END_EPOCH_SECONDS=""
@@ -287,6 +296,8 @@ ___COMMAND_END_DATETIME=""
 ___COMMAND_ELAPSED=""
 ___COMMAND_DURATION=""
 ___COMMAND_EXIT_CODE=""
+
+zmodload zsh/system
 
 #  %% -------- [files folders path management] ----------:
 
