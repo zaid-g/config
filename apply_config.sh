@@ -20,6 +20,7 @@ PREPEND_LINE_IF_NOT_EXISTS() {
 # 2. temporary projects that will be deleted. 3. archived projects. All it means is that
 # they haven't been put into their right place (unfiled) on file system
 mkdir -p ~/doc/junk
+mkdir -p ~/doc/term
 mkdir -p ~/app/
 mkdir -p ~/dat/
 mkdir -p ~/junk/
