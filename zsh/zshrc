@@ -40,20 +40,20 @@ function FIND_BRAIN_PARENT_NAME() {
     basename "$brain_parent_path"
 }
 
-function COPY_DEFAULT_TMUX_LAYOUT_FILES_IF_MISSING() {
-    local default_tmux_layout_dir="$HOME/doc/config/config/tmux/tmux_layout"
-    mkdir -p brain/tmux_layout
-    local default_tmux_layout_file_path
-    for default_tmux_layout_file_path in "$default_tmux_layout_dir"/pane_*.txt; do
-        [[ -e "brain/tmux_layout/${default_tmux_layout_file_path:t}" ]] \
-            || cp "$default_tmux_layout_file_path" brain/tmux_layout/
+function COPY_DEFAULT_TMUX_PANE_LAYOUT_FILES_IF_MISSING() {
+    local default_tmux_pane_layout_dir="$HOME/doc/config/config/tmux/tmux_pane_layout"
+    mkdir -p brain/tmux_pane_layout
+    local default_tmux_pane_layout_file_path
+    for default_tmux_pane_layout_file_path in "$default_tmux_pane_layout_dir"/pane_*.txt; do
+        [[ -e "brain/tmux_pane_layout/${default_tmux_pane_layout_file_path:t}" ]] \
+            || cp "$default_tmux_pane_layout_file_path" brain/tmux_pane_layout/
     done
 }
 
 # brain/junk = unorganized notes/pastes — "junk" means unfiled, NOT disposable
 function TB() {
     mkdir -p brain/junk brain/logs brain/ai brain/command_output brain/tmp
-    COPY_DEFAULT_TMUX_LAYOUT_FILES_IF_MISSING
+    COPY_DEFAULT_TMUX_PANE_LAYOUT_FILES_IF_MISSING
     touch brain/notes.txt brain/junk/junk.txt brain/related.txt brain/ai/ai.txt brain/tags.txt brain/brag.txt
     [[ "$IS_DEV_MACHINE" == "true" ]] && TCH
 }
@@ -1505,6 +1505,18 @@ alias PC="pre-commit run -a"
 
 # %% -------- [tmux] ----------:
 
+function SEND_TMUX_PANE_LAYOUT_KEYS_TO_PANE() {
+    local pane_id="$1"
+    local pane_index=$(tmux display-message -p -t "$pane_id" '#{pane_index}')
+    local tmux_pane_layout_file_path="brain/tmux_pane_layout/pane_$pane_index.txt"
+    [[ -f "$tmux_pane_layout_file_path" ]] || return 0
+    local tmux_pane_layout_line
+    for tmux_pane_layout_line in ${(f)"$(cat "$tmux_pane_layout_file_path")"}; do
+        [[ -z "${tmux_pane_layout_line// /}" || "$tmux_pane_layout_line" == \#* ]] && continue
+        tmux send-keys -t "$pane_id" ${(Q)${(z)tmux_pane_layout_line}}
+    done
+}
+
 function FIND_NESTED_TMUX_SERVER_SOCKET_FILE_PATHS() {
     local tmux_socket_dir="${TMUX_TMPDIR:-/tmp}/tmux-$(id -u)"
     print -l "$tmux_socket_dir"/nested_*(N)
@@ -1580,23 +1592,11 @@ function TKS() {
 
 # Tmux open defaults
 function TOD() {
-    if [[ ${#TMUX_BRAIN_PARENT_PATHS[@]} -eq 0 ]]; then
-        echo "TOD: TMUX_BRAIN_PARENT_PATHS is empty" >&2
+    if [[ ${#TMUX_WINDOW_LAYOUT[@]} -eq 0 ]]; then
+        echo "TOD: TMUX_WINDOW_LAYOUT is empty" >&2
         return 1
     fi
-    TOBP "${TMUX_BRAIN_PARENT_PATHS[@]}"
-}
-
-function SEND_TMUX_LAYOUT_KEYS_TO_PANE() {
-    local pane_id="$1"
-    local pane_index=$(tmux display-message -p -t "$pane_id" '#{pane_index}')
-    local tmux_layout_file_path="brain/tmux_layout/pane_$pane_index.txt"
-    [[ -f "$tmux_layout_file_path" ]] || return 0
-    local tmux_layout_line
-    for tmux_layout_line in ${(f)"$(cat "$tmux_layout_file_path")"}; do
-        [[ -z "${tmux_layout_line// /}" || "$tmux_layout_line" == \#* ]] && continue
-        tmux send-keys -t "$pane_id" ${(Q)${(z)tmux_layout_line}}
-    done
+    TOBP "${TMUX_WINDOW_LAYOUT[@]}"
 }
 
 # tmux open brain parent
@@ -1612,9 +1612,9 @@ function TOBP() {
         local left_pane_id="$TMUX_PANE"
         local right_top_pane_id=$(tmux split-window -h -t "$left_pane_id" -P -F '#{pane_id}')
         local right_bottom_pane_id=$(tmux split-window -v -t "$right_top_pane_id" -P -F '#{pane_id}')
-        SEND_TMUX_LAYOUT_KEYS_TO_PANE "$left_pane_id"
-        SEND_TMUX_LAYOUT_KEYS_TO_PANE "$right_top_pane_id"
-        SEND_TMUX_LAYOUT_KEYS_TO_PANE "$right_bottom_pane_id"
+        SEND_TMUX_PANE_LAYOUT_KEYS_TO_PANE "$left_pane_id"
+        SEND_TMUX_PANE_LAYOUT_KEYS_TO_PANE "$right_top_pane_id"
+        SEND_TMUX_PANE_LAYOUT_KEYS_TO_PANE "$right_bottom_pane_id"
     else
         local remaining_brain_parent_paths=("${@[2,-1]}")
         local brain_parent_path
@@ -1691,7 +1691,7 @@ function TKAS() {
 }
 
 alias TLV="tmux show-window-options"
-TMUX_BRAIN_PARENT_PATHS=(
+TMUX_WINDOW_LAYOUT=(
     ~/doc/term
     ~/doc
     ~/doc/config
