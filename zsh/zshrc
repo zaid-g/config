@@ -1698,6 +1698,20 @@ function TKAS() {
     tmux -L default kill-server
 }
 
+# tmux window layout append
+function TWLA() {
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    if (( ${TMUX_WINDOW_LAYOUT[(Ie)$brain_parent_path]} )); then
+        echo "TWLA: already present: $brain_parent_path" >&2
+        return 1
+    fi
+    local zshrc_file_path="$HOME/.zshrc"
+    print -r -- "TMUX_WINDOW_LAYOUT+=(${brain_parent_path/#$HOME/~})" >> "$zshrc_file_path" || return 1
+    TMUX_WINDOW_LAYOUT+=("$brain_parent_path")
+    print -l -- "${TMUX_WINDOW_LAYOUT[@]}"
+}
+
 alias TLV="tmux show-window-options"
 TMUX_WINDOW_LAYOUT=(
     ~/doc/term
