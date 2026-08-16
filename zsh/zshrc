@@ -953,7 +953,15 @@ function VB() {
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
     local original_dir="$PWD"
     cd "$brain_parent_path"
-    local file_paths=(brain/**/notes.txt brain/**/junk.txt brain/**/ai.txt brain/**/brag.txt)
+    local file_paths=(
+        brain/**/notes.txt 
+        brain/**/junk.txt
+        brain/**/ai.txt
+        brain/**/brag.txt
+        brain/**/pane_0.txt
+        brain/**/pane_1.txt
+        brain/**/pane_2.txt
+    )
     if [[ -f "$brain_parent_path/brain/command_history.txt" ]]; then
         file_paths+=(brain/command_history.txt)
         file_paths+=(brain/command_history_full.txt)
