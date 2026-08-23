@@ -618,6 +618,7 @@ function D() {
         if rsync -rvz "$REMOTE:$remote_file_path" ~/Downloads/; then
             local downloaded_file_name=$(basename "$remote_file_path")
             chmod -R u+w ~/Downloads/${~downloaded_file_name}
+            touch ~/Downloads/${~downloaded_file_name}
             echo "✅ rsync succeeded for $REMOTE:$remote_file_path"
         else
             echo "❌ rsync failed for $REMOTE:$remote_file_path"
@@ -639,6 +640,7 @@ function DD() {
     fi
     if rsync -avz "$REMOTE:~/Downloads/$latest_file_in_remote_downloads" ~/Downloads/; then
         chmod -R u+w ~/Downloads/"$latest_file_in_remote_downloads"
+        touch ~/Downloads/"$latest_file_in_remote_downloads"
         echo "✅ Downloaded to: ~/Downloads/$latest_file_in_remote_downloads"
     else
         echo "❌ rsync failed for $REMOTE:~/Downloads/$latest_file_in_remote_downloads"
@@ -1762,11 +1764,11 @@ alias AIR="CCR"
 function CAFF() {
     if [[ "$OSTYPE" == "darwin"* ]]
     then
-        caffeinate -dimsu -t 7200 &
-        echo "Caffeinate started for 2h (PID: $!)"
+        caffeinate -dimsu -t 21600 &
+        echo "Caffeinate started for 6h (PID: $!)"
     else
-        systemd-inhibit --what=idle:sleep:handle-lid-switch --who="Manual" --why="User requested" --mode=block sleep 7200 &> /dev/null &
-        echo "Sleep inhibited for 2h (PID: $!)"
+        systemd-inhibit --what=idle:sleep:handle-lid-switch --who="Manual" --why="User requested" --mode=block sleep 21600 &> /dev/null &
+        echo "Sleep inhibited for 6h (PID: $!)"
     fi
 }
 
@@ -1834,19 +1836,14 @@ alias CRPULL="cr-pull -w"
 # %% -------- [config management] ----------:
 
 function FAAC() {
-    local was_in_config=false
-    [[ $PWD == ~/doc/config/config* ]] && was_in_config=true
-    (
-        cd ~/doc/config && \
-        (git clone git@github.com:zaid-g/config.git config.new || git clone https://github.com/zaid-g/config.git config.new) && \
-        rm -rf config && \
-        mv config.new config && \
-        bash config/apply_config.sh
-    )
-    [[ $was_in_config == true ]] && cd ~/doc/config/config
+    local config_repo_path=~/doc/config/config
+    git -C "$config_repo_path" fetch && \
+    git -C "$config_repo_path" reset --hard '@{u}' && \
+    git -C "$config_repo_path" clean -fd && \
+    bash "$config_repo_path/apply_config.sh"
 }
 
-alias RS="source ~/.zshrc && cd ."
+alias RS='source ~/.zshrc && cd "$PWD"'
 alias AC="bash ~/doc/config/config/apply_config.sh"
 
 #  %% -------- [unix archlinux linux] ----------:
