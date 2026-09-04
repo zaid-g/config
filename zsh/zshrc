@@ -1529,7 +1529,16 @@ function SEND_TMUX_PANE_LAYOUT_KEYS_TO_PANE() {
 
 function FIND_NESTED_TMUX_SERVER_SOCKET_FILE_PATHS() {
     local tmux_socket_dir="${TMUX_TMPDIR:-/tmp}/tmux-$(id -u)"
-    print -l "$tmux_socket_dir"/nested_*(N)
+    local -a paths=("$tmux_socket_dir"/nested_*(N))
+    # under proot each socket is an individual bind-mount: connectable by exact
+    # path but absent from a listing of $tmux_socket_dir, so the glob misses it.
+    # [t]mux keeps the pattern from matching this pipeline's own ps entry.
+    local socket_name
+    for socket_name in $(ps -A -o args= 2>/dev/null | grep -oE '[t]mux -L nested_[^ ]+' | awk '{print $3}'); do
+        [[ "$socket_name" =~ '^nested_[A-Za-z0-9_.-]+$' ]] || continue
+        paths+=("$tmux_socket_dir/$socket_name")
+    done
+    print -l -- "${(u)paths[@]}"
 }
 
 function DISABLE_TMUX_WINDOW_AUTO_RENAME(){

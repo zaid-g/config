@@ -27,6 +27,9 @@ mkdir -p ~/junk/
 mkdir -p ~/trash/
 mkdir -p ~/empty/
 mkdir -p ~/pic/
+# default; platform sections below replace this with a symlink to the host's
+# real Downloads folder where one exists (WSL -> Windows, Termux -> Android)
+mkdir -p ~/Downloads
 
 # ~/doc is the home-level brain parent (VNOTES/VJUNK/VAI depend on it);
 # zsh -i loads ~/.zshrc (just ensured above) so the TB function is defined
@@ -45,15 +48,37 @@ if [[ -n "$WSL_DISTRO_NAME" ]] && command -v wslpath >/dev/null 2>&1; then
     [[ -n "$WIN_USERPROFILE" ]] && IS_WSL=true
 fi
 
-# Downloads folder
 if [[ "$IS_WSL" == "true" ]]; then
+    # ~/Downloads -> Windows Downloads
     WIN_DOWNLOADS_DIR="$WIN_USERPROFILE/Downloads"
     mkdir -p "$WIN_DOWNLOADS_DIR"
     rm -rf ~/Downloads
     ln -s "$WIN_DOWNLOADS_DIR" ~/Downloads
     echo "✅ ~/Downloads symlinked to Windows Downloads: $WIN_DOWNLOADS_DIR"
-else
-    mkdir -p ~/Downloads
+fi
+
+# %% -------- [android termux] ----------:
+echo "--- android termux ---"
+
+# Termux itself (base app files, PATH, termux-api binaries) is bridged into
+# this proot-distro container by absolute path - not namespace-isolated -
+# so /data/data/com.termux/... is directly reachable from in here too.
+IS_TERMUX=false
+if [[ -d /data/data/com.termux/files/usr ]] && command -v termux-setup-storage >/dev/null 2>&1; then
+    IS_TERMUX=true
+fi
+
+if [[ "$IS_TERMUX" == "true" ]]; then
+    # ~/Downloads -> Android shared Downloads (/storage/emulated/0/Download),
+    # which termux-setup-storage exposes as ~/storage/downloads in Termux's home
+    ANDROID_DOWNLOADS_DIR=/data/data/com.termux/files/home/storage/downloads
+    if [[ -d "$ANDROID_DOWNLOADS_DIR" ]]; then
+        rm -rf ~/Downloads
+        ln -s "$ANDROID_DOWNLOADS_DIR" ~/Downloads
+        echo "✅ ~/Downloads symlinked to Android Downloads: $ANDROID_DOWNLOADS_DIR"
+    else
+        echo "❌ Android shared storage not set up — run 'termux-setup-storage' (grant the permission prompt), then re-run this script"
+    fi
 fi
 
 # %% -------- [nvim base] ----------:
