@@ -73,14 +73,12 @@ function TCH() {
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
     mkdir -p "$brain_parent_path/brain"
     touch "$brain_parent_path/brain/command_history.txt"
-    touch "$brain_parent_path/brain/command_history_full.txt"
 }
 
 function RCH() {
     local brain_parent_path
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
     rm -f "$brain_parent_path/brain/command_history.txt"
-    rm -f "$brain_parent_path/brain/command_history_full.txt"
 }
 
 function WB() {
@@ -184,31 +182,37 @@ function ECHO_PREEXEC_COMMANDS() {
     echo $___COMMAND_MULTILINE
 }
 
-function DEDUP_COMMAND_HISTORY() {
-    local brain_parent_path="$1"
-    local command_history_file_path="$brain_parent_path/brain/command_history.txt"
-    # $$ keeps panes in the same brain parent from racing on one shared temp file
-    local command_history_temp_file_path="$command_history_file_path.$$.tmp"
-    [[ -z $brain_parent_path || ! -f $command_history_file_path || ! -s $command_history_file_path ]] && return
-    awk '
-        BEGIN { RS=""; ORS="\n\n" }
-        { blocks[NR] = $0 }
-        END { for (i=NR; i>=1; i--) print blocks[i] }
-    ' "$command_history_file_path" | awk -v threshold="$___COMMAND_DURATION_LOGGING_THRESHOLD" '
-        BEGIN { RS=""; ORS="\n\n" }
-        {
-            split($0, lines, "\n")
-            split(lines[6], t, ":")
-            secs = t[1]*3600 + t[2]*60 + t[3]
-            if (secs > threshold) { print; next }
-            key = lines[1] SUBSEP lines[2]
-            if (!(key in seen)) { seen[key]; print }
-        }
-    ' | awk '
-        BEGIN { RS=""; ORS="\n\n" }
-        { blocks[NR] = $0 }
-        END { for (i=NR; i>=1; i--) print blocks[i] }
-    ' > "$command_history_temp_file_path" && mv "$command_history_temp_file_path" "$command_history_file_path" || rm -f "$command_history_temp_file_path"
+# Command history entry = 3 lines + blank:
+#   <command>
+#   <path>
+#   <start_datetime>  <completion area, fixed ___COMMAND_HISTORY_COMPLETION_WIDTH bytes>
+# preexec appends the block with a unique "#running:" token in the completion area, so the
+# command is on disk the instant Enter is pressed (survives Ctrl-C mash, kill-pane, kill -9,
+# power loss). precmd then overwrites that token in place with "-> end  duration  exit:N".
+# No locks: appends are single O_APPEND writes, and each shell only ever overwrites its own
+# token's bytes, so sibling panes in the same brain parent can never touch each other's blocks.
+# An entry still showing "#running:" after the fact means its shell died mid-command.
+function COMPLETE_COMMAND_HISTORY_ENTRY() {
+    local command_history_file_path="$1" running_token="$2" completion_text="$3"
+    setopt LOCAL_OPTIONS NO_MULTIBYTE # lengths/offsets must be bytes, not characters
+    [[ -f $command_history_file_path ]] || return 1
+    completion_text="${(r:$___COMMAND_HISTORY_COMPLETION_WIDTH:)completion_text}"
+    completion_text="${completion_text[1,$___COMMAND_HISTORY_COMPLETION_WIDTH]}" # never spill into the next line
+    local file_descriptor file_content="" chunk
+    sysopen -r -w -u file_descriptor "$command_history_file_path" || return 1
+    while sysread -i $file_descriptor -s 1048576 chunk; do file_content+="$chunk"; done
+    # locate our token; a nested expansion inside a %% pattern is matched literally (no globbing)
+    local content_before_token="${file_content%%${running_token}*}"
+    if [[ ${#content_before_token} -eq ${#file_content} ]]; then
+        exec {file_descriptor}>&- # token not found (file replaced/truncated mid-command): skip
+        return 1
+    fi
+    local write_status
+    sysseek -u $file_descriptor ${#content_before_token} \
+        && syswrite -o $file_descriptor -- "$completion_text"
+    write_status=$?
+    exec {file_descriptor}>&-
+    return $write_status
 }
 
 function preexec() {
@@ -225,8 +229,15 @@ function preexec() {
     fi
     ___COMMAND_PATH="$PWD"
     ___COMMAND_BRAIN_PARENT_PATH=$(FIND_BRAIN_PARENT_PATH 2>/dev/null)
-    ___COMMAND_START_EPOCH_SECONDS=$(date +%s)
-    ___COMMAND_START_DATETIME=$(date '+%Y-%m-%d %H:%M:%S')
+    ___COMMAND_START_EPOCH_SECONDS=$EPOCHSECONDS
+    strftime -s ___COMMAND_START_DATETIME '%Y-%m-%d %H:%M:%S' $EPOCHSECONDS
+    ___COMMAND_RUNNING_TOKEN=""
+    local command_history_file_path="$___COMMAND_BRAIN_PARENT_PATH/brain/command_history.txt"
+    [[ -n $___COMMAND_BRAIN_PARENT_PATH && -f $command_history_file_path && -n $___COMMAND_FORMATTED ]] || return
+    # pid + microsecond clock: unique per shell and per command
+    ___COMMAND_RUNNING_TOKEN="#running:$$.${EPOCHREALTIME/./}"
+    printf "%s\n%s\n%s  %-${___COMMAND_HISTORY_COMPLETION_WIDTH}s\n\n" \
+        "$___COMMAND_FORMATTED" "$___COMMAND_PATH" "$___COMMAND_START_DATETIME" "$___COMMAND_RUNNING_TOKEN" >> "$command_history_file_path"
 }
 
 function precmd() {
@@ -236,32 +247,23 @@ function precmd() {
     # or pure whitespace
     [[ -z $___PREEXEC_RAN_FOR_USER_ENTRY ]] && return
     ___PREEXEC_RAN_FOR_USER_ENTRY=""
-    # compute timings
-    ___COMMAND_END_EPOCH_SECONDS=$(date +%s)
-    ___COMMAND_END_DATETIME=$(date '+%Y-%m-%d %H:%M:%S')
+    # Ignore Ctrl-C for the microseconds this runs so a mashed ^C can't abort the completion
+    # write. INVARIANT: nothing in precmd may block (no locks, network, prompts) — with SIGINT
+    # held, a blocking precmd would be a hard hang. Everything below is builtins + one pwrite.
+    setopt LOCAL_TRAPS
+    trap '' INT
+    # compute timings (builtins, not $(date), so no fork)
+    ___COMMAND_END_EPOCH_SECONDS=$EPOCHSECONDS
+    strftime -s ___COMMAND_END_DATETIME '%Y-%m-%d %H:%M:%S' $EPOCHSECONDS
     ___COMMAND_ELAPSED=$(( ___COMMAND_END_EPOCH_SECONDS - ___COMMAND_START_EPOCH_SECONDS ))
-    ___COMMAND_DURATION=$(printf '%02d:%02d:%02d' $((___COMMAND_ELAPSED/3600)) $((___COMMAND_ELAPSED%3600/60)) $((___COMMAND_ELAPSED%60)))
+    printf -v ___COMMAND_DURATION '%02d:%02d:%02d' $((___COMMAND_ELAPSED/3600)) $((___COMMAND_ELAPSED%3600/60)) $((___COMMAND_ELAPSED%60))
     # print execution time
     (( ___COMMAND_ELAPSED >= ___COMMAND_DURATION_LOGGING_THRESHOLD )) && echo "\n - Time: $___COMMAND_DURATION ($___COMMAND_START_DATETIME → $___COMMAND_END_DATETIME)\n"
-    # log in command history file
-    local brain_parent_path="$___COMMAND_BRAIN_PARENT_PATH"
-    [[ -z $brain_parent_path || -z $___COMMAND_FORMATTED ]] && return
-    local command_history_file_path="$brain_parent_path/brain/command_history.txt"
-    local command_history_full_file_path="$brain_parent_path/brain/command_history_full.txt"
-    local command_history_lock_file_path="/tmp/.command_history_lock_${brain_parent_path//\//_}"
-    local command_history_lock_fd
-    : >>"$command_history_lock_file_path"
-    zsystem flock -f command_history_lock_fd "$command_history_lock_file_path" || return
-    if [[ -f $command_history_file_path ]]; then
-        printf '%s\n%s\nexit:%s\n%s\n%s\n%s\n\n' \
-            "$___COMMAND_FORMATTED" "$___COMMAND_PATH" "$___COMMAND_EXIT_CODE" "$___COMMAND_START_DATETIME" "$___COMMAND_END_DATETIME" "$___COMMAND_DURATION" >> "$command_history_file_path"
-    fi
-    if [[ -f $command_history_full_file_path ]]; then
-        printf '%s\n%s\nexit:%s\n%s\n%s\n%s\n\n' \
-            "$___COMMAND_FORMATTED" "$___COMMAND_PATH" "$___COMMAND_EXIT_CODE" "$___COMMAND_START_DATETIME" "$___COMMAND_END_DATETIME" "$___COMMAND_DURATION" >> "$command_history_full_file_path"
-    fi
-    DEDUP_COMMAND_HISTORY "$brain_parent_path"
-    zsystem flock -u $command_history_lock_fd
+    # complete the entry preexec wrote
+    [[ -n $___COMMAND_RUNNING_TOKEN ]] || return
+    COMPLETE_COMMAND_HISTORY_ENTRY "$___COMMAND_BRAIN_PARENT_PATH/brain/command_history.txt" "$___COMMAND_RUNNING_TOKEN" \
+        "-> $___COMMAND_END_DATETIME  $___COMMAND_DURATION  exit:$___COMMAND_EXIT_CODE"
+    ___COMMAND_RUNNING_TOKEN=""
 }
 
 function chpwd() {
@@ -296,8 +298,11 @@ ___COMMAND_END_DATETIME=""
 ___COMMAND_ELAPSED=""
 ___COMMAND_DURATION=""
 ___COMMAND_EXIT_CODE=""
+___COMMAND_RUNNING_TOKEN=""
+___COMMAND_HISTORY_COMPLETION_WIDTH=60 # bytes reserved on line 3 for "-> end  duration  exit:N"
 
-zmodload zsh/system
+zmodload zsh/datetime # $EPOCHSECONDS, $EPOCHREALTIME and strftime for the hooks above
+zmodload zsh/system   # sysopen/sysread/sysseek/syswrite for the in-place completion write
 
 #  %% -------- [files folders path management] ----------:
 
@@ -352,13 +357,6 @@ function CREATE_TIMESTAMPED_DIR_AND_CD() {
     mkdir -p "$timestamped_dir_path" && cd "$timestamped_dir_path"
 }
 
-function LLD() {
-    local display_count=${1:-5}
-    local total_file_count=$(ls ~/Downloads | wc -l | tr -d ' ')
-    (( total_file_count > display_count )) && echo "..."
-    ls -ltr --color=auto ~/Downloads/ | tail -n $display_count
-}
-
 #  %% --- [mkdir] ---:
 
 function MKJ() {
@@ -408,6 +406,27 @@ function LSBP() {
     local brain_parent_path
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
     ls "$brain_parent_path"
+}
+
+# ls -ltr that prints each entry's full path; args are directories (default: cwd)
+function LLR() {
+    local -a directory_paths=("${@:-.}")
+    local directory_path
+    local -a file_paths=()
+    for directory_path in "${directory_paths[@]}"; do
+        # passing the expanded absolute paths (not the directory) makes ls print full paths;
+        # -d stops it from descending into any entry that is itself a directory
+        file_paths+=("${directory_path:a}"/*(N))
+    done
+    (( ${#file_paths[@]} == 0 )) && { echo "No files found" >&2; return 1; }
+    ls -ltrd --color=auto "${file_paths[@]}"
+}
+
+function LLD() {
+    local display_count=${1:-5}
+    local total_file_count=$(ls ~/Downloads | wc -l | tr -d ' ')
+    (( total_file_count > display_count )) && echo "..."
+    ls -ltr --color=auto ~/Downloads/ | tail -n $display_count
 }
 
 #  %% --- [FP] ---:
@@ -568,7 +587,6 @@ alias FP='readlink -f' # this IS available on OS X by default
 # ls
 alias LL="ls -l --color=auto"
 alias LLA="ls -lA --color=auto"
-alias LLR="ls -ltr --color=auto"
 alias LLT="LLR ~/trash"
 alias LSR="ls -tr --color=auto | tr '\n' '\0' | xargs -0 printf \"'%s'    \" && echo"
 
@@ -966,7 +984,6 @@ function VB() {
     )
     if [[ -f "$brain_parent_path/brain/command_history.txt" ]]; then
         file_paths+=(brain/command_history.txt)
-        file_paths+=(brain/command_history_full.txt)
     fi
     local tab_count=${#file_paths[@]}
     file_paths+=(brain/**/*.txt)
@@ -975,7 +992,7 @@ function VB() {
             callback = function() vim.cmd("silent! wall") end
         })
         for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-            if vim.api.nvim_buf_get_name(buf):match("command_history%.txt$") or vim.api.nvim_buf_get_name(buf):match("command_history_full%.txt$") then
+            if vim.api.nvim_buf_get_name(buf):match("command_history%.txt$") then
                 vim.bo[buf].readonly = true
                 vim.bo[buf].modifiable = false
                 vim.bo[buf].autoread = true
@@ -1529,16 +1546,7 @@ function SEND_TMUX_PANE_LAYOUT_KEYS_TO_PANE() {
 
 function FIND_NESTED_TMUX_SERVER_SOCKET_FILE_PATHS() {
     local tmux_socket_dir="${TMUX_TMPDIR:-/tmp}/tmux-$(id -u)"
-    local -a paths=("$tmux_socket_dir"/nested_*(N))
-    # under proot each socket is an individual bind-mount: connectable by exact
-    # path but absent from a listing of $tmux_socket_dir, so the glob misses it.
-    # [t]mux keeps the pattern from matching this pipeline's own ps entry.
-    local socket_name
-    for socket_name in $(ps -A -o args= 2>/dev/null | grep -oE '[t]mux -L nested_[^ ]+' | awk '{print $3}'); do
-        [[ "$socket_name" =~ '^nested_[A-Za-z0-9_.-]+$' ]] || continue
-        paths+=("$tmux_socket_dir/$socket_name")
-    done
-    print -l -- "${(u)paths[@]}"
+    print -l "$tmux_socket_dir"/nested_*(N)
 }
 
 function DISABLE_TMUX_WINDOW_AUTO_RENAME(){
