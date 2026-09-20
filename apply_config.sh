@@ -115,6 +115,7 @@ PREPEND_LINE_IF_NOT_EXISTS ~/.zshrc '. ~/doc/config/config/zsh/zshrc'
 echo "--- tmux ---"
 
 PREPEND_LINE_IF_NOT_EXISTS ~/.tmux.conf 'source-file ~/doc/config/config/tmux/tmux.conf'
+chmod +x ~/doc/config/config/tmux/*.sh
 
 # %% -------- [python] ----------:
 echo "--- python ---"

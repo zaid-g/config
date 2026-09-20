@@ -40,20 +40,20 @@ function FIND_BRAIN_PARENT_NAME() {
     basename "$brain_parent_path"
 }
 
-function COPY_DEFAULT_TMUX_PANE_LAYOUT_FILES_IF_MISSING() {
-    local default_tmux_pane_layout_dir="$HOME/doc/config/config/tmux/tmux_pane_layout"
-    mkdir -p brain/tmux_pane_layout
-    local default_tmux_pane_layout_file_path
-    for default_tmux_pane_layout_file_path in "$default_tmux_pane_layout_dir"/pane_*.txt; do
-        [[ -e "brain/tmux_pane_layout/${default_tmux_pane_layout_file_path:t}" ]] \
-            || cp "$default_tmux_pane_layout_file_path" brain/tmux_pane_layout/
+function COPY_DEFAULT_TMUX_PANES_SETUP_FILES_IF_MISSING() {
+    local default_tmux_panes_setup_dir="$HOME/doc/config/config/tmux/tmux_panes_setup"
+    mkdir -p brain/tmux_panes_setup
+    local default_tmux_panes_setup_file_path
+    for default_tmux_panes_setup_file_path in "$default_tmux_panes_setup_dir"/pane_*.txt; do
+        [[ -e "brain/tmux_panes_setup/${default_tmux_panes_setup_file_path:t}" ]] \
+            || cp "$default_tmux_panes_setup_file_path" brain/tmux_panes_setup/
     done
 }
 
 # brain/junk = unorganized notes/pastes — "junk" means unfiled, NOT disposable
 function TB() {
     mkdir -p brain/junk brain/logs brain/ai brain/command_output brain/tmp
-    COPY_DEFAULT_TMUX_PANE_LAYOUT_FILES_IF_MISSING
+    COPY_DEFAULT_TMUX_PANES_SETUP_FILES_IF_MISSING
     touch brain/notes.txt brain/junk/junk.txt brain/related.txt brain/ai/ai.txt brain/tags.txt brain/brag.txt
     [[ "$IS_DEV_MACHINE" == "true" ]] && TCH
 }
@@ -558,8 +558,10 @@ function TARGZ() {
 
     local file_name
     file_name="$(basename "$full_file_path")"
+    local downloads_dir_path="$HOME/Downloads"
+    mkdir -p "$downloads_dir_path"
     local tmp_output_file_path="$HOME/${file_name}.tar.gz"
-    local final_output_file_path="$PWD/${file_name}.tar.gz"
+    local final_output_file_path="$downloads_dir_path/${file_name}.tar.gz"
 
     [[ -e "$final_output_file_path" ]] && { echo "Error: '$final_output_file_path' already exists"; return 1; }
     [[ -e "$tmp_output_file_path" ]] && { echo "Error: '$tmp_output_file_path' already exists"; return 1; }
@@ -1532,15 +1534,15 @@ alias PC="pre-commit run -a"
 
 # %% -------- [tmux] ----------:
 
-function SEND_TMUX_PANE_LAYOUT_KEYS_TO_PANE() {
+function SEND_TMUX_PANES_SETUP_KEYS_TO_PANE() {
     local pane_id="$1"
     local pane_index=$(tmux display-message -p -t "$pane_id" '#{pane_index}')
-    local tmux_pane_layout_file_path="brain/tmux_pane_layout/pane_$pane_index.txt"
-    [[ -f "$tmux_pane_layout_file_path" ]] || return 0
-    local tmux_pane_layout_line
-    for tmux_pane_layout_line in ${(f)"$(cat "$tmux_pane_layout_file_path")"}; do
-        [[ -z "${tmux_pane_layout_line// /}" || "$tmux_pane_layout_line" == \#* ]] && continue
-        tmux send-keys -t "$pane_id" ${(Q)${(z)tmux_pane_layout_line}}
+    local tmux_panes_setup_file_path="brain/tmux_panes_setup/pane_$pane_index.txt"
+    [[ -f "$tmux_panes_setup_file_path" ]] || return 0
+    local tmux_panes_setup_line
+    for tmux_panes_setup_line in ${(f)"$(cat "$tmux_panes_setup_file_path")"}; do
+        [[ -z "${tmux_panes_setup_line// /}" || "$tmux_panes_setup_line" == \#* ]] && continue
+        tmux send-keys -t "$pane_id" ${(Q)${(z)tmux_panes_setup_line}}
     done
 }
 
@@ -1619,11 +1621,11 @@ function TKS() {
 
 # Tmux open defaults
 function TOD() {
-    if [[ ${#TMUX_WINDOW_LAYOUT[@]} -eq 0 ]]; then
-        echo "TOD: TMUX_WINDOW_LAYOUT is empty" >&2
+    if [[ ${#TMUX_WINDOWS_SETUP[@]} -eq 0 ]]; then
+        echo "TOD: TMUX_WINDOWS_SETUP is empty" >&2
         return 1
     fi
-    TOBP "${TMUX_WINDOW_LAYOUT[@]}"
+    TOBP "${TMUX_WINDOWS_SETUP[@]}"
 }
 
 # tmux open brain parent
@@ -1639,9 +1641,9 @@ function TOBP() {
         local left_pane_id="$TMUX_PANE"
         local right_top_pane_id=$(tmux split-window -h -t "$left_pane_id" -P -F '#{pane_id}')
         local right_bottom_pane_id=$(tmux split-window -v -t "$right_top_pane_id" -P -F '#{pane_id}')
-        SEND_TMUX_PANE_LAYOUT_KEYS_TO_PANE "$left_pane_id"
-        SEND_TMUX_PANE_LAYOUT_KEYS_TO_PANE "$right_top_pane_id"
-        SEND_TMUX_PANE_LAYOUT_KEYS_TO_PANE "$right_bottom_pane_id"
+        SEND_TMUX_PANES_SETUP_KEYS_TO_PANE "$left_pane_id"
+        SEND_TMUX_PANES_SETUP_KEYS_TO_PANE "$right_top_pane_id"
+        SEND_TMUX_PANES_SETUP_KEYS_TO_PANE "$right_bottom_pane_id"
     else
         local remaining_brain_parent_paths=("${@[2,-1]}")
         local brain_parent_path
@@ -1718,21 +1720,21 @@ function TKAS() {
 }
 
 # tmux window layout append
-function TWLA() {
+function TWSA() {
     local brain_parent_path
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
-    if (( ${TMUX_WINDOW_LAYOUT[(Ie)$brain_parent_path]} )); then
-        echo "TWLA: already present: $brain_parent_path" >&2
+    if (( ${TMUX_WINDOWS_SETUP[(Ie)$brain_parent_path]} )); then
+        echo "TWSA: already present: $brain_parent_path" >&2
         return 1
     fi
     local zshrc_file_path="$HOME/.zshrc"
-    print -r -- "TMUX_WINDOW_LAYOUT+=(${brain_parent_path/#$HOME/~})" >> "$zshrc_file_path" || return 1
-    TMUX_WINDOW_LAYOUT+=("$brain_parent_path")
-    print -l -- "${TMUX_WINDOW_LAYOUT[@]}"
+    print -r -- "TMUX_WINDOWS_SETUP+=(${brain_parent_path/#$HOME/~})" >> "$zshrc_file_path" || return 1
+    TMUX_WINDOWS_SETUP+=("$brain_parent_path")
+    print -l -- "${TMUX_WINDOWS_SETUP[@]}"
 }
 
 alias TLV="tmux show-window-options"
-TMUX_WINDOW_LAYOUT=(
+TMUX_WINDOWS_SETUP=(
     ~/doc/term
     ~/doc
     ~/doc/config
