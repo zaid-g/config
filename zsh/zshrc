@@ -61,7 +61,6 @@ function TB() {
 # creates a brain parent and also sets it up as a git repository.
 function MKBP() {
     MK "$@"
-    GIG "$(basename "$PWD")" 2>/dev/null
     TB
     GI
     git add .
@@ -550,6 +549,10 @@ function CPDTBP() {
 #  %% --- [tar] ---:
 
 function TARGZ() {
+    if [[ $# -gt 1 ]]; then
+        echo "Usage: TARGZ [path]  (one path only; use '.' for the whole current directory)" >&2
+        return 1
+    fi
     local target_path="${1:-.}"
     local full_file_path
     full_file_path="$(readlink -f "$target_path")"
@@ -560,13 +563,31 @@ function TARGZ() {
     file_name="$(basename "$full_file_path")"
     local downloads_dir_path="$HOME/Downloads"
     mkdir -p "$downloads_dir_path"
-    local tmp_output_file_path="$HOME/${file_name}.tar.gz"
     local final_output_file_path="$downloads_dir_path/${file_name}.tar.gz"
 
     [[ -e "$final_output_file_path" ]] && { echo "Error: '$final_output_file_path' already exists"; return 1; }
-    [[ -e "$tmp_output_file_path" ]] && { echo "Error: '$tmp_output_file_path' already exists"; return 1; }
 
-    tar -czf "$tmp_output_file_path" -C "$(dirname "$full_file_path")" "$file_name" && mv "$tmp_output_file_path" "$final_output_file_path" && readlink -f "$final_output_file_path"
+    local temp_staging_dir_path
+    temp_staging_dir_path="$(mktemp -d)" || return 1
+    if [[ "$temp_staging_dir_path/" == "$full_file_path"/* ]]; then
+        rm -rf "$temp_staging_dir_path"
+        echo "Error: staging dir is inside '$full_file_path'; point TMPDIR outside it" >&2
+        return 1
+    fi
+    local tmp_output_file_path="$temp_staging_dir_path/${file_name}.tar.gz"
+
+    local tar_exit_code
+    tar -czf "$tmp_output_file_path" -C "$(dirname "$full_file_path")" "$file_name"
+    tar_exit_code=$?
+    if (( tar_exit_code > 1 )); then
+        rm -rf "$temp_staging_dir_path"
+        echo "Error: tar failed (exit $tar_exit_code), no archive written" >&2
+        return 1
+    fi
+    (( tar_exit_code == 1 )) && echo "Warning: files changed while reading; archive may be inconsistent" >&2
+    mv "$tmp_output_file_path" "$final_output_file_path" || { rm -rf "$temp_staging_dir_path"; return 1; }
+    rm -rf "$temp_staging_dir_path"
+    readlink -f "$final_output_file_path"
 }
 
 function UNTARGZ() {
@@ -1368,6 +1389,7 @@ function GI() {
     local file_path
     if [[ $# -eq 0 ]]; then
         if [[ ! -d .git ]]; then
+            GIG "${PWD:t}" >/dev/null
             git init
         else
             echo "Git repository already exists"
@@ -1376,6 +1398,7 @@ function GI() {
     else
         for file_path in "$@"; do
             PRINT_AS_HEADER "$file_path"
+            [[ -d "$file_path/.git" ]] || (cd "$file_path" && GIG "${PWD:t}" >/dev/null)
             git -C "$file_path" init
             [[ ! -f "$file_path/.gitignore" ]] && cp ~/doc/config/config/git/gitignore "$file_path/.gitignore"
         done
