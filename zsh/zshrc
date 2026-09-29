@@ -17,7 +17,6 @@
 setopt WARN_CREATE_GLOBAL
 setopt LOCAL_OPTIONS
 setopt PROMPT_SUBST # expands PS1 single quote (for prompt)
-stty -ixon
 export IS_DEV_MACHINE=false
 
 # %% -------- [project creation and management brain parent] ----------:
