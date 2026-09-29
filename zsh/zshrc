@@ -1667,6 +1667,8 @@ function TOBP() {
         SEND_TMUX_PANES_SETUP_KEYS_TO_PANE "$left_pane_id"
         SEND_TMUX_PANES_SETUP_KEYS_TO_PANE "$right_top_pane_id"
         SEND_TMUX_PANES_SETUP_KEYS_TO_PANE "$right_bottom_pane_id"
+        tmux select-pane -t "$right_top_pane_id"
+        tmux send-keys -t "$right_top_pane_id" i
     else
         local remaining_brain_parent_paths=("${@[2,-1]}")
         local brain_parent_path
@@ -1772,6 +1774,16 @@ function TMUX_KIRO_FORK_NEW_WINDOW() {
     local new_pane_id=$(tmux new-window -a -t "$orig_window_id" -c "$PWD" -P -F '#{pane_id}')
     tmux send-keys -t "$orig_pane_id" "/chat save $kiro_saved_session_file_path --force" Enter
     tmux send-keys -t "$new_pane_id" "KK '/chat load $kiro_saved_session_file_path'" Enter
+}
+
+function KLS() {
+    local brain_parent_path
+    FD_BRAIN_PARENTS_SORT_BY_LAST_OPENED "$@" \
+        | awk '{print $2}' \
+        | while read -r brain_parent_path; do
+            PRINT_AS_HEADER "$brain_parent_path"
+            (cd "$brain_parent_path" && kiro-cli chat --list-sessions)
+        done
 }
 
 function KKE() {
