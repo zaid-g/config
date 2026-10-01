@@ -1,9 +1,7 @@
 'DISABLE_TMUX_WINDOW_AUTO_RENAME' Enter
 'T' Enter
-'tmux rename-window user' Enter
-'tmux set-window-option -t user @AUTORENAME 0' Enter
-'tmux split-window -h -d -Z -t user.0' Enter
-'tmux new-window -d -a -n AI -c $PWD' Enter
-'tmux set-window-option -t AI @AUTORENAME 0' Enter
-'tmux split-window -h -d -t AI.0' Enter
-'tmux select-window -t user' Enter
+'tmux new-window -d -a -t :0 -n "#{window_name}" -c $PWD' Enter
+'tmux new-window -d -a -t :1 -n "#{window_name}" -c $PWD' Enter
+'tmux new-window -d -a -t :2 -n "#{window_name}" -c $PWD' Enter
+'tmux new-window -d -a -t :3 -n "#{window_name}" -c $PWD' Enter
+'tmux select-window -t :0' Enter
