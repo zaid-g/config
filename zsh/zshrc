@@ -277,7 +277,7 @@ function chpwd() {
         source "$venv_path/bin/activate"
     fi
     if [[ -n "$TMUX" ]] && [[ "$(tmux show-options -w -t $TMUX_PANE @AUTORENAME 2>/dev/null | grep -o '0$')" != "0" ]]; then
-        TMUX_RENAME_WINDOW
+        TMUX_RENAME_WINDOW_FROM_PWD
     fi
 }
 
@@ -490,7 +490,11 @@ function MVTBP() {
     [[ $# -eq 0 ]] && { echo "Usage: <command> <path>..."; return 1; }
     local brain_parent_path
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
-    mv -v "$@" "$brain_parent_path/"
+    local file_path cleaned_filename
+    for file_path in "$@"; do
+        cleaned_filename=$(CLEAN_FILENAME "$(basename "$file_path")")
+        mv -v "$file_path" "$brain_parent_path/$cleaned_filename"
+    done
 }
 
 function MVDTBP() {
@@ -537,7 +541,11 @@ function CPTBP() {
     [[ $# -eq 0 ]] && { echo "Usage: <command> <path>..."; return 1; }
     local brain_parent_path
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
-    cp -rv "$@" "$brain_parent_path/"
+    local file_path cleaned_filename
+    for file_path in "$@"; do
+        cleaned_filename=$(CLEAN_FILENAME "$(basename "$file_path")")
+        cp -rv "$file_path" "$brain_parent_path/$cleaned_filename"
+    done
 }
 
 function CPDTBP() {
@@ -553,41 +561,35 @@ function TARGZ() {
         echo "Usage: TARGZ [path]  (one path only; use '.' for the whole current directory)" >&2
         return 1
     fi
-    local target_path="${1:-.}"
-    local full_file_path
-    full_file_path="$(readlink -f "$target_path")"
+    local full_input_file_path="$(readlink -f "${1:-.}")"
+    [[ -e "$full_input_file_path" ]] || { echo "Error: '${1:-.}' does not exist" >&2; return 1; }
+    local full_staging_parent_path="$(readlink -f "$HOME/tmp")"
+    if [[ "$full_staging_parent_path" == "$full_input_file_path" || "$full_staging_parent_path" == "$full_input_file_path"/* ]]; then
+        echo "Error: refusing to archive '$full_input_file_path' because it contains the staging dir ($HOME/tmp)" >&2
+        return 1
+    fi
 
-    [[ ! -e "$full_file_path" ]] && { echo "Error: '$target_path' does not exist"; return 1; }
-
-    local file_name
-    file_name="$(basename "$full_file_path")"
-    local downloads_dir_path="$HOME/Downloads"
-    mkdir -p "$downloads_dir_path"
-    local final_output_file_path="$downloads_dir_path/${file_name}.tar.gz"
-
-    [[ -e "$final_output_file_path" ]] && { echo "Error: '$final_output_file_path' already exists"; return 1; }
+    local input_file_basename="${full_input_file_path:t}"
+    local full_archive_path="$HOME/Downloads/${input_file_basename}.tar.gz"
+    [[ -e "$full_archive_path" ]] && { echo "Error: '$full_archive_path' already exists" >&2; return 1; }
 
     local temp_staging_dir_path
-    temp_staging_dir_path="$(mktemp -d)" || return 1
-    if [[ "$temp_staging_dir_path/" == "$full_file_path"/* ]]; then
-        rm -rf "$temp_staging_dir_path"
-        echo "Error: staging dir is inside '$full_file_path'; point TMPDIR outside it" >&2
-        return 1
-    fi
-    local tmp_output_file_path="$temp_staging_dir_path/${file_name}.tar.gz"
+    temp_staging_dir_path="$(mktemp -d "$HOME/tmp/targz.XXXXXX")" || return 1
+    local temp_archive_path="$temp_staging_dir_path/${input_file_basename}.tar.gz"
 
-    local tar_exit_code
-    tar -czf "$tmp_output_file_path" -C "$(dirname "$full_file_path")" "$file_name"
-    tar_exit_code=$?
-    if (( tar_exit_code > 1 )); then
-        rm -rf "$temp_staging_dir_path"
-        echo "Error: tar failed (exit $tar_exit_code), no archive written" >&2
-        return 1
-    fi
-    (( tar_exit_code == 1 )) && echo "Warning: files changed while reading; archive may be inconsistent" >&2
-    mv "$tmp_output_file_path" "$final_output_file_path" || { rm -rf "$temp_staging_dir_path"; return 1; }
+    local full_git_repo_root_path
+    if [[ -d "$full_input_file_path" ]] \
+        && full_git_repo_root_path="$(git -C "$full_input_file_path" rev-parse --show-toplevel 2>/dev/null)" \
+        && [[ "$(readlink -f "$full_git_repo_root_path")" == "$full_input_file_path" ]]; then
+        git -C "$full_input_file_path" ls-files --cached --others --exclude-standard -z \
+            | tar -czf "$temp_archive_path" -C "$full_input_file_path" -s "#^#${input_file_basename}/#" --null -T -
+    else
+        tar -czf "$temp_archive_path" -C "${full_input_file_path:h}" "$input_file_basename"
+    fi || { rm -rf "$temp_staging_dir_path"; echo "Error: tar failed" >&2; return 1; }
+
+    mv "$temp_archive_path" "$full_archive_path" || { rm -rf "$temp_staging_dir_path"; return 1; }
     rm -rf "$temp_staging_dir_path"
-    readlink -f "$final_output_file_path"
+    echo "$full_archive_path"
 }
 
 function UNTARGZ() {
@@ -1562,9 +1564,11 @@ function SEND_TMUX_PANES_SETUP_KEYS_TO_PANE() {
     local pane_index=$(tmux display-message -p -t "$pane_id" '#{pane_index}')
     local tmux_panes_setup_file_path="brain/tmux_panes_setup/pane_$pane_index.txt"
     [[ -f "$tmux_panes_setup_file_path" ]] || return 0
+    setopt localoptions extended_glob
     local tmux_panes_setup_line
     for tmux_panes_setup_line in ${(f)"$(cat "$tmux_panes_setup_file_path")"}; do
-        [[ -z "${tmux_panes_setup_line// /}" || "$tmux_panes_setup_line" == \#* ]] && continue
+        tmux_panes_setup_line="${tmux_panes_setup_line##[[:space:]]#}"
+        [[ -z "$tmux_panes_setup_line" || "$tmux_panes_setup_line" == \#* ]] && continue
         tmux send-keys -t "$pane_id" ${(Q)${(z)tmux_panes_setup_line}}
     done
 }
@@ -1580,6 +1584,13 @@ function DISABLE_TMUX_WINDOW_AUTO_RENAME(){
 
 function ENABLE_TMUX_WINDOW_AUTO_RENAME(){
     tmux set-window-option -u -t $TMUX_PANE @AUTORENAME
+}
+
+function TMUX_RENAME_WINDOW() {
+    local new_name="$1"
+    [[ -z "$new_name" ]] && { echo "Usage: TMUX_RENAME_WINDOW <name>" >&2; return 1; }
+    tmux rename-window -t "$TMUX_PANE" "$new_name"
+    DISABLE_TMUX_WINDOW_AUTO_RENAME
 }
 
 function TMUX_SWAP_WINDOW_PREV() {
@@ -1601,7 +1612,7 @@ function COMPUTE_TMUX_WINDOW_NAME_FROM_PWD() {
     echo "$window_name"
 }
 
-function TMUX_RENAME_WINDOW() {
+function TMUX_RENAME_WINDOW_FROM_PWD() {
     local window_name
     window_name=$(COMPUTE_TMUX_WINDOW_NAME_FROM_PWD)
     [[ -z "$window_name" ]] && return
@@ -1668,7 +1679,6 @@ function TOBP() {
         SEND_TMUX_PANES_SETUP_KEYS_TO_PANE "$right_top_pane_id"
         SEND_TMUX_PANES_SETUP_KEYS_TO_PANE "$right_bottom_pane_id"
         tmux select-pane -t "$right_top_pane_id"
-        tmux send-keys -t "$right_top_pane_id" i
     else
         local remaining_brain_parent_paths=("${@[2,-1]}")
         local brain_parent_path
@@ -1780,6 +1790,7 @@ function KLS() {
     FD_BRAIN_PARENTS_SORT_BY_LAST_OPENED "$@" \
         | awk '{print $2}' \
         | while read -r brain_parent_path; do
+            brain_parent_path="${brain_parent_path:A}"
             PRINT_AS_HEADER "$brain_parent_path"
             (cd "$brain_parent_path" && kiro-cli chat --list-sessions)
         done

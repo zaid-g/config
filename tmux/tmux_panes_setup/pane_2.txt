@@ -1,7 +1,8 @@
-'DISABLE_TMUX_WINDOW_AUTO_RENAME' Enter
+# don't include commands that call tmux input prompt, it didn't work (e.g. C-g ,)
 'T' Enter
-'tmux new-window -d -a -t :0 -n "#{window_name}" -c $PWD' Enter
-'tmux new-window -d -a -t :1 -n "#{window_name}" -c $PWD' Enter
-'tmux new-window -d -a -t :2 -n "#{window_name}" -c $PWD' Enter
-'tmux new-window -d -a -t :3 -n "#{window_name}" -c $PWD' Enter
-'tmux select-window -t :0' Enter
+C-g n
+C-g n
+C-g n
+C-g n
+C-g n
+C-g 0

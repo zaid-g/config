@@ -1,8 +1,12 @@
+# don't include commands that call tmux input prompt, it didn't work (e.g. C-g ,)
 'T' Enter
-'tmux new-window -d -a -t :0 -n "#{window_name}" -c $PWD' Enter
-'tmux new-window -d -a -t :1 -n "#{window_name}" -c $PWD' Enter
-'tmux rename-window -t :0 brain' Enter
-'tmux set-window-option -t :0 @AUTORENAME 0' Enter
-'tmux rename-window -t :1 code' Enter
-'tmux set-window-option -t :1 @AUTORENAME 0' Enter
+C-g n
+C-g n
+C-g 1
+'TMUX_RENAME_WINDOW code' Enter
+C-g 0
+'TMUX_RENAME_WINDOW brain' Enter
 'VB' Enter
+# C-g 1
+# 'CDCC' Enter
+# 'V zsh/zshrc tmux/tmux.conf' Enter

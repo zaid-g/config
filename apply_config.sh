@@ -23,6 +23,7 @@ mkdir -p ~/doc/junk
 mkdir -p ~/app/
 mkdir -p ~/dat/
 mkdir -p ~/junk/
+mkdir -p ~/tmp/
 mkdir -p ~/trash/
 mkdir -p ~/empty/
 mkdir -p ~/pic/
