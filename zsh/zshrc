@@ -1940,7 +1940,7 @@ function BP_AUTOCOMPLETE() {
 autoload -U compinit
 zmodload zsh/complist
 compinit
-compdef BP_AUTOCOMPLETE VBP
+compdef BP_AUTOCOMPLETE VBP FPBP
 # Include hidden files
 _comp_options+=(globdots)
 zstyle ':completion:*' menu select
