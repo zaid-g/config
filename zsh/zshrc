@@ -557,39 +557,33 @@ function CPDTBP() {
 #  %% --- [tar] ---:
 
 function TARGZ() {
-    if [[ $# -gt 1 ]]; then
-        echo "Usage: TARGZ [path]  (one path only; use '.' for the whole current directory)" >&2
-        return 1
-    fi
-    local full_input_file_path="$(readlink -f "${1:-.}")"
-    [[ -e "$full_input_file_path" ]] || { echo "Error: '${1:-.}' does not exist" >&2; return 1; }
-    local full_staging_parent_path="$(readlink -f "$HOME/tmp")"
-    if [[ "$full_staging_parent_path" == "$full_input_file_path" || "$full_staging_parent_path" == "$full_input_file_path"/* ]]; then
-        echo "Error: refusing to archive '$full_input_file_path' because it contains the staging dir ($HOME/tmp)" >&2
-        return 1
-    fi
-
-    local input_file_basename="${full_input_file_path:t}"
-    local full_archive_path="$HOME/Downloads/${input_file_basename}.tar.gz"
-    [[ -e "$full_archive_path" ]] && { echo "Error: '$full_archive_path' already exists" >&2; return 1; }
-
+    (( $# > 1 )) && { echo "Error: one path only" >&2; return 1; }
+    setopt local_options pipefail
+    local full_input_dir_path="${${1:-.}:A}"
+    [[ -d "$full_input_dir_path" ]] || { echo "Error: '${1:-.}' is not a directory" >&2; return 1; }
+    local input_dir_basename="${full_input_dir_path:t}"
+    local full_archive_path="$HOME/Downloads/${input_dir_basename}.tar.gz"
+    [[ -e "$full_archive_path" ]] && { print -u2 "Error: archive already exists:"; print -ru2 -- "$full_archive_path"; return 1; }
+    local relative_file_paths
+    relative_file_paths="$(cd "$full_input_dir_path" && _FIND)" || return 1
+    [[ -n "$relative_file_paths" ]] || { echo "Error: no files to archive in '$full_input_dir_path'" >&2; return 1; }
     local temp_staging_dir_path
     temp_staging_dir_path="$(mktemp -d "$HOME/tmp/targz.XXXXXX")" || return 1
-    local temp_archive_path="$temp_staging_dir_path/${input_file_basename}.tar.gz"
-
-    local full_git_repo_root_path
-    if [[ -d "$full_input_file_path" ]] \
-        && full_git_repo_root_path="$(git -C "$full_input_file_path" rev-parse --show-toplevel 2>/dev/null)" \
-        && [[ "$(readlink -f "$full_git_repo_root_path")" == "$full_input_file_path" ]]; then
-        git -C "$full_input_file_path" ls-files --cached --others --exclude-standard -z \
-            | tar -czf "$temp_archive_path" -C "$full_input_file_path" -s "#^#${input_file_basename}/#" --null -T -
-    else
-        tar -czf "$temp_archive_path" -C "${full_input_file_path:h}" "$input_file_basename"
-    fi || { rm -rf "$temp_staging_dir_path"; echo "Error: tar failed" >&2; return 1; }
-
-    mv "$temp_archive_path" "$full_archive_path" || { rm -rf "$temp_staging_dir_path"; return 1; }
+    print -r -- "$relative_file_paths" \
+        | awk -v prefix="$input_dir_basename/" '{ sub(/^\.\//, ""); print prefix $0 }' \
+        | tar -czf "$temp_staging_dir_path/archive.tar.gz" -C "${full_input_dir_path:h}" -T - \
+        && mv "$temp_staging_dir_path/archive.tar.gz" "$full_archive_path"
+    local tar_and_publish_exit_code=$?
     rm -rf "$temp_staging_dir_path"
-    echo "$full_archive_path"
+    (( tar_and_publish_exit_code )) && return 1
+    local -a archive_stat
+    zstat -A archive_stat +size "$full_archive_path"
+    local archive_sha256
+    archive_sha256="$( { sha256sum "$full_archive_path" || shasum -a 256 "$full_archive_path" || openssl dgst -sha256 -r "$full_archive_path"; } 2>/dev/null | head -1 | cut -d' ' -f1 )"
+    print "Success"
+    print -r -- "$full_archive_path"
+    printf '%d files, %.1f MiB (%d bytes)\n' ${#${(f)relative_file_paths}} $(( archive_stat[1] / 1048576.0 )) $archive_stat[1]
+    print -r -- "sha256: ${archive_sha256:-unavailable}"
 }
 
 function UNTARGZ() {

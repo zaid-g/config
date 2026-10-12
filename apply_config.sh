@@ -31,9 +31,13 @@ mkdir -p ~/pic/
 # real Downloads folder where one exists (WSL -> Windows, Termux -> Android)
 mkdir -p ~/Downloads
 
-# ~/doc is the home-level brain parent (VNOTES/VJUNK/VAI depend on it);
-# zsh -i loads ~/.zshrc (just ensured above) so the TB function is defined
-[[ -d ~/doc/brain ]] || (cd ~/doc && zsh -ic 'TB')
+#  %% -------- [zsh] ----------:
+
+# below can rely on the repo zshrc's functions once this is hooked in
+PREPEND_LINE_IF_NOT_EXISTS ~/.zshrc '. ~/doc/config/config/zsh/zshrc'
+
+(cd ~/doc && zsh -ic 'TB')
+(cd ~/doc/config && zsh -ic 'TB')
 
 # %% -------- [wsl windows subsystem for linux] ----------:
 echo "--- wsl ---"
@@ -105,11 +109,6 @@ find "$LAZYVIM_SRC" -type f -name "*.lua" | while read -r file; do
 done
 
 PREPEND_LINE_IF_NOT_EXISTS "$LAZYVIM_TARGET/lua/config/keymaps.lua" 'dofile(vim.fn.expand("~/doc/config/config/vi/nvim/core.lua"))'
-
-# %% -------- [zsh] ----------:
-echo "--- zsh ---"
-
-PREPEND_LINE_IF_NOT_EXISTS ~/.zshrc '. ~/doc/config/config/zsh/zshrc'
 
 # %% -------- [tmux] ----------:
 echo "--- tmux ---"
