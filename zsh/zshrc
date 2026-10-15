@@ -582,7 +582,7 @@ function TARGZ() {
     archive_sha256="$( { sha256sum "$full_archive_path" || shasum -a 256 "$full_archive_path" || openssl dgst -sha256 -r "$full_archive_path"; } 2>/dev/null | head -1 | cut -d' ' -f1 )"
     print "Success"
     print -r -- "$full_archive_path"
-    printf '%d files, %.1f MiB (%d bytes)\n' ${#${(f)relative_file_paths}} $(( archive_stat[1] / 1048576.0 )) $archive_stat[1]
+    printf '%.1f MiB (%d bytes)\n' $(( archive_stat[1] / 1048576.0 )) $archive_stat[1]
     print -r -- "sha256: ${archive_sha256:-unavailable}"
 }
 
@@ -1088,6 +1088,18 @@ function VD() {
 # zsh vi mode
 bindkey -v
 export KEYTIMEOUT=1
+
+# cursor shape: block in normal/visual mode, bar in insert mode (mirrors nvim)
+_zsh_cursor_shape() {
+    case $KEYMAP in
+        vicmd|visual) printf '\e[2 q' ;;
+        viins|main)   printf '\e[6 q' ;;
+    esac
+}
+zle-keymap-select() { _zsh_cursor_shape }
+zle-line-init()     { _zsh_cursor_shape }
+zle -N zle-keymap-select
+zle -N zle-line-init
 # override this on dev machine
 export NVIM_APPNAME="nvim" # lazyvim
 
