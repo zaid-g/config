@@ -1335,6 +1335,20 @@ function GD() {
     fi
 }
 
+function GDMAIN() {
+    local file_path untracked_file_path
+    local repo_paths=("${@:-.}")
+    {
+        for file_path in "${repo_paths[@]}"; do
+            (( $# )) && PRINT_AS_HEADER "$file_path"
+            git -C "$file_path" --no-pager diff --color=always main
+            git -C "$file_path" ls-files --others --exclude-standard | while read -r untracked_file_path; do
+                git -C "$file_path" diff --color=always --no-index /dev/null "$untracked_file_path" 2>/dev/null
+            done
+        done
+    } 2>&1 | less -RXF
+}
+
 function GDNO() {
     local ref file_path
     if [[ $# -eq 0 ]]; then
@@ -1580,8 +1594,8 @@ function SEND_TMUX_PANES_SETUP_KEYS_TO_PANE() {
 }
 
 function FIND_NESTED_TMUX_SERVER_SOCKET_FILE_PATHS() {
-    local tmux_socket_dir="${TMUX_TMPDIR:-/tmp}/tmux-$(id -u)"
-    print -l "$tmux_socket_dir"/nested_*(N)
+    local tmux_socket_folder_path="${TMUX_TMPDIR:-/tmp}/tmux-$(id -u)"
+    print -l "$tmux_socket_folder_path"/n_<->(N)
 }
 
 function DISABLE_TMUX_WINDOW_AUTO_RENAME(){
@@ -1724,7 +1738,13 @@ function T() {
     local -a window_name_args=()
     [[ -n "$window_name" ]] && window_name_args=(-n "$window_name")
     if [[ -n "$TMUX" ]]; then
-        local nested_tmux_server_socket_name="nested_$(date +%Y_%m_%d-%H_%M_%S)_$RANDOM"
+        local tmux_socket_folder_path="${TMUX_TMPDIR:-/tmp}/tmux-$(id -u)"
+        local nested_tmux_server_socket_name
+        # short on purpose: under proot, longer socket paths get hidden from the socket dir and TLS/prefix+r miss them
+        while true; do
+            nested_tmux_server_socket_name="n_$(printf '%04d' $(( RANDOM % 10000 )))"
+            [[ -e "$tmux_socket_folder_path/$nested_tmux_server_socket_name" ]] || break
+        done
         TMUX= tmux -L "$nested_tmux_server_socket_name" new-session "${window_name_args[@]}" "$@" \; set destroy-unattached on
     elif [[ $# -eq 0 ]]; then
         tmux new-session "${window_name_args[@]}"
