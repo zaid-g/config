@@ -381,8 +381,9 @@ ASSERT_CONTAINS "brain parents sorted by timestamp: older first" \
     "$(print -r -- "$fdbp_output" | sed -n 1p)" "projB"
 ASSERT_CONTAINS "brain parents sorted by timestamp: newer second" \
     "$(print -r -- "$fdbp_output" | sed -n 2p)" "projA"
-ASSERT_EQUALS "FDBP shorthand = leading blank line + FD_BRAIN_PARENTS_SORT_BY_LAST_OPENED" \
-    $'\n'"$fdbp_output" "$(FDBP 2>> "$WARN_LOG")"
+fdbp_single_row=$(print -r -- "$fdbp_output" | awk '{printf "'"'"'%s'"'"'    ", $2}')
+ASSERT_EQUALS "FDBP shorthand = blank line + column names + FD_BRAIN_PARENTS_SORT_BY_LAST_OPENED + blank line + single row of paths" \
+    $'\n'"# last opened datetime       # full path"$'\n'"$fdbp_output"$'\n\n'"$fdbp_single_row" "$(FDBP 2>> "$WARN_LOG")"
 
 # --- every user-called shorthand leads with a blank line ---
 for shorthand_invocation in "FINDT txt" "FIND visible" "FDT txt" "FD visible" "FDBP" \

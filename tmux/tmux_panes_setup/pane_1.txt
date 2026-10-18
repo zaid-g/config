@@ -2,10 +2,7 @@
 'T' Enter
 C-g n
 C-g n
-C-g 1
-'TMUX_RENAME_WINDOW code' Enter
 C-g 0
-'TMUX_RENAME_WINDOW brain' Enter
 'VB' Enter
 # C-g 1
 # 'CDCC' Enter

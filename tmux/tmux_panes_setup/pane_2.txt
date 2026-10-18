@@ -2,7 +2,4 @@
 'T' Enter
 C-g n
 C-g n
-C-g n
-C-g n
-C-g n
 C-g 0

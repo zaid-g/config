@@ -18,6 +18,7 @@ setopt WARN_CREATE_GLOBAL
 setopt LOCAL_OPTIONS
 setopt PROMPT_SUBST # expands PS1 single quote (for prompt)
 export IS_DEV_MACHINE=false
+export BATTERY_SAVING=false
 
 # %% -------- [project creation and management brain parent] ----------:
 
@@ -276,8 +277,8 @@ function chpwd() {
         # to e.g. subdirectory (intentional)
         source "$venv_path/bin/activate"
     fi
-    if [[ -n "$TMUX" ]] && [[ "$(tmux show-options -w -t $TMUX_PANE @AUTORENAME 2>/dev/null | grep -o '0$')" != "0" ]]; then
-        TMUX_RENAME_WINDOW_FROM_PWD
+    if [[ -n "$TMUX" ]]; then
+        TMUX_RENAME_WINDOW_USING_ITS_AUTO_NAMING_MODE
     fi
 }
 
@@ -866,7 +867,8 @@ function _RG() {
 function _FIND() {
     local -a constructed_exclude_args
     CONSTRUCT_FIND_EXCLUDE_ARGS_FROM_GITIGNORE_PATTERNS
-    find . "${constructed_exclude_args[@]}" -type f -print
+    # -xtype: under proot, files git creates (via hard links) are listed as symlinks, so -type f would skip them
+    find . "${constructed_exclude_args[@]}" -xtype f -print
 }
 
 function _FD() {
@@ -897,7 +899,11 @@ function FDT() {
 
 function FDBP() {
     echo
-    FD_BRAIN_PARENTS_SORT_BY_LAST_OPENED "$@"
+    local brain_parents_sorted_by_last_opened=$(FD_BRAIN_PARENTS_SORT_BY_LAST_OPENED "$@")
+    printf "%-29s%s\n" "# last opened datetime" "# full path"
+    echo "$brain_parents_sorted_by_last_opened"
+    echo
+    echo "$brain_parents_sorted_by_last_opened" | awk '{print $2}' | tr '\n' '\0' | xargs -0r printf "'%s'    " && echo
 }
 
 # find files matching pattern one layer deep
@@ -991,21 +997,21 @@ function VB() {
     local brain_parent_path
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
     local original_dir="$PWD"
-    cd "$brain_parent_path"
+    cd "$brain_parent_path/brain"
     local file_paths=(
-        brain/**/notes.txt 
-        brain/**/junk.txt
-        brain/**/ai.txt
-        brain/**/brag.txt
-        brain/**/pane_0.txt
-        brain/**/pane_1.txt
-        brain/**/pane_2.txt
+        **/notes.txt
+        **/junk.txt
+        **/ai.txt
+        **/brag.txt
+        **/pane_0.txt
+        **/pane_1.txt
+        **/pane_2.txt
     )
     if [[ -f "$brain_parent_path/brain/command_history.txt" ]]; then
-        file_paths+=(brain/command_history.txt)
+        file_paths+=(command_history.txt)
     fi
     local tab_count=${#file_paths[@]}
-    file_paths+=(brain/**/*.txt)
+    file_paths+=(**/*.txt)
     local nvim_brain_settings='
         vim.api.nvim_create_autocmd("CursorHold", {
             callback = function() vim.cmd("silent! wall") end
@@ -1598,19 +1604,24 @@ function FIND_NESTED_TMUX_SERVER_SOCKET_FILE_PATHS() {
     print -l "$tmux_socket_folder_path"/n_<->(N)
 }
 
-function DISABLE_TMUX_WINDOW_AUTO_RENAME(){
-    tmux set-window-option -t $TMUX_PANE @AUTORENAME 0
-}
-
-function ENABLE_TMUX_WINDOW_AUTO_RENAME(){
-    tmux set-window-option -u -t $TMUX_PANE @AUTORENAME
+# @WINDOW_AUTO_NAMING_MODE decides what chpwd renames the window to on every cd:
+#   brain_parent - brain parent basename (falls back to $PWD basename); default, set in tmux.conf
+#   pwd          - $PWD basename; T sets it for the nested servers it starts
+#   locked       - never rename
+function SET_TMUX_WINDOW_AUTO_NAMING_MODE() {
+    local window_auto_naming_mode="$1"
+    if [[ "$window_auto_naming_mode" != (brain_parent|pwd|locked) ]]; then
+        echo "Usage: SET_TMUX_WINDOW_AUTO_NAMING_MODE <brain_parent|pwd|locked>" >&2
+        return 1
+    fi
+    tmux set-window-option -t "$TMUX_PANE" @WINDOW_AUTO_NAMING_MODE "$window_auto_naming_mode"
 }
 
 function TMUX_RENAME_WINDOW() {
     local new_name="$1"
     [[ -z "$new_name" ]] && { echo "Usage: TMUX_RENAME_WINDOW <name>" >&2; return 1; }
     tmux rename-window -t "$TMUX_PANE" "$new_name"
-    DISABLE_TMUX_WINDOW_AUTO_RENAME
+    SET_TMUX_WINDOW_AUTO_NAMING_MODE locked
 }
 
 function TMUX_SWAP_WINDOW_PREV() {
@@ -1624,17 +1635,46 @@ function TMUX_SWAP_WINDOW_NEXT() {
     [[ "$current_window_index" -lt "$last_window_index" ]] && tmux swap-window -t +1 \; select-window -t +1 || true
 }
 
-function COMPUTE_TMUX_WINDOW_NAME_FROM_PWD() {
-    [[ "$PWD" == "/" ]] && return
-    local window_name
-    window_name=$(FIND_BRAIN_PARENT_NAME 2>/dev/null) || window_name=$(basename "$PWD")
-    [[ ${#window_name} -gt 15 ]] && window_name="${window_name:0:12}…"
+function TRUNCATE_TMUX_WINDOW_NAME() {
+    local window_name="$1"
+    [[ ${#window_name} -gt 15 ]] && window_name="${window_name:0:14}…"
     echo "$window_name"
 }
 
-function TMUX_RENAME_WINDOW_FROM_PWD() {
+function COMPUTE_TMUX_WINDOW_NAME_FROM_BRAIN_PARENT_BASENAME() {
+    [[ "$PWD" == "/" ]] && return
     local window_name
-    window_name=$(COMPUTE_TMUX_WINDOW_NAME_FROM_PWD)
+    window_name=$(FIND_BRAIN_PARENT_NAME 2>/dev/null) || window_name="${PWD:t}"
+    TRUNCATE_TMUX_WINDOW_NAME "$window_name"
+}
+
+function COMPUTE_TMUX_WINDOW_NAME_FROM_PWD_BASENAME() {
+    [[ "$PWD" == "/" ]] && return
+    TRUNCATE_TMUX_WINDOW_NAME "${PWD:t}"
+}
+
+function COMPUTE_TMUX_WINDOW_NAME() {
+    local window_auto_naming_mode="$1"
+    case "$window_auto_naming_mode" in
+        brain_parent) COMPUTE_TMUX_WINDOW_NAME_FROM_BRAIN_PARENT_BASENAME ;;
+        pwd) COMPUTE_TMUX_WINDOW_NAME_FROM_PWD_BASENAME ;;
+        *)
+            echo "COMPUTE_TMUX_WINDOW_NAME: unknown window auto naming mode '$window_auto_naming_mode'" >&2
+            return 1
+            ;;
+    esac
+}
+
+function TMUX_RENAME_WINDOW_USING_ITS_AUTO_NAMING_MODE() {
+    # -A: a window without its own value uses the server-wide one
+    local window_auto_naming_mode=$(tmux show-options -Awqv -t "$TMUX_PANE" @WINDOW_AUTO_NAMING_MODE)
+    if [[ -z "$window_auto_naming_mode" ]]; then
+        echo "@WINDOW_AUTO_NAMING_MODE not set - reload tmux config (prefix + r)" >&2
+        return 1
+    fi
+    [[ "$window_auto_naming_mode" == "locked" ]] && return
+    local window_name
+    window_name=$(COMPUTE_TMUX_WINDOW_NAME "$window_auto_naming_mode") || return 1
     [[ -z "$window_name" ]] && return
     tmux rename-window -t "$TMUX_PANE" "$window_name"
 }
@@ -1734,7 +1774,10 @@ function TO3() {
 }
 
 function T() {
-    local window_name=$(COMPUTE_TMUX_WINDOW_NAME_FROM_PWD)
+    # T inside tmux starts a nested server, whose windows get named from $PWD basename
+    local window_auto_naming_mode=brain_parent
+    [[ -n "$TMUX" ]] && window_auto_naming_mode=pwd
+    local window_name=$(COMPUTE_TMUX_WINDOW_NAME "$window_auto_naming_mode")
     local -a window_name_args=()
     [[ -n "$window_name" ]] && window_name_args=(-n "$window_name")
     if [[ -n "$TMUX" ]]; then
@@ -1745,7 +1788,7 @@ function T() {
             nested_tmux_server_socket_name="n_$(printf '%04d' $(( RANDOM % 10000 )))"
             [[ -e "$tmux_socket_folder_path/$nested_tmux_server_socket_name" ]] || break
         done
-        TMUX= tmux -L "$nested_tmux_server_socket_name" new-session "${window_name_args[@]}" "$@" \; set destroy-unattached on
+        TMUX= tmux -L "$nested_tmux_server_socket_name" new-session "${window_name_args[@]}" "$@" \; set destroy-unattached on \; set -wg @WINDOW_AUTO_NAMING_MODE "$window_auto_naming_mode"
     elif [[ $# -eq 0 ]]; then
         tmux new-session "${window_name_args[@]}"
     else
