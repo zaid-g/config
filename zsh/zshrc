@@ -1732,6 +1732,7 @@ function TOBP() {
     if [[ $# -eq 0 ]]; then
         CDBP || return 1
         date +%Y_%m_%d-%H_%M_%S > brain/.last_opened
+        SET_TMUX_WINDOW_AUTO_NAMING_MODE locked
         local left_pane_id="$TMUX_PANE"
         local right_top_pane_id=$(tmux split-window -h -t "$left_pane_id" -P -F '#{pane_id}')
         local right_bottom_pane_id=$(tmux split-window -v -t "$right_top_pane_id" -P -F '#{pane_id}')
