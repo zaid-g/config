@@ -359,7 +359,7 @@ function CREATE_TIMESTAMPED_DIR_AND_CD() {
 
 #  %% --- [mkdir] ---:
 
-function MKJ() {
+function MKS() {
     CREATE_TIMESTAMPED_DIR_AND_CD ~/doc/scratch "$@"
 }
 
@@ -1759,7 +1759,7 @@ function TCOBP() {
     tmux send-keys -t "$target_pane_id" "TOBP" Enter
 }
 
-function TCOBPJ() {
+function TCOBPS() {
     local target_pane_id
     target_pane_id=$(tmux new-window -c ~/doc/scratch -P -F '#{pane_id}')
     tmux send-keys -t "$target_pane_id" "MKBP $*" Enter
