@@ -301,3 +301,7 @@ sanity check (`E136`), so every exit orphaned another `main.shada.tmp.*` instead
 ```sh
 rm ~/.local/state/nvim/shada/main.shada*   # costs marks + :oldfiles, nothing else
 ```
+
+## git delta
+
+`sudo apt install git-delta`
