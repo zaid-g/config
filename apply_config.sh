@@ -16,13 +16,11 @@ PREPEND_LINE_IF_NOT_EXISTS() {
     echo "$(printf '%s\n' "$line"; cat "$file")" >"$file"
 }
 
-# junk means unorganized projects. junk does not mean 1. projects i don't care about.
-# 2. temporary projects that will be deleted. 3. archived projects. All it means is that
-# they haven't been put into their right place (unfiled) on file system
-mkdir -p ~/doc/junk
+# ~/doc/scratch = scratch projects: unorganized but kept
+mkdir -p ~/doc/scratch
 mkdir -p ~/app/
 mkdir -p ~/dat/
-mkdir -p ~/junk/
+mkdir -p ~/scratch/
 mkdir -p ~/tmp/
 mkdir -p ~/trash/
 mkdir -p ~/empty/

@@ -82,7 +82,7 @@ EOF
 
 # fixture project
 PROJECT_DIR="$SANDBOX/project"
-mkdir -p "$PROJECT_DIR"/{node_modules,sub,brain/junk,projA/brain,projB/brain}
+mkdir -p "$PROJECT_DIR"/{node_modules,sub,brain/scratch,projA/brain,projB/brain}
 print "alpha content"                  > "$PROJECT_DIR/visible.txt"
 print "SeNtInEl_MiXeD case content"    > "$PROJECT_DIR/MixedCase.TXT"
 print "hidden_sentinel content"        > "$PROJECT_DIR/.hidden.txt"
@@ -91,7 +91,7 @@ print "noext_sentinel"                 > "$PROJECT_DIR/noextension"
 print "excluded_sentinel"              > "$PROJECT_DIR/node_modules/excluded.txt"
 print "alpha nested"                   > "$PROJECT_DIR/sub/nested.txt"
 print "brainword_one and brainword_two" > "$PROJECT_DIR/brain/notes.txt"
-print "brainword_one only"             > "$PROJECT_DIR/brain/junk/junk.txt"
+print "brainword_one only"             > "$PROJECT_DIR/brain/scratch/scratch.txt"
 print "hidden_brainword here"          > "$PROJECT_DIR/brain/.hidden_note.txt"
 print "2026_01_02-10_00_00"            > "$PROJECT_DIR/projA/brain/.last_opened"
 print "2026_01_01-09_00_00"            > "$PROJECT_DIR/projB/brain/.last_opened"
@@ -316,7 +316,7 @@ ASSERT_EQUALS "RGBALL requires all terms" "./brain/notes.txt" \
 ASSERT_EMPTY "RGBALL empty when any term is missing" \
     "$(TEST_RGBALL brainword_one zzz_no_such_term 2>> "$WARN_LOG")"
 ASSERT_EQUALS "RGBALL with a single term matches all files containing it" \
-    $'./brain/junk/junk.txt\n./brain/notes.txt' \
+    $'./brain/scratch/scratch.txt\n./brain/notes.txt' \
     "$(TEST_RGBALL brainword_one 2>> "$WARN_LOG" | sort)"
 ASSERT_EQUALS "RGBALL chains three terms" "./brain/notes.txt" \
     "$(TEST_RGBALL brainword_one and brainword_two 2>> "$WARN_LOG")"

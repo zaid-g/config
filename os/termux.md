@@ -289,7 +289,7 @@ Confirmed working 2026-10-10.
 
 `~/.local/state/nvim/shada/main.shada` was corrupted on 2026-09-07 by two nvim
 instances writing it in the same second — one in `~/doc/brain`, one in a backup copy
-under `~/doc/junk/`. The result was a content-level *overlay* (1020 bytes =
+under `~/doc/scratch/`. The result was a content-level *overlay* (1020 bytes =
 `max(609, 1020)`, not the sum), which means the final step was not an atomic
 `rename()`. Plain `rename()` would have left one intact file, last writer wins; proot
 emulates path syscalls and has `link2symlink` active (`PROOT_L2S_DIR`), so two
