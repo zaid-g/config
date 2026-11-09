@@ -1,11 +1,19 @@
 
 
+# %% -------- [prerequisites] ----------:
+
+# python3 merges ~/.claude/settings.json below and parses hook input in ai/*.sh
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "❌ python3 not found - install it first (e.g. sudo apt install python3), then re-run" >&2
+    exit 1
+fi
+
 # %% -------- [general] ----------:
 echo "--- general ---"
 
 # Configs are deployed by prepending a source/include line
 # to the FIRST line of each machine-local file (~/.zshrc,
-# ~/.tmux.conf, ...), never by symlinking/copying: the repo
+# ~/.tmux.conf, ...). The repo
 # config loads first, so anything written later in the
 # local file acts as a per-machine override.
 PREPEND_LINE_IF_NOT_EXISTS() {
@@ -16,12 +24,11 @@ PREPEND_LINE_IF_NOT_EXISTS() {
     echo "$(printf '%s\n' "$line"; cat "$file")" >"$file"
 }
 
-# ~/doc/scratch = scratch projects: unorganized but kept
+# scratch projects: unorganized/unfiled but still important
 mkdir -p ~/doc/scratch
 mkdir -p ~/app/
 mkdir -p ~/dat/
 mkdir -p ~/scratch/
-mkdir -p ~/tmp/
 mkdir -p ~/trash/
 mkdir -p ~/empty/
 mkdir -p ~/pic/
@@ -224,6 +231,27 @@ echo "For treestyletabs config, load extension settings, preferences tab, expand
 echo "--- kiro ---"
 
 kiro-cli settings chat.disableWrap true
+kiro-cli settings cleanup.periodDays 54750
+
+chmod +x ~/doc/config/config/ai/*.sh ~/doc/config/config/ai/*/*.sh
+mkdir -p ~/.kiro/hooks
+cp ~/doc/config/config/ai/kiro/hooks/*.json ~/.kiro/hooks/
+
+# %% -------- [claude code] ----------:
+echo "--- claude code ---"
+
+python3 -c '
+import json, os
+path = os.path.expanduser("~/.claude/settings.json")
+settings = json.load(open(path)) if os.path.exists(path) else {}
+if settings.get("cleanupPeriodDays") != 54750:
+    settings["cleanupPeriodDays"] = 54750
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path + ".tmp", "w") as tmp_file:
+        json.dump(settings, tmp_file, indent=2)
+    os.replace(path + ".tmp", path)
+'
+[[ -d ~/.voicemode ]] && touch ~/.voicemode/soundfonts-disabled
 
 # %% -------- [done] ----------:
 echo "--- done ---"

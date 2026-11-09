@@ -1,6 +1,3 @@
 # don't include commands that call tmux input prompt, it didn't work (e.g. C-g ,)
 'T' Enter
-C-g o
-C-g o
-C-g 0
-'AIR' Enter
+'TOAI' Enter

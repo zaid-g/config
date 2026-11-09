@@ -258,11 +258,13 @@ vim.keymap.set("n", "mbl", function()
 	if vim.bo.filetype == "markdown" then
 		commentstr = "#"
 	end
-	local line = commentstr .. " %% -------- [] ----------:"
+	local line = commentstr .. " %% -------- [" .. vim.fn.strftime("%a %Y_%m_%d-%H_%M_%S") .. ": ] ----------:"
 	vim.cmd("normal! o")
 	vim.cmd("normal! k")
 	vim.api.nvim_put({ "", "", line, "" }, "l", true, true)
-	vim.cmd("normal! kk$BBe")
+	vim.cmd("normal! kk")
+	-- cursor on the closing bracket, so startinsert types just before it
+	vim.api.nvim_win_set_cursor(0, { vim.fn.line("."), line:find("]", 1, true) - 1 })
 	vim.cmd("startinsert")
 end, { desc = "Insert block comment" })
 

@@ -1,0 +1,11 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "~/doc/config/config/ai/claude/stop_hook.sh" }
+        ]
+      }
+    ]
+  }
+}

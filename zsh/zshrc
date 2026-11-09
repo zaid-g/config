@@ -51,9 +51,8 @@ function COPY_DEFAULT_TMUX_PANES_SETUP_FILES_IF_MISSING() {
     done
 }
 
-# brain/scratch = scratch notes/pastes/logs: unorganized but permanent (unlike brain/tmp)
 function TB() {
-    mkdir -p brain/scratch brain/logs brain/ai brain/command_output brain/tmp
+    mkdir -p brain/scratch brain/logs brain/ai brain/command_output
     COPY_DEFAULT_TMUX_PANES_SETUP_FILES_IF_MISSING
     touch brain/notes.txt brain/scratch/scratch.txt brain/related.txt brain/ai/ai.txt brain/tags.txt brain/brag.txt
     [[ "$IS_DEV_MACHINE" == "true" ]] && TCH
@@ -569,7 +568,7 @@ function TARGZ() {
     relative_file_paths="$(cd "$full_input_dir_path" && _FIND)" || return 1
     [[ -n "$relative_file_paths" ]] || { echo "Error: no files to archive in '$full_input_dir_path'" >&2; return 1; }
     local temp_staging_dir_path
-    temp_staging_dir_path="$(mktemp -d "$HOME/tmp/targz.XXXXXX")" || return 1
+    temp_staging_dir_path="$(mktemp -d "$HOME/scratch/targz.XXXXXX")" || return 1
     print -r -- "$relative_file_paths" \
         | awk -v prefix="$input_dir_basename/" '{ sub(/^\.\//, ""); print prefix $0 }' \
         | tar -czf "$temp_staging_dir_path/archive.tar.gz" -C "${full_input_dir_path:h}" -T - \
@@ -580,11 +579,11 @@ function TARGZ() {
     local -a archive_stat
     zstat -A archive_stat +size "$full_archive_path"
     local archive_sha256
-    archive_sha256="$( { sha256sum "$full_archive_path" || shasum -a 256 "$full_archive_path" || openssl dgst -sha256 -r "$full_archive_path"; } 2>/dev/null | head -1 | cut -d' ' -f1 )"
+    archive_sha256="$(sha256sum "$full_archive_path" | cut -d' ' -f1)"
     print "Success"
     print -r -- "$full_archive_path"
     printf '%.1f MiB (%d bytes)\n' $(( archive_stat[1] / 1048576.0 )) $archive_stat[1]
-    print -r -- "sha256: ${archive_sha256:-unavailable}"
+    print -r -- "sha256: $archive_sha256"
 }
 
 function UNTARGZ() {
@@ -593,7 +592,8 @@ function UNTARGZ() {
     [[ ! -f "$archive_path" ]] && { echo "Error: '$archive_path' does not exist or is not a file"; return 1; }
     local full_file_path
     full_file_path="$(readlink -f "$archive_path")"
-    tar -xzf "$full_file_path" -C "$PWD"
+    tar -xzf "$full_file_path" -C "$PWD" || return 1
+    print -r -- "sha256: $(sha256sum "$full_file_path" | cut -d' ' -f1)"
 }
 
 alias CD="cd ~/doc"
@@ -1112,7 +1112,7 @@ export NVIM_APPNAME="nvim" # lazyvim
 
 function RESOLVE_GIT_BRANCH_OR_COMMIT() {
     local ref branch_name_that_matches commit_hash_that_matches
-    read "ref?Diff against (enter for working tree): "
+    print -n "Diff against (enter for working tree): " >/dev/tty; read ref
     [[ -z "$ref" ]] && { echo ""; return 0; }
     if git rev-parse --verify "$ref^{commit}" >/dev/null 2>&1; then
         echo "$ref"; return 0
@@ -1134,7 +1134,7 @@ function RESOLVE_GIT_BRANCH_OR_COMMIT() {
     done
     [[ ${#options[@]} -eq 0 ]] && { echo "No matches found" >&2; return 1; }
     local choice
-    read "choice?Select: "
+    print -n "Select: " >/dev/tty; read choice
     [[ -z "$choice" || ! "$choice" =~ ^[0-9]+$ || $choice -lt 1 || $choice -gt ${#options[@]} ]] && { echo "Cancelled" >&2; return 1; }
     echo "${options[$choice]}"
 }
@@ -1617,7 +1617,7 @@ function SET_TMUX_WINDOW_AUTO_NAMING_MODE() {
 }
 
 function TMUX_RENAME_WINDOW() {
-    local new_name="$1"
+    local new_name=$(CLEAN_FILENAME "$*")
     [[ -z "$new_name" ]] && { echo "Usage: TMUX_RENAME_WINDOW <name>" >&2; return 1; }
     tmux rename-window -t "$TMUX_PANE" "$new_name"
     SET_TMUX_WINDOW_AUTO_NAMING_MODE locked
@@ -1719,6 +1719,93 @@ function TOD() {
         return 1
     fi
     TOBP "${TMUX_WINDOWS_SETUP[@]}"
+}
+
+function TOAI() {
+    local brain_parent_path
+    brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
+    # TODO restore to 15 and 3 after testing
+    local -r MAX_SESSION_COUNT=5
+    local -r BATTERY_SAVING_LAUNCHED_SESSION_COUNT=2
+    # written by the kiro/claude Stop hooks (ai/record_tmux_window_ai_session.sh): one line each
+    # time a session's tmux window name or position changes. A session's first line is written at
+    # its first reply (so file order is creation order); its last line has its current window
+    local tmux_windows_ai_sessions_file="$brain_parent_path/brain/ai/tmux_windows_ai_sessions.tsv"
+    local -a session_keys
+    local -A window_name_by_session_key window_position_by_session_key last_line_number_by_session_key
+    local recorded_at tool session_id window_name window_position session_key
+    local -i line_number=0
+    if [[ -f "$tmux_windows_ai_sessions_file" ]]; then
+        while IFS=$'\t' read -r recorded_at tool session_id window_name window_position; do
+            (( ++line_number ))
+            [[ "$tool" == (kiro|claude) && -n "$session_id" ]] || continue
+            session_key="$tool/$session_id"
+            (( ${+window_name_by_session_key[$session_key]} )) || session_keys+=("$session_key")
+            window_name_by_session_key[$session_key]="$window_name"
+            window_position_by_session_key[$session_key]="$window_position"
+            last_line_number_by_session_key[$session_key]=$line_number
+        done < "$tmux_windows_ai_sessions_file"
+    fi
+    # no recorded sessions yet: start a new one here
+    (( ${#session_keys} == 0 )) && { AI; return; }
+    # the newest MAX_SESSION_COUNT sessions by creation. All start right away, except with
+    # BATTERY_SAVING=true only the newest few do; the rest just get their command typed
+    (( ${#session_keys} > MAX_SESSION_COUNT )) && session_keys=("${(@)session_keys[-$MAX_SESSION_COUNT,-1]}")
+    local -a launched_session_keys=("${(@)session_keys}")
+    [[ "$BATTERY_SAVING" == "true" ]] && (( ${#launched_session_keys} > BATTERY_SAVING_LAUNCHED_SESSION_COUNT )) \
+        && launched_session_keys=("${(@)launched_session_keys[-$BATTERY_SAVING_LAUNCHED_SESSION_COUNT,-1]}")
+    local -A is_launched_by_session_key
+    for session_key in "${launched_session_keys[@]}"; do is_launched_by_session_key[$session_key]=1; done
+    # lay windows out by last recorded position. On a tie the more recently recorded one goes
+    # first: it was most likely inserted there and pushed the other along
+    local -a sortable_session_keys
+    for session_key in "${session_keys[@]}"; do
+        sortable_session_keys+=("$(printf '%06d%06d' "${window_position_by_session_key[$session_key]}" \
+            $(( 999999 - last_line_number_by_session_key[$session_key] )))/$session_key")
+    done
+    session_keys=("${(@)${(@o)sortable_session_keys}#*/}")
+    # the first takes the current window, the rest open after it in order
+    local current_window_id=$(tmux display-message -p -t "$TMUX_PANE" '#{window_id}')
+    local previous_window_id="$current_window_id"
+    local session_index window_id launch_command
+    for session_index in {1..${#session_keys}}; do
+        session_key="${session_keys[$session_index]}"
+        tool="${session_key%%/*}"
+        session_id="${session_key#*/}"
+        window_name="${window_name_by_session_key[$session_key]}"
+        if (( session_index == 1 )); then
+            window_id="$current_window_id"
+            tmux rename-window -t "$window_id" "$window_name"
+        else
+            case "$tool" in
+                kiro)   launch_command="KK --resume-id '$session_id'" ;;
+                claude) launch_command="CC -r '$session_id'" ;;
+            esac
+            window_id=$(tmux new-window -d -a -t "$previous_window_id" -P -F '#{window_id}' \
+                -c "$brain_parent_path" -n "$window_name")
+            if (( ${+is_launched_by_session_key[$session_key]} )); then
+                tmux send-keys -t "$window_id" "$launch_command" Enter
+            else
+                tmux send-keys -t "$window_id" "$launch_command"
+            fi
+        fi
+        tmux set-window-option -t "$window_id" @WINDOW_AUTO_NAMING_MODE locked
+        previous_window_id="$window_id"
+    done
+    session_key="${session_keys[1]}"
+    session_id="${session_key#*/}"
+    if (( ! ${+is_launched_by_session_key[$session_key]} )); then
+        # not among the newest: pre-fill this shell's prompt instead of starting it
+        case "${session_key%%/*}" in
+            kiro)   print -z "KK --resume-id '$session_id'" ;;
+            claude) print -z "CC -r '$session_id'" ;;
+        esac
+        return
+    fi
+    case "${session_key%%/*}" in
+        kiro)   KK --resume-id "$session_id" ;;
+        claude) CC -r "$session_id" ;;
+    esac
 }
 
 # tmux open brain parent
@@ -1845,16 +1932,28 @@ TMUX_WINDOWS_SETUP=(
 
 #  %% -------- [AI] ----------:
 
+# the TMUX_* functions below are run via tmux run-shell, which gives no pane context:
+# bindings pass TMUX_PANE=#{pane_id} and everything here targets that pane explicitly
 function TMUX_KIRO_SAVE_SESSION() {
-    local kiro_saved_session_file_path="brain/ai/$(tmux display-message -p '#{window_name}')-$(date +%Y_%m_%d-%H_%M_%S).json"
-    tmux send-keys "/chat save $kiro_saved_session_file_path" Enter
+    local window_name=$(CLEAN_FILENAME "$(tmux display-message -p -t "$TMUX_PANE" '#{window_name}')")
+    local kiro_saved_session_file_path="brain/ai/kiro-$window_name-$(date +%Y_%m_%d-%H_%M_%S).json"
+    tmux send-keys -t "$TMUX_PANE" "/chat save $kiro_saved_session_file_path" Enter
     echo "$kiro_saved_session_file_path"
 }
 
 function TMUX_KIRO_FORK_NEW_WINDOW() {
     local kiro_saved_session_file_path=$(TMUX_KIRO_SAVE_SESSION)
-    tmux new-window -a -c "$PWD"
-    tmux send-keys "KK '/chat load $kiro_saved_session_file_path'" Enter
+    local pane_path=$(tmux display-message -p -t "$TMUX_PANE" '#{pane_current_path}')
+    # new-window -t takes a window, not a pane
+    local current_window_id=$(tmux display-message -p -t "$TMUX_PANE" '#{window_id}')
+    # /chat save is asynchronous: wait (up to 20s) for the file before loading it
+    local attempt
+    for attempt in {1..40}; do
+        [[ -s "$pane_path/$kiro_saved_session_file_path" ]] && break
+        sleep 0.5
+    done
+    local window_id=$(tmux new-window -a -P -F '#{window_id}' -t "$current_window_id" -c "$pane_path")
+    tmux send-keys -t "$window_id" "KK '/chat load $kiro_saved_session_file_path'" Enter
 }
 
 function KLS() {
@@ -1881,30 +1980,56 @@ function KKER() {
 }
 
 function CCR() {
-    CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1 claude --continue --dangerously-skip-permissions || CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1 claude --dangerously-skip-permissions
+    CC --continue "$@" || CC "$@"
 }
 
 # claude code
-alias CC="CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1 claude --dangerously-skip-permissions"
+function CC() {
+    # --settings layers our hooks (ai/claude/settings.json) on top of ~/.claude/settings.json
+    CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1 claude --dangerously-skip-permissions \
+        --settings ~/doc/config/config/ai/claude/settings.json "$@"
+}
 
 # kiro
-alias KK="kiro-cli chat --trust-all-tools"
-alias KKR="kiro-cli chat --trust-all-tools --resume"
+function KK() {
+    kiro-cli chat --trust-all-tools "$@"
+}
 
-# ai
-alias AI="CC"
-alias AIR="CCR"
+function KKR() {
+    kiro-cli chat --trust-all-tools --resume "$@"
+}
+
+
+function AI() {
+    case "$AI_TOOL" in
+        claude) CC "$@" ;;
+        kiro)   KK "$@" ;;
+        *)      echo "AI: AI_TOOL='$AI_TOOL' must be claude or kiro" >&2; return 1 ;;
+    esac
+}
+
+function AIR() {
+    case "$AI_TOOL" in
+        claude) CCR "$@" ;;
+        kiro)   KKR "$@" ;;
+        *)      echo "AIR: AI_TOOL='$AI_TOOL' must be claude or kiro" >&2; return 1 ;;
+    esac
+}
+
+export AI_TOOL=claude
 
 #  %% -------- [sleep management caff nocaff driving mode] ----------:
 
 function CAFF() {
+    local hours="${1:-16}"
+    local seconds=$(( hours * 3600 ))
     if [[ "$OSTYPE" == "darwin"* ]]
     then
-        caffeinate -dimsu -t 21600 &
-        echo "Caffeinate started for 6h (PID: $!)"
+        caffeinate -dimsu -t "$seconds" &
+        echo "Caffeinate started for ${hours}h (PID: $!)"
     else
-        systemd-inhibit --what=idle:sleep:handle-lid-switch --who="Manual" --why="User requested" --mode=block sleep 21600 &> /dev/null &
-        echo "Sleep inhibited for 6h (PID: $!)"
+        systemd-inhibit --what=idle:sleep:handle-lid-switch --who="Manual" --why="User requested" --mode=block sleep "$seconds" &> /dev/null &
+        echo "Sleep inhibited for ${hours}h (PID: $!)"
     fi
 }
 

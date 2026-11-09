@@ -1,0 +1,10 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "beep-on-stop",
+      "trigger": "Stop",
+      "action": { "type": "command", "command": "~/doc/config/config/ai/kiro/stop_hook.sh" }
+    }
+  ]
+}
