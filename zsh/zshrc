@@ -1748,14 +1748,8 @@ function TOAI() {
     fi
     # no recorded sessions yet: start a new one here
     (( ${#session_keys} == 0 )) && { AI; return; }
-    # the newest MAX_SESSION_COUNT sessions by creation. All start right away, except with
-    # BATTERY_SAVING=true only the newest few do; the rest just get their command typed
+    # the newest MAX_SESSION_COUNT sessions by creation
     (( ${#session_keys} > MAX_SESSION_COUNT )) && session_keys=("${(@)session_keys[-$MAX_SESSION_COUNT,-1]}")
-    local -a launched_session_keys=("${(@)session_keys}")
-    [[ "$BATTERY_SAVING" == "true" ]] && (( ${#launched_session_keys} > BATTERY_SAVING_LAUNCHED_SESSION_COUNT )) \
-        && launched_session_keys=("${(@)launched_session_keys[-$BATTERY_SAVING_LAUNCHED_SESSION_COUNT,-1]}")
-    local -A is_launched_by_session_key
-    for session_key in "${launched_session_keys[@]}"; do is_launched_by_session_key[$session_key]=1; done
     # lay windows out by last recorded position. On a tie the more recently recorded one goes
     # first: it was most likely inserted there and pushed the other along
     local -a sortable_session_keys
@@ -1764,7 +1758,10 @@ function TOAI() {
             $(( 999999 - last_line_number_by_session_key[$session_key] )))/$session_key")
     done
     session_keys=("${(@)${(@o)sortable_session_keys}#*/}")
-    # the first takes the current window, the rest open after it in order
+    # the first takes the current window, the rest open after it in order. All start right away,
+    # except with BATTERY_SAVING=true only the first few do; the rest just get their command typed
+    local launched_session_count=${#session_keys}
+    [[ "$BATTERY_SAVING" == "true" ]] && launched_session_count=$BATTERY_SAVING_LAUNCHED_SESSION_COUNT
     local current_window_id=$(tmux display-message -p -t "$TMUX_PANE" '#{window_id}')
     local previous_window_id="$current_window_id"
     local session_index window_id launch_command
@@ -1783,7 +1780,7 @@ function TOAI() {
             esac
             window_id=$(tmux new-window -d -a -t "$previous_window_id" -P -F '#{window_id}' \
                 -c "$brain_parent_path" -n "$window_name")
-            if (( ${+is_launched_by_session_key[$session_key]} )); then
+            if (( session_index <= launched_session_count )); then
                 tmux send-keys -t "$window_id" "$launch_command" Enter
             else
                 tmux send-keys -t "$window_id" "$launch_command"
@@ -1794,14 +1791,6 @@ function TOAI() {
     done
     session_key="${session_keys[1]}"
     session_id="${session_key#*/}"
-    if (( ! ${+is_launched_by_session_key[$session_key]} )); then
-        # not among the newest: pre-fill this shell's prompt instead of starting it
-        case "${session_key%%/*}" in
-            kiro)   print -z "KK --resume-id '$session_id'" ;;
-            claude) print -z "CC -r '$session_id'" ;;
-        esac
-        return
-    fi
     case "${session_key%%/*}" in
         kiro)   KK --resume-id "$session_id" ;;
         claude) CC -r "$session_id" ;;
