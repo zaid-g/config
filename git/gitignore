@@ -38,9 +38,6 @@ out/
 # Compiled class files
 *.class
 
-# Logs
-*.log
-
 # Build tools
 # Maven
 target/

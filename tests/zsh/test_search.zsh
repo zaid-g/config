@@ -70,7 +70,7 @@ SANDBOX=$(mktemp -d)
 trap 'rm -rf "$SANDBOX"' EXIT INT TERM
 
 # fake HOME whose gitignore exercises parsing: a comment, a blank line,
-# a trailing-slash dir pattern, and a bare pattern
+# a trailing-slash dir pattern, a bare pattern, and a file glob pattern
 FAKE_HOME="$SANDBOX/home"
 mkdir -p "$FAKE_HOME/doc/config/config/git"
 cat > "$FAKE_HOME/doc/config/config/git/gitignore" <<'EOF'
@@ -78,6 +78,7 @@ cat > "$FAKE_HOME/doc/config/config/git/gitignore" <<'EOF'
 
 node_modules/
 .git
+*.pyc
 EOF
 
 # fixture project
@@ -89,6 +90,7 @@ print "hidden_sentinel content"        > "$PROJECT_DIR/.hidden.txt"
 print "python_sentinel = 1"            > "$PROJECT_DIR/script.py"
 print "noext_sentinel"                 > "$PROJECT_DIR/noextension"
 print "excluded_sentinel"              > "$PROJECT_DIR/node_modules/excluded.txt"
+print "pyc_sentinel"                   > "$PROJECT_DIR/sub/compiled.pyc"
 print "alpha nested"                   > "$PROJECT_DIR/sub/nested.txt"
 print "brainword_one and brainword_two" > "$PROJECT_DIR/brain/notes.txt"
 print "brainword_one only"             > "$PROJECT_DIR/brain/scratch/scratch.txt"
@@ -135,7 +137,7 @@ function TEST_RGBALL() { RGBALL "$@" | sed 1d }
 # --- GET_GITIGNORE_PATTERNS ---
 patterns_output=$(GET_GITIGNORE_PATTERNS 2>> "$WARN_LOG")
 ASSERT_EQUALS "gitignore parsing skips comments/blanks and strips trailing slash" \
-    $'node_modules\n.git' "$patterns_output"
+    $'node_modules\n.git\n*.pyc' "$patterns_output"
 
 missing_gitignore_status=$( (export HOME="$SANDBOX/nonexistent_home"; GET_GITIGNORE_PATTERNS >/dev/null 2>&1); echo $? )
 ASSERT_EQUALS "missing gitignore file returns nonzero" 1 "$missing_gitignore_status"
@@ -143,18 +145,18 @@ ASSERT_EQUALS "missing gitignore file returns nonzero" 1 "$missing_gitignore_sta
 # --- CONSTRUCT_* exclude args ---
 constructed_exclude_args=()
 CONSTRUCT_FIND_EXCLUDE_ARGS_FROM_GITIGNORE_PATTERNS 2>> "$WARN_LOG"
-ASSERT_EQUALS "find exclude args: 4 args per pattern" 8 ${#constructed_exclude_args[@]}
+ASSERT_EQUALS "find exclude args: 4 args per pattern" 12 ${#constructed_exclude_args[@]}
 ASSERT_EQUALS "find exclude args form" "-path */node_modules -prune -o" "${constructed_exclude_args[1,4]}"
 
 constructed_exclude_args=()
 CONSTRUCT_FD_EXCLUDE_ARGS_FROM_GITIGNORE_PATTERNS 2>> "$WARN_LOG"
-ASSERT_EQUALS "fd exclude args: 2 args per pattern" 4 ${#constructed_exclude_args[@]}
+ASSERT_EQUALS "fd exclude args: 2 args per pattern" 6 ${#constructed_exclude_args[@]}
 ASSERT_EQUALS "fd exclude args form" "--exclude node_modules" "${constructed_exclude_args[1,2]}"
 
 constructed_exclude_args=()
 CONSTRUCT_RG_EXCLUDE_ARGS_FROM_GITIGNORE_PATTERNS 2>> "$WARN_LOG"
-ASSERT_EQUALS "rg exclude args: 2 args per pattern" 4 ${#constructed_exclude_args[@]}
-ASSERT_EQUALS "rg exclude args form" "--glob !**/node_modules/**" "${constructed_exclude_args[1,2]}"
+ASSERT_EQUALS "rg exclude args: 2 args per pattern" 6 ${#constructed_exclude_args[@]}
+ASSERT_EQUALS "rg exclude args form" "--glob !**/node_modules" "${constructed_exclude_args[1,2]}"
 
 function _CONSTRUCTOR_FAILURE_PROBE() {
     local -a constructed_exclude_args
@@ -169,6 +171,8 @@ ASSERT_CONTAINS "_FIND lists regular files" "$find_output" "./visible.txt"
 ASSERT_CONTAINS "_FIND includes hidden files" "$find_output" "./.hidden.txt"
 ASSERT_CONTAINS "_FIND lists big files (no size limit on path finding)" "$find_output" "./big.txt"
 ASSERT_NOT_CONTAINS "_FIND excludes gitignored dirs" "$find_output" "excluded.txt"
+ASSERT_NOT_CONTAINS "_FIND excludes gitignored file patterns" "$find_output" "compiled.pyc"
+ASSERT_NOT_CONTAINS "_FD excludes gitignored file patterns" "$(_FD 2>> "$WARN_LOG")" "compiled.pyc"
 
 parity_diff=$(diff <(_FIND 2>> "$WARN_LOG" | sort) <(_FD 2>> "$WARN_LOG" | sort))
 ASSERT_EQUALS "engine parity: _FIND and _FD return identical file sets" "" "$parity_diff"
@@ -220,6 +224,7 @@ ASSERT_EQUALS "GREPT extension restriction" "./script.py:1:python_sentinel = 1" 
 ASSERT_EMPTY "GREPT wrong extension finds nothing" "$(TEST_GREPT txt python_sentinel 2>> "$WARN_LOG")"
 ASSERT_EMPTY "GREP skips files over 50MB" "$(TEST_GREP big_sentinel 2>> "$WARN_LOG")"
 ASSERT_EMPTY "GREP never searches excluded dirs" "$(TEST_GREP excluded_sentinel 2>> "$WARN_LOG")"
+ASSERT_EMPTY "GREP never searches gitignored file patterns" "$(TEST_GREP pyc_sentinel 2>> "$WARN_LOG")"
 
 grep_multi_ext=$(TEST_GREPT py txt multi_ext_sentinel 2>> "$WARN_LOG" | sort)
 ASSERT_CONTAINS "GREPT multiple extensions: matches .py" "$grep_multi_ext" "./ext1.py:1:"
@@ -242,6 +247,7 @@ ASSERT_CONTAINS "RGT is case-insensitive with extension filter" \
     "$(TEST_RGT py PYTHON_SENTINEL 2>> "$WARN_LOG")" "script.py:1:python_sentinel = 1"
 ASSERT_EMPTY "RG skips files over 50MB" "$(TEST_RG big_sentinel 2>> "$WARN_LOG")"
 ASSERT_EMPTY "RG never searches excluded dirs" "$(TEST_RG excluded_sentinel 2>> "$WARN_LOG")"
+ASSERT_EMPTY "RG never searches gitignored file patterns" "$(TEST_RG pyc_sentinel 2>> "$WARN_LOG")"
 ASSERT_CONTAINS "RGT lowercase ext matches uppercase .TXT files (glob-case-insensitive)" \
     "$(TEST_RGT txt sentinel_mixed 2>> "$WARN_LOG")" "MixedCase.TXT:1:"
 ASSERT_EQUALS "RG handles filenames with spaces" "./with space.txt:1:space_sentinel content" \
@@ -316,7 +322,7 @@ ASSERT_EQUALS "RGBALL requires all terms" "./brain/notes.txt" \
 ASSERT_EMPTY "RGBALL empty when any term is missing" \
     "$(TEST_RGBALL brainword_one zzz_no_such_term 2>> "$WARN_LOG")"
 ASSERT_EQUALS "RGBALL with a single term matches all files containing it" \
-    $'./brain/scratch/scratch.txt\n./brain/notes.txt' \
+    $'./brain/notes.txt\n./brain/scratch/scratch.txt' \
     "$(TEST_RGBALL brainword_one 2>> "$WARN_LOG" | sort)"
 ASSERT_EQUALS "RGBALL chains three terms" "./brain/notes.txt" \
     "$(TEST_RGBALL brainword_one and brainword_two 2>> "$WARN_LOG")"

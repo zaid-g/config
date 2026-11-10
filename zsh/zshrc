@@ -54,7 +54,7 @@ function COPY_DEFAULT_TMUX_PANES_SETUP_FILES_IF_MISSING() {
 function TB() {
     mkdir -p brain/scratch brain/logs brain/ai brain/command_output
     COPY_DEFAULT_TMUX_PANES_SETUP_FILES_IF_MISSING
-    touch brain/notes.txt brain/scratch/scratch.txt brain/related.txt brain/ai/ai.txt brain/tags.txt brain/brag.txt
+    touch -a brain/notes.txt brain/scratch/scratch.txt brain/related.txt brain/ai/ai.txt brain/tags.txt brain/brag.txt
     [[ "$IS_DEV_MACHINE" == "true" ]] && TCH
 }
 
@@ -571,7 +571,7 @@ function TARGZ() {
     temp_staging_dir_path="$(mktemp -d "$HOME/scratch/targz.XXXXXX")" || return 1
     print -r -- "$relative_file_paths" \
         | awk -v prefix="$input_dir_basename/" '{ sub(/^\.\//, ""); print prefix $0 }' \
-        | tar -czf "$temp_staging_dir_path/archive.tar.gz" -C "${full_input_dir_path:h}" -T - \
+        | COPYFILE_DISABLE=1 tar -czf "$temp_staging_dir_path/archive.tar.gz" -C "${full_input_dir_path:h}" -T - \
         && mv "$temp_staging_dir_path/archive.tar.gz" "$full_archive_path"
     local tar_and_publish_exit_code=$?
     rm -rf "$temp_staging_dir_path"
@@ -745,7 +745,7 @@ function CONSTRUCT_RG_EXCLUDE_ARGS_FROM_GITIGNORE_PATTERNS() {
     gitignore_patterns=("${(@f)$(GET_GITIGNORE_PATTERNS)}") || return 1
     local excluded_pattern
     for excluded_pattern in "${gitignore_patterns[@]}"; do
-        constructed_exclude_args+=(--glob "!**/$excluded_pattern/**")
+        constructed_exclude_args+=(--glob "!**/$excluded_pattern")
     done
 }
 
@@ -1052,16 +1052,11 @@ function VAI() {
 }
 
 function VP() {
-    local file_paths
-    if [ "$#" -eq 0 ]; then
-        file_paths=($(FIND_NON_IGNORED_FILE_PATHS_MATCHING_TYPES))  # All allowed file_paths
-    else
-        file_paths=($(FIND_NON_IGNORED_FILE_PATHS_MATCHING_TYPES "$@"))  # Filtered by extensions
-    fi
+    local -a file_paths=(${(f)"$(_FIND | FILTER_FILE_PATHS_FROM_STDIN_BY_EXTENSIONS "$@" | sort)"})
     if (( ${#file_paths[@]} )); then
         NVIM_APPNAME=$([[ "$IS_DEV_MACHINE" == "true" ]] && echo lazyvim || echo nvim) nvim "${file_paths[@]}"
     else
-        echo "No matching file paths found outside forbidden folders."
+        echo "No matching file paths found outside gitignored folders."
     fi
 }
 
@@ -1724,9 +1719,8 @@ function TOD() {
 function TOAI() {
     local brain_parent_path
     brain_parent_path=$(FIND_BRAIN_PARENT_PATH) || return 1
-    # TODO restore to 15 and 3 after testing
-    local -r MAX_SESSION_COUNT=5
-    local -r BATTERY_SAVING_LAUNCHED_SESSION_COUNT=2
+    local -r MAX_SESSION_COUNT=15
+    local -r BATTERY_SAVING_LAUNCHED_SESSION_COUNT=3
     # written by the kiro/claude Stop hooks (ai/record_tmux_window_ai_session.sh): one line each
     # time a session's tmux window name or position changes. A session's first line is written at
     # its first reply (so file order is creation order); its last line has its current window
@@ -1945,6 +1939,20 @@ function TMUX_KIRO_FORK_NEW_WINDOW() {
     tmux send-keys -t "$window_id" "KK '/chat load $kiro_saved_session_file_path'" Enter
 }
 
+# @claude_session_id is set on the pane by the claude Stop hook (ai/record_tmux_window_ai_session.sh)
+function TMUX_CLAUDE_FORK_NEW_WINDOW() {
+    local claude_session_id=$(tmux show-options -pqv -t "$TMUX_PANE" @claude_session_id)
+    if [[ -z "$claude_session_id" ]]; then
+        tmux display-message "No claude session recorded in this pane yet"
+        return 1
+    fi
+    local pane_path=$(tmux display-message -p -t "$TMUX_PANE" '#{pane_current_path}')
+    # new-window -t takes a window, not a pane
+    local current_window_id=$(tmux display-message -p -t "$TMUX_PANE" '#{window_id}')
+    local window_id=$(tmux new-window -a -P -F '#{window_id}' -t "$current_window_id" -c "$pane_path")
+    tmux send-keys -t "$window_id" "CC -r '$claude_session_id' --fork-session" Enter
+}
+
 function KLS() {
     local brain_parent_path
     FD_BRAIN_PARENTS_SORT_BY_LAST_OPENED "$@" \
@@ -2154,13 +2162,13 @@ function COLORS(){
 }
 
 export PS1='%F{$COLOR_THEME}%~ ▶%f '
-export zle_highlight=("paste:bg=${COLOR_HIGHLIGHT_TEXT_ZSH},fg=${COLOR_TEXT_IF_COLORED_BACKGROUND}" "region:bg=${COLOR_HIGHLIGHT_TEXT_ZSH},fg=${COLOR_TEXT_IF_COLORED_BACKGROUND}")
 export COLOR_THEME=28
 export COLOR_TEXT_IF_COLORED_BACKGROUND=16
 export COLOR_HIGHLIGHT_TEXT_ZSH=168
 export COLOR_HIGHLIGHT_TEXT_TMUX=25
 export COLOR_ACTIVE=196
 export COLOR_HEX_ACTIVE_BACKGROUND=350000
+export zle_highlight=("paste:bg=${COLOR_HIGHLIGHT_TEXT_ZSH},fg=${COLOR_TEXT_IF_COLORED_BACKGROUND}" "region:bg=${COLOR_HIGHLIGHT_TEXT_ZSH},fg=${COLOR_TEXT_IF_COLORED_BACKGROUND}")
 
 # %% -------- [others] ----------:
 

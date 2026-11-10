@@ -13,6 +13,9 @@ session_id=$(printf '%s\n' "$parsed" | sed -n 1p)
 cwd=$(printf '%s\n' "$parsed" | sed -n 2p)
 [ -n "$session_id" ] && [ -n "$cwd" ] || exit 0
 
+# lets TMUX_CLAUDE_FORK_NEW_WINDOW find the session running in this pane
+[ "$tool" = "claude" ] && tmux set-option -p -t "$TMUX_PANE" @claude_session_id "$session_id" 2>/dev/null
+
 window_name=$(tmux display-message -p -t "$TMUX_PANE" '#{window_name}' 2>/dev/null) || exit 0
 window_position=$(tmux display-message -p -t "$TMUX_PANE" '#{window_index}' 2>/dev/null) || exit 0
 
