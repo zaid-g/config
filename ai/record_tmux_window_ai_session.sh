@@ -25,10 +25,9 @@ while [ "$brain_parent_path" != "/" ] && [ ! -d "$brain_parent_path/brain" ]; do
 done
 [ -d "$brain_parent_path/brain" ] || exit 0
 
-mkdir -p "$brain_parent_path/brain/ai"
 tmux_windows_ai_sessions_file="$brain_parent_path/brain/ai/tmux_windows_ai_sessions.tsv"
 last_window=$(awk -F'\t' -v tool="$tool" -v id="$session_id" \
-    '$2 == tool && $3 == id { last = $4 "\t" $5 } END { print last }' "$tmux_windows_ai_sessions_file" 2>/dev/null)
+    '$2 == tool && $3 == id { last = $4 "\t" $5 } END { print last }' "$tmux_windows_ai_sessions_file")
 current_window=$(printf '%s\t%s' "$window_name" "$window_position")
 [ "$last_window" = "$current_window" ] && exit 0
 printf '%s\t%s\t%s\t%s\t%s\n' "$(date +%Y_%m_%d-%H_%M_%S)" "$tool" "$session_id" "$window_name" "$window_position" \

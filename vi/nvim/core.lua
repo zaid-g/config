@@ -64,6 +64,13 @@ vim.keymap.set("n", "m<c-n>", "g<C-g>")
 
 -- %% -------- [highlight, color, search, jump, find, and replace] ----------:
 
+-- n always searches down and N always up, whether the search was started with / or ?
+-- (zv opens a fold if the match is inside one, as LazyVim's own mapping does)
+vim.keymap.set("n", "n", "'Nn'[v:searchforward].'zv'", { expr = true })
+vim.keymap.set("n", "N", "'nN'[v:searchforward].'zv'", { expr = true })
+vim.keymap.set({ "x", "o" }, "n", "'Nn'[v:searchforward]", { expr = true })
+vim.keymap.set({ "x", "o" }, "N", "'nN'[v:searchforward]", { expr = true })
+
 function JumpToPattern(count, pattern, flags, center)
 	for _ = 1, count do
 		vim.fn.search(pattern, flags)

@@ -54,7 +54,7 @@ function COPY_DEFAULT_TMUX_PANES_SETUP_FILES_IF_MISSING() {
 function TB() {
     mkdir -p brain/scratch brain/logs brain/ai brain/command_output
     COPY_DEFAULT_TMUX_PANES_SETUP_FILES_IF_MISSING
-    touch -a brain/notes.txt brain/scratch/scratch.txt brain/related.txt brain/ai/ai.txt brain/tags.txt brain/brag.txt
+    touch -a brain/notes.txt brain/scratch/scratch.txt brain/related.txt brain/ai/ai.txt brain/ai/tmux_windows_ai_sessions.tsv brain/tags.txt brain/brag.txt
     [[ "$IS_DEV_MACHINE" == "true" ]] && TCH
 }
 
@@ -563,7 +563,14 @@ function TARGZ() {
     [[ -d "$full_input_dir_path" ]] || { echo "Error: '${1:-.}' is not a directory" >&2; return 1; }
     local input_dir_basename="${full_input_dir_path:t}"
     local full_archive_path="$HOME/Downloads/${input_dir_basename}.tar.gz"
-    [[ -e "$full_archive_path" ]] && { print -u2 "Error: archive already exists:"; print -ru2 -- "$full_archive_path"; return 1; }
+    if [[ -e "$full_archive_path" ]]; then
+        print -ru2 -- "Archive already exists: $full_archive_path"
+        local overwrite_answer
+        print -nu2 "Overwrite it? [y/N] "
+        read -q overwrite_answer </dev/tty
+        print -u2
+        [[ "$overwrite_answer" == y ]] || return 1
+    fi
     local relative_file_paths
     relative_file_paths="$(cd "$full_input_dir_path" && _FIND)" || return 1
     [[ -n "$relative_file_paths" ]] || { echo "Error: no files to archive in '$full_input_dir_path'" >&2; return 1; }
@@ -1000,7 +1007,7 @@ function VB() {
     local file_paths=(
         **/notes.txt
         **/scratch.txt
-        **/ai.txt
+        **/tmux_windows_ai_sessions.tsv
         **/brag.txt
         **/pane_0.txt
         **/pane_1.txt
@@ -1729,17 +1736,15 @@ function TOAI() {
     local -A window_name_by_session_key window_position_by_session_key last_line_number_by_session_key
     local recorded_at tool session_id window_name window_position session_key
     local -i line_number=0
-    if [[ -f "$tmux_windows_ai_sessions_file" ]]; then
-        while IFS=$'\t' read -r recorded_at tool session_id window_name window_position; do
-            (( ++line_number ))
-            [[ "$tool" == (kiro|claude) && -n "$session_id" ]] || continue
-            session_key="$tool/$session_id"
-            (( ${+window_name_by_session_key[$session_key]} )) || session_keys+=("$session_key")
-            window_name_by_session_key[$session_key]="$window_name"
-            window_position_by_session_key[$session_key]="$window_position"
-            last_line_number_by_session_key[$session_key]=$line_number
-        done < "$tmux_windows_ai_sessions_file"
-    fi
+    while IFS=$'\t' read -r recorded_at tool session_id window_name window_position; do
+        (( ++line_number ))
+        [[ "$tool" == (kiro|claude) && -n "$session_id" ]] || continue
+        session_key="$tool/$session_id"
+        (( ${+window_name_by_session_key[$session_key]} )) || session_keys+=("$session_key")
+        window_name_by_session_key[$session_key]="$window_name"
+        window_position_by_session_key[$session_key]="$window_position"
+        last_line_number_by_session_key[$session_key]=$line_number
+    done < "$tmux_windows_ai_sessions_file"
     # no recorded sessions yet: start a new one here
     (( ${#session_keys} == 0 )) && { AI; return; }
     # the newest MAX_SESSION_COUNT sessions by creation
