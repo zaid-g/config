@@ -320,7 +320,7 @@ function PROCESS_DOWNLOAD_FILES_PATHS() {
     fi
     local actual_file_count=$(ls ~/Downloads 2>/dev/null | wc -l | tr -d ' ')
     (( file_count > actual_file_count )) && file_count=$actual_file_count
-    local file_names_in_downloads=$(ls -Art ~/Downloads 2>/dev/null | tail -n $file_count)
+    local file_names_in_downloads=$(ls -Artc ~/Downloads 2>/dev/null | tail -n $file_count)
     [[ -z "$file_names_in_downloads" ]] && { echo "No files found" >&2; return 1; }
     echo "$file_names_in_downloads" | while IFS= read -r file_name; do
         downloads_file_path="$HOME/Downloads/$file_name"
@@ -407,7 +407,7 @@ function LSBP() {
     ls "$brain_parent_path/${1:-}"
 }
 
-# ls -ltr that prints each entry's full path; args are directories (default: cwd)
+# ls -ltrc that prints each entry's full path; args are directories (default: cwd)
 function LLR() {
     local -a directory_paths=("${@:-.}")
     local directory_path
@@ -418,14 +418,14 @@ function LLR() {
         file_paths+=("${directory_path:a}"/*(N))
     done
     (( ${#file_paths[@]} == 0 )) && { echo "No files found" >&2; return 1; }
-    ls -ltrd --color=auto "${file_paths[@]}"
+    ls -ltrdc --color=auto "${file_paths[@]}"
 }
 
 function LLD() {
     local display_count=${1:-5}
     local total_file_count=$(ls ~/Downloads | wc -l | tr -d ' ')
     (( total_file_count > display_count )) && echo "..."
-    ls -ltr --color=auto ~/Downloads/ | tail -n $display_count
+    ls -ltrc --color=auto ~/Downloads/ | tail -n $display_count
 }
 
 #  %% --- [FP] ---:
@@ -481,8 +481,8 @@ function MVTD() {
     for file_path in "$@"; do
         local resolved_path=$(readlink -f "$file_path")
         local cleaned_filename=$(CLEAN_FILENAME "$(basename "$resolved_path")")
-        mv -v "$file_path" ~/Downloads/"$cleaned_filename"
-        touch ~/Downloads/"$cleaned_filename"
+        mv -v "$file_path" ~/Downloads/"$cleaned_filename" \
+            && touch ~/Downloads/"$cleaned_filename"
     done
 }
 
@@ -511,7 +511,8 @@ function MVTT() {
     for file_path in "$@"; do
         local resolved_path=$(readlink -f "$file_path")
         local cleaned_filename=$(CLEAN_FILENAME "$(basename "$resolved_path")")
-        mv -v "$file_path" ~/trash/"$cleaned_filename"
+        mv -v "$file_path" ~/trash/"$cleaned_filename" \
+            && touch ~/trash/"$cleaned_filename"
     done
 }
 
@@ -615,7 +616,7 @@ alias FP='readlink -f' # this IS available on OS X by default
 alias LL="ls -l --color=auto"
 alias LLA="ls -lA --color=auto"
 alias LLT="LLR ~/trash"
-alias LSR="ls -tr --color=auto | tr '\n' '\0' | xargs -0 printf \"'%s'    \" && echo"
+alias LSR="ls -trc --color=auto | tr '\n' '\0' | xargs -0 printf \"'%s'    \" && echo"
 
 #  %% -------- [remote] ----------:
 
@@ -635,7 +636,7 @@ function UD() {
     local downloads_file_path destination_filename
     ssh "$REMOTE" "mkdir -p ~/Downloads"
     PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r downloads_file_path destination_filename; do
-        [ -e "$downloads_file_path" ] && rsync -avz "$downloads_file_path" "$REMOTE:~/Downloads/$destination_filename"
+        [ -e "$downloads_file_path" ] && rsync -avz --no-times "$downloads_file_path" "$REMOTE:~/Downloads/$destination_filename"
     done
 }
 
@@ -651,7 +652,7 @@ function U() {
     for file_path in "$@"; do
         full_file_paths+=($(readlink -f "$file_path"))
     done
-    rsync -avz "${full_file_paths[@]}" "$REMOTE:~/Downloads/"
+    rsync -avz --no-times "${full_file_paths[@]}" "$REMOTE:~/Downloads/"
 }
 
 # download from remote (remote filesystem to local Downloads)
@@ -678,7 +679,7 @@ function DD() {
         echo "Error: REMOTE environment variable must be set"
         return 1
     fi
-    local latest_file_in_remote_downloads=$(ssh "$REMOTE" "ls -Art ~/Downloads 2>/dev/null | tail -n 1")
+    local latest_file_in_remote_downloads=$(ssh "$REMOTE" "ls -Artc ~/Downloads 2>/dev/null | tail -n 1")
     if [ -z "$latest_file_in_remote_downloads" ]; then
         echo "❌ No files found in remote Downloads"
         return 1
