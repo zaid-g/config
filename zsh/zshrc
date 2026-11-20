@@ -444,7 +444,7 @@ function FPBP() {
 
 #  %% --- [rm] ---:
 
-function RD() {
+function RMD() {
     local downloads_file_path destination_filename
     PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r downloads_file_path destination_filename; do
         rm -rf "$downloads_file_path" && echo "Removed: $downloads_file_path"
@@ -452,6 +452,23 @@ function RD() {
 }
 
 #  %% --- [mv] ---:
+
+# rename the latest Downloads files in place to their cleaned name (optional prefix),
+# same arguments as MVFD: RD [count] [prefix]
+function RD() {
+    local downloads_file_path destination_filename destination_file_path
+    PROCESS_DOWNLOAD_FILES_PATHS "$@" | while IFS='|' read -r downloads_file_path destination_filename; do
+        destination_file_path="$HOME/Downloads/$destination_filename"
+        if [[ "$downloads_file_path" == "$destination_file_path" ]]; then
+            echo "Unchanged: $downloads_file_path"
+        elif [[ -e "$destination_file_path" ]]; then
+            echo "Skipped, already exists: $destination_file_path" >&2
+        else
+            mv "$downloads_file_path" "$destination_file_path" \
+                && printf "\033[2m%s ->\033[0m\n\033[32m%s\033[0m\n" "$downloads_file_path" "$destination_file_path"
+        fi
+    done
+}
 
 # mv folders from local Downloads to cwd in filesystem
 function MVFD() {
